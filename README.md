@@ -124,12 +124,23 @@ cd ../frontend && npm install
 백엔드 설정 파일을 수정합니다:
 ```bash
 # backend/src/config/config.ts 파일 수정
-export const private_key = "your-secret-key";
+export const private_key = "your-secret-key"; # jwt secret key
 export const admin_password = "your-admin-password";
-export const PORT = 7777;
+export const PORT = your-port; # server port
 export const KAKAO_REST_API_KEY = "your-kakao-api-key";
-export const KAKAO_REDIRECT_URL = "http://localhost:5050/kakaoLogin";
+export const KAKAO_REDIRECT_URL = "https://your-frontend-url/kakaoLogin";
 export const KAKAO_CLIENT_SECRET = "your-kakao-client-secret";
+```
+
+프론트 설정 파일을 수정합니다:
+```bash
+# frontend/config.local.json 파일 수정
+{
+    "loginURL": "your-discord-login-url",
+    "kakaoLoginAPIKEY": "your-kakao-api-key",
+    "kakaoLoginRediectURL": "your-kakao-login-redirection-url",
+    "serverURL": "https://your-server-url" # note : url 끝에 "/" 를 붙이지 마세요.
+}
 ```
 
 ### 4. 개발 모드 실행
@@ -153,6 +164,8 @@ npm run build
 # 백엔드 서버 실행
 cd backend
 node dist/index.js
+
+# note : 단순하게 npm start를 사용하셔도 됩니다.
 ```
 
 ### 7. 접속

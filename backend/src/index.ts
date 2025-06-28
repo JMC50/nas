@@ -13,6 +13,7 @@ import * as mkdirp from "mkdirp";
 import { pipeline } from "stream";
 import { promisify } from "util";
 import { v4 as uuidv4 } from "uuid";
+import { initializeDatabase } from "./sqlite";
 
 const app = express();
 
@@ -28,13 +29,7 @@ process.on("SIGINT", async () => {
     process.exit(0);
 });
 
-const check3 = fsNP.existsSync(`./db`);
-if(!check3){
-    fsNP.mkdirSync(`./db`);
-    console.log("created db folder");
-}
-
-(async() => {
+const checkFolders = async () => {
     const check = fsNP.existsSync(`../../nas-data`);
     if(!check){
         await fs.mkdir(`../../nas-data`);
@@ -46,10 +41,7 @@ if(!check3){
         await fs.mkdir(`../../nas-data-admin`);
         console.log("created admin data folder");
     }
-
-
-    initializeEntities();
-})()
+}
 
 app.get('/', async (req, res) => {
     res.end("server is running :D");
@@ -1325,6 +1317,9 @@ app.get("/deleteTempZip", async (req, res) => {
     }
 });
 
-const server = app.listen(PORT, () => {
+const server = app.listen(PORT, async () => {
+    await checkFolders();
+    initializeDatabase();
+    initializeEntities();
     console.log(`server is running at port : ${PORT}`);
 })

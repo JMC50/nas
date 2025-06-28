@@ -1,6 +1,6 @@
 import jwt from "jsonwebtoken";
 import { private_key } from "../config/config";
-import db from "../sqlite";
+import getDatabase from "../sqlite";
 
 export type intentList = "ADMIN"|"VIEW"|"OPEN"|"DOWNLOAD"|"UPLOAD"|"COPY"|"DELETE"|"RENAME";
 
@@ -55,6 +55,7 @@ export function jwtVerify(token: string) {
 }
 
 export async function getAllUsers() {
+    const db = getDatabase();
     const userRows = db.prepare('SELECT * FROM users').all() as UserRow[];
 
     const getIntents = db.prepare(`
@@ -74,6 +75,7 @@ export async function getAllUsers() {
 }
 
 export async function getUser(discordUserId: string) {
+    const db = getDatabase();
     const userRow = db
         .prepare('SELECT * FROM users WHERE userId = ?')
         .get(discordUserId) as UserRow;
@@ -93,6 +95,7 @@ export async function getUser(discordUserId: string) {
 }
 
 export async function saveUser(user: DiscordUserDetail, krname: string) {
+    const db = getDatabase();
     const insertUser = db.prepare(`
         INSERT INTO users (userId, username, global_name, krname)
         VALUES (?, ?, ?, ?)
@@ -142,6 +145,7 @@ export function createToken(userId: string) {
 }
 
 export async function getActivityLogs() {
+    const db = getDatabase();
     const rows = db.prepare(`
         SELECT log.activity, log.description, log.time, log.loc, users.userId, users.username, users.krname
         FROM log
@@ -162,6 +166,7 @@ export function convertLoc(loc:string) {
 }
 
 export async function insertLog(data: logdata) {
+    const db = getDatabase();
     const decoded = <jwt.JwtPayload>jwt.decode(data.token);
     const userId = decoded.userId;
 
@@ -187,6 +192,7 @@ export async function insertLog(data: logdata) {
 }
 
 export async function editIntent(discordUserId: string, intent: string) {
+    const db = getDatabase();
     const userRow = db
         .prepare('SELECT id FROM users WHERE userId = ?')
         .get(discordUserId) as UserRow;
@@ -208,8 +214,8 @@ export async function editIntent(discordUserId: string, intent: string) {
     }
 }
 
-
 export async function checkIntent(userId: string, intent: intentList) {
+    const db = getDatabase();
     const userRow = db.prepare('SELECT id FROM users WHERE userId = ?').get(userId) as UserRow;
     if (!userRow) return false;
 

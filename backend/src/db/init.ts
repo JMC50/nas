@@ -1,9 +1,10 @@
 import fs from 'fs';
 import path from 'path';
-import db from '../sqlite';
+import getDatabase from '../sqlite';
 import { EntitySchema } from './metadata';
 
 export function initializeEntities() {
+    const db = getDatabase();
     const entityDir = path.join(__dirname, '..', 'entity');
     const files = fs.readdirSync(entityDir).filter(file => file.endsWith('.ts') || file.endsWith('.js'));
 

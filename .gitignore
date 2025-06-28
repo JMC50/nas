@@ -1,4 +1,4 @@
 node_modules
 backend/dist
-# backend/db/*
+backend/db/*
 frontend/dist

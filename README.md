@@ -135,7 +135,7 @@ export const KAKAO_CLIENT_SECRET = "your-kakao-client-secret";
 ### 4. 개발 모드 실행
 ```bash
 # 전체 시스템 실행 (백엔드 + 프론트엔드)
-npm run test
+npm test
 
 # 또는 백엔드만 실행
 npm start
@@ -145,10 +145,6 @@ npm start
 ```bash
 # 프론트엔드 빌드
 cd frontend
-npm run build
-
-# 백엔드 빌드
-cd ../backend
 npm run build
 ```
 

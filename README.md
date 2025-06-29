@@ -106,7 +106,7 @@ frontend/
 
 ### 1. 저장소 클론
 ```bash
-git clone <repository-url>
+git clone https://github.com/JMC50/nas
 cd nas
 ```
 

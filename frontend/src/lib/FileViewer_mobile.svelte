@@ -7,6 +7,7 @@
     import htmlWorker from 'monaco-editor/esm/vs/language/html/html.worker?worker';
     import tsWorker from 'monaco-editor/esm/vs/language/typescript/ts.worker?worker';
     import { onMount } from "svelte";
+    import { useAuth } from "../store/store";
     
     interface Ifile{
         name: string;
@@ -51,7 +52,7 @@
     let loading = new Promise(res => {});
 
     async function loadEditor() {
-        const res = await fetch(`/server/getTextFile?loc=/${encodeURIComponent(file.loc)}&name=${encodeURIComponent(file.name)}`);
+        const res = await fetch(`/server/getTextFile?loc=/${encodeURIComponent(file.loc)}&name=${encodeURIComponent(file.name)}&token=${$useAuth.token}`);
         const data = await res.json();
         const content = data.content
 
@@ -172,11 +173,11 @@
     {:then value} 
         {#if file}
             {#if fileType == "img"}
-                <img src="/server/getImageData?loc=/{encodeURIComponent(file.loc)}&name={encodeURIComponent(file.name)}" alt="">
+                <img src="/server/getImageData?loc=/{encodeURIComponent(file.loc)}&name={encodeURIComponent(file.name)}&token={$useAuth.token}" alt="">
             {:else if fileType == "audio"}
-                <audio src="/server/getAudioData?loc=/{encodeURIComponent(file.loc)}&name={encodeURIComponent(file.name)}" controls></audio>
+                <audio src="/server/getAudioData?loc=/{encodeURIComponent(file.loc)}&name={encodeURIComponent(file.name)}&token={$useAuth.token}" controls></audio>
             {:else if fileType == "video"}
-                <video src="/server/getVideoData?loc=/{encodeURIComponent(file.loc)}&name={encodeURIComponent(file.name)}" controls></video>
+                <video src="/server/getVideoData?loc=/{encodeURIComponent(file.loc)}&name={encodeURIComponent(file.name)}&token={$useAuth.token}" controls></video>
             {:else if fileType == "text"}
                 <div id="editorContainer" bind:this={editorContainer}></div>
             {:else}

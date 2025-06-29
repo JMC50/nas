@@ -1,0 +1,6 @@
+{
+    "loginURL": "https://discord.com/oauth2/authorize?client_id=[your-client-id]&response_type=token&redirect_uri=[your-discord-redirection-url]&scope=identify", 
+    "kakaoLoginAPIKEY": "your-kakao-api-key",
+    "kakaoLoginRediectURL": "your-kakao-login-redirection-url",
+    "serverURL": "https://your-server-url"
+}

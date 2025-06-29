@@ -128,6 +128,9 @@
     async function loadData() {
         const fileloc = decodeURIComponent(location.href.split("loc=")[1].split("&")[0]);
         const filename = decodeURIComponent(location.href.split("name=")[1].split("&")[0]);
+
+        console.log(fileloc, filename);
+
         const match = filename.match(/\.([^.]+)$/);
         if(match){
             const extensions = match[1];

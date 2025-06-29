@@ -6,11 +6,11 @@
 
 - [시스템 개요](#-시스템-개요)
 - [주요 기능](#-주요-기능)
-- [아키텍처](#-아키텍처)
-- [기술 스택](#-기술-스택)
+- [아키텍처](#️-아키텍처)
+- [기술 스택](#️-기술-스택)
 - [설치 및 실행](#-설치-및-실행)
 - [API 문서](#-api-문서)
-- [데이터베이스 스키마](#-데이터베이스-스키마)
+- [데이터베이스 스키마](#️-데이터베이스-스키마)
 - [권한 시스템](#-권한-시스템)
 - [파일 관리 기능](#-파일-관리-기능)
 - [설정](#-설정)
@@ -136,7 +136,8 @@ export const KAKAO_CLIENT_SECRET = "your-kakao-client-secret";
 ```bash
 # frontend/config.local.json 파일 수정
 {
-    "loginURL": "your-discord-login-url",
+    "loginURL": "https://discord.com/oauth2/authorize?client_id=[your-client-id]&response_type=token&redirect_uri=[your-discord-redirection-url]&scope=identify", 
+    # note : 디스코드 로그인 url의 redirection url은 https://프론트url/login 이어야하며, respone_type=token 으로 설정해주세요. scope는 identify만 있으면 됩니다.
     "kakaoLoginAPIKEY": "your-kakao-api-key",
     "kakaoLoginRediectURL": "your-kakao-login-redirection-url",
     "serverURL": "https://your-server-url" # note : url 끝에 "/" 를 붙이지 마세요.

@@ -14,6 +14,7 @@
     import Setting from "./lib/Setting.svelte";
     import UserManager from "./lib/UserManager.svelte";
     import LoginRedirectKakao from "./lib/LoginRedirectKakao.svelte";
+    import LocalLogin from "./lib/LocalLogin.svelte";
     type options = "folder"|"information"|"account"|"setting"|"log";
 
     interface file{
@@ -81,6 +82,8 @@
         <LoginRedirect />
     {:else if location.pathname == "/kakaoLogin"}
         <LoginRedirectKakao />
+    {:else if location.pathname == "/localLogin"}
+        <LocalLogin />
     {:else}
         {#if screenType == "pc"}
             <div id="sideMenu">

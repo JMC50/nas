@@ -1,4 +1,41 @@
+# Dependencies
 node_modules
+
+# Build outputs
 backend/dist
-backend/db/*
 frontend/dist
+
+# Database files
+backend/db/*
+
+# Environment files
+.env
+.env.local
+.env.production
+
+# Logs
+logs/
+*.log
+
+# Runtime data
+pids/
+*.pid
+*.seed
+
+# OS specific files
+.DS_Store
+Thumbs.db
+
+# IDE specific files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Temporary files
+tmp/
+temp/
+
+/.claude/
+/.serena/
+CLAUDE.md

@@ -1,27 +1,30 @@
-import path from 'path';
-import Database, { Database as DatabaseType } from 'better-sqlite3';
-import fs from 'fs';
+import path from "path";
+import Database, { Database as DatabaseType } from "better-sqlite3";
+import fs from "fs";
+import { getDbPath, PATHS } from "./config/paths";
 
-const dbPath = path.join(__dirname, '..', 'db', 'nas.sqlite');
+const dbPath = getDbPath();
 let db: DatabaseType | null = null;
 
 export function initializeDatabase() {
-    if(!db){
-        const dbDir = path.dirname(dbPath);
-        if(!fs.existsSync(dbDir)){
-            fs.mkdirSync(dbDir, { recursive: true });
-        }
-        db = new Database(dbPath);
-        console.log("created db folder");
+  if (!db) {
+    const dbDir = path.dirname(dbPath);
+    if (!fs.existsSync(dbDir)) {
+      fs.mkdirSync(dbDir, { recursive: true });
     }
-    return db;
+    db = new Database(dbPath);
+    console.log(`Database initialized at: ${dbPath}`);
+  }
+  return db;
 }
 
 export function getDatabase() {
-    if (!db) {
-        throw new Error('Database not initialized. Call initializeDatabase() first.');
-    }
-    return db;
+  if (!db) {
+    throw new Error(
+      "Database not initialized. Call initializeDatabase() first."
+    );
+  }
+  return db;
 }
 
 export default getDatabase;

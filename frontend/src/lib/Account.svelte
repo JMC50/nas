@@ -1,7 +1,14 @@
 <script lang="ts">
     import { Logout, useAuth } from "../store/store";
+    import { onMount } from "svelte";
 
     type intentList = "ADMIN"|"VIEW"|"OPEN"|"DOWNLOAD"|"UPLOAD"|"COPY"|"DELETE"|"RENAME";
+
+    interface AuthConfig {
+        authType: 'oauth' | 'local' | 'both';
+        localAuthEnabled: boolean;
+        oauthEnabled: boolean;
+    }
 
     const loginURL = process.env.LOGIN_URL as string;
     const KAKAO_API_KEY = process.env.KAKAO_API_KEY as string;
@@ -10,6 +17,13 @@
     let loading = new Promise(res => {});
     let intents:intentList[];
     let unauthorized:intentList[] = ["ADMIN", "COPY", "DELETE", "DOWNLOAD", "OPEN", "RENAME", "UPLOAD", "VIEW"];
+    let authConfig: AuthConfig | null = null;
+
+    onMount(async () => {
+        // Get auth configuration
+        const res = await fetch('/server/auth/config');
+        authConfig = await res.json();
+    });
 
     async function login() {
         location.href = loginURL;
@@ -17,6 +31,10 @@
 
     async function loginWKakao() {
         location.href = `https://kauth.kakao.com/oauth/authorize?response_type=code&client_id=${KAKAO_API_KEY}&redirect_uri=${KAKAO_REDIRECT_URL}`;
+    }
+
+    async function loginLocal() {
+        location.href = "/localLogin";
     }
 
     async function logout() {
@@ -74,9 +92,20 @@
     {#if $useAuth.userId == ""}
         <div class="subtitle">Please login to use all functions</div>
         <div class="margin"></div>
-        <div class="button" on:click={login}>LOGIN WITH DISCORD</div>
-        <div class="margin"></div>
-        <div class="button" on:click={loginWKakao}>LOGIN WITH KAKAO</div>
+        {#if authConfig}
+            {#if authConfig.oauthEnabled}
+                <div class="button" on:click={login}>LOGIN WITH DISCORD</div>
+                <div class="margin"></div>
+                <div class="button" on:click={loginWKakao}>LOGIN WITH KAKAO</div>
+                <div class="margin"></div>
+            {/if}
+            {#if authConfig.localAuthEnabled}
+                <div class="button" on:click={loginLocal}>LOGIN WITH ID/PASSWORD</div>
+                <div class="margin"></div>
+            {/if}
+        {:else}
+            <div class="subtitle">Loading authentication options...</div>
+        {/if}
     {:else}
         <div class="subtitle">You're logged in !</div>
         <div class="subtitle">Hello {$useAuth.global_name} 👋</div>

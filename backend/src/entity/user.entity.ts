@@ -7,6 +7,8 @@ export const UserEntity: EntitySchema = {
         userId: { type: "TEXT", unique: true, notNull: true },
         username: { type: "TEXT", notNull: true },
         global_name: { type: "TEXT" },
-        krname: { type: "TEXT" }
+        krname: { type: "TEXT" },
+        password: { type: "TEXT" }, // For local authentication
+        auth_type: { type: "TEXT" } // 'oauth' or 'local'
     }
 };

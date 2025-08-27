@@ -1,0 +1,58 @@
+version: '3.8'
+
+services:
+  nas-app:
+    build:
+      context: .
+      target: production
+    container_name: nas-application
+    ports:
+      - "8086:7777"
+    volumes:
+      - nas-data:/app/data
+      - nas-admin-data:/app/admin-data
+      - nas-db:/app/db
+    environment:
+      - NODE_ENV=production
+      - PRIVATE_KEY=${PRIVATE_KEY}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD}
+      - AUTH_TYPE=${AUTH_TYPE:-both}
+      - CORS_ORIGIN=${CORS_ORIGIN:-*}
+      - MAX_FILE_SIZE=${MAX_FILE_SIZE:-50gb}
+      - PASSWORD_MIN_LENGTH=${PASSWORD_MIN_LENGTH:-8}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:7777/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  # Development service (uses .env file)
+  nas-dev:
+    build:
+      context: .
+      target: development
+    container_name: nas-development
+    ports:
+      - "8086:5050"
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/backend/node_modules
+      - /app/frontend/node_modules
+    environment:
+      - NODE_ENV=development
+      - PORT=7777
+      - HOST=0.0.0.0
+    command: npm run test
+    profiles:
+      - dev
+
+volumes:
+  nas-data:
+    driver: local
+  nas-admin-data:
+    driver: local
+  nas-db:
+    driver: local

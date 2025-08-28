@@ -80,7 +80,7 @@ const checkFolders = async () => {
     { path: PATHS.dataDir, name: "user data folder" },
     { path: PATHS.adminDataDir, name: "admin data folder" },
     { path: PATHS.dbDir, name: "database folder" },
-    { path: PATHS.tempDir, name: "temporary folder" }
+    { path: PATHS.tempDir, name: "temporary folder" },
   ];
 
   for (const folder of foldersToCreate) {
@@ -89,7 +89,7 @@ const checkFolders = async () => {
       console.log(`✅ Created ${folder.name}: ${folder.path}`);
     }
   }
-  
+
   console.log("📁 All necessary folders verified");
 };
 
@@ -367,7 +367,9 @@ app.get("/getImageData", async (req, res) => {
   }
 
   res.setHeader("Content-Type", contentType);
-  const file = await fs.readFile(path.join(PATHS.dataDir, loc.replace(/^\/+/, ""), name));
+  const file = await fs.readFile(
+    path.join(PATHS.dataDir, loc.replace(/^\/+/, ""), name)
+  );
   res.end(file);
 });
 
@@ -442,8 +444,16 @@ app.get("/copy", async (req, res) => {
     time: Date.now(),
   });
 
-  const sourcePath = path.join(PATHS.dataDir, originLoc.replace(/^\/+/, ""), fileName);
-  const targetPath = path.join(PATHS.dataDir, targetLoc.replace(/^\/+/, ""), fileName);
+  const sourcePath = path.join(
+    PATHS.dataDir,
+    originLoc.replace(/^\/+/, ""),
+    fileName
+  );
+  const targetPath = path.join(
+    PATHS.dataDir,
+    targetLoc.replace(/^\/+/, ""),
+    fileName
+  );
 
   const stat = await fs.stat(sourcePath);
 
@@ -490,8 +500,16 @@ app.get("/move", async (req, res) => {
     time: Date.now(),
   });
 
-  const sourcePath = path.join(PATHS.dataDir, originLoc.replace(/^\/+/, ""), fileName);
-  const targetPath = path.join(PATHS.dataDir, targetLoc.replace(/^\/+/, ""), fileName);
+  const sourcePath = path.join(
+    PATHS.dataDir,
+    originLoc.replace(/^\/+/, ""),
+    fileName
+  );
+  const targetPath = path.join(
+    PATHS.dataDir,
+    targetLoc.replace(/^\/+/, ""),
+    fileName
+  );
 
   try {
     await fs.rename(sourcePath, targetPath);
@@ -800,7 +818,9 @@ app.get("/makedir", async (req, res) => {
     time: Date.now(),
   });
 
-  const check = fsNP.existsSync(path.join(PATHS.dataDir, loc.replace(/^\/+/, ""), name));
+  const check = fsNP.existsSync(
+    path.join(PATHS.dataDir, loc.replace(/^\/+/, ""), name)
+  );
   if (check) {
     res.end("failed");
   } else {
@@ -834,7 +854,9 @@ app.get("/readFolder", async (req, res) => {
     return;
   }
 
-  const dir = await fs.opendir(path.join(PATHS.dataDir, loc.replace(/^\/+/, "")));
+  const dir = await fs.opendir(
+    path.join(PATHS.dataDir, loc.replace(/^\/+/, ""))
+  );
   const arr = [];
   for await (let i of dir) {
     const match = i.name.match(/\.([^.]+)$/);

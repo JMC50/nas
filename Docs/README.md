@@ -2,26 +2,33 @@
 
 Welcome to the comprehensive documentation for the NAS File Manager application - a modern, full-stack web-based Network Attached Storage system.
 
-## 🚀 Quick Navigation
+## 🚀 Getting Started
 
-### 🛠️ Development
-- **[Development Guide](development/development-guide.md)** - Complete development environment setup and workflow
-- **[API Reference](development/api-reference.md)** - Backend API endpoints and usage
-- **[Component Guide](development/component-guide.md)** - Frontend component architecture
-- **[Testing Guide](development/testing-guide.md)** - Testing procedures and best practices
+### 🎯 New User Path (Recommended)
+**90% of users should start here** - simple fork-based installation:
+- **[Main README](../README.md)** (Korean) - One-click Docker installation with auto-updates
+- **[Main README](../README_EN.md)** (English) - Fork-based deployment guide  
+- **[Deployment Pipeline Guide](DEPLOYMENT_PIPELINE.md)** - Technical details of the automated system
 
-### 🚢 Deployment
-- **[Deployment Guide](deployment/deployment-guide.md)** - Complete deployment across all platforms
-- **[Docker Guide](deployment/docker-guide.md)** - Docker-specific deployment options
-- **[Systemd Service](deployment/systemd-service.md)** - System service setup for auto-startup
-- **[Production Setup](deployment/production-setup.md)** - Production environment configuration
+> ✅ **Quick Start**: Fork repository → Edit 3 variables → `docker-compose up -d` → Done!
 
-### ⚙️ Configuration
+### 🔧 Advanced Configuration
+Once your basic system is running, explore these advanced features:
 - **[Environment Setup](configuration/environment-setup.md)** - Complete environment configuration guide
 - **[Authentication Setup](configuration/authentication.md)** - OAuth and local authentication configuration
 - **[Storage Configuration](configuration/storage-config.md)** - File system and storage settings
 
-### 🔧 Operations
+## 🛠️ Development & Technical Documentation
+
+### 🏗️ System Architecture
+- **[Development Guide](development/development-guide.md)** - Complete development environment setup and workflow
+- **[API Reference](development/api-reference.md)** - Backend API endpoints and usage
+
+### 🚢 Deployment Options
+- **[Deployment Guide](deployment/deployment-guide.md)** - Complete deployment across all platforms
+- **[Systemd Service](deployment/systemd-service.md)** - System service setup for auto-startup
+
+### 🔧 Operations & Maintenance
 - **[Troubleshooting](operations/troubleshooting.md)** - Common issues and solutions
 - **[Maintenance](operations/maintenance.md)** - System maintenance procedures
 - **[Monitoring](operations/monitoring.md)** - Monitoring and logging setup
@@ -140,12 +147,12 @@ sudo systemctl start nas-app.service
 | OAuth Integration | ✅ Complete | [Authentication Setup](configuration/authentication.md) |
 | Local Authentication | ✅ Complete | [Authentication Setup](configuration/authentication.md) |
 | Permission System | ✅ Complete | [API Reference](development/api-reference.md) |
-| Mobile Interface | ✅ Complete | [Component Guide](development/component-guide.md) |
-| Docker Support | ✅ Complete | [Docker Guide](deployment/docker-guide.md) |
+| Mobile Interface | ✅ Complete | [Development Guide](development/development-guide.md) |
+| Docker Support | ✅ Complete | [Deployment Guide](deployment/deployment-guide.md) |
 | Systemd Service | ✅ Complete | [Systemd Service](deployment/systemd-service.md) |
 | Activity Logging | ✅ Complete | [Monitoring](operations/monitoring.md) |
-| System Information | ✅ Complete | [Component Guide](development/component-guide.md) |
-| File Preview | ✅ Complete | [Component Guide](development/component-guide.md) |
+| System Information | ✅ Complete | [Development Guide](development/development-guide.md) |
+| File Preview | ✅ Complete | [Development Guide](development/development-guide.md) |
 
 ## 🔍 Documentation Standards
 

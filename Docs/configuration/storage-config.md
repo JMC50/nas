@@ -778,4 +778,4 @@ echo "✅ Storage configuration validation complete"
 
 ---
 
-*For additional storage optimization and advanced configurations, see [Performance Guide](../operations/performance-guide.md) and [Backup & Restore Guide](../operations/backup-restore.md).*
+*For additional storage optimization and advanced configurations, see [Backup & Restore Guide](../operations/backup-restore.md) and [Troubleshooting Guide](../operations/troubleshooting.md).*

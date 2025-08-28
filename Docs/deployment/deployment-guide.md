@@ -1,89 +1,117 @@
 # 🚀 Deployment Guide
 
-Complete deployment guide for the NAS File Manager application across different platforms and environments.
+Complete deployment guide for the NAS File Manager application - from simple fork-based deployment to advanced enterprise setups.
 
 ## 📋 Table of Contents
 
-- [Quick Start](#quick-start)
-- [Deployment Options](#deployment-options)  
+- [🎯 Quick Start (Recommended)](#quick-start-recommended)
 - [System Requirements](#system-requirements)
-- [Docker Deployment](#docker-deployment)
-- [Manual Linux Deployment](#manual-linux-deployment)
-- [Systemd Service Setup](#systemd-service-setup)
+- [⚙️ Advanced Deployment Options](#advanced-deployment-options)
 - [Production Configuration](#production-configuration)
 - [Reverse Proxy Setup](#reverse-proxy-setup)
 - [SSL/HTTPS Setup](#sslhttps-setup)
 - [Monitoring & Maintenance](#monitoring--maintenance)
 - [Troubleshooting](#troubleshooting)
 
-## Quick Start
+## 🎯 Quick Start (Recommended)
 
-### Docker (Recommended)
+### Fork-Based Auto-Updating Docker Deployment
+
+**90% of users should use this method** - it provides automatic updates, minimal configuration, and zero maintenance.
+
+#### 1. Fork Repository
 ```bash
-# Clone and configure
-git clone <your-repo>
-cd nas-main
+# Fork this repository to your GitHub account
+# https://github.com/original-author/nas → Click Fork button
+```
+
+#### 2. Clone Your Fork
+```bash
+git clone https://github.com/YOUR-USERNAME/nas.git
+cd nas
+```
+
+#### 3. Configure Environment
+```bash
+# Create environment file
 cp .env.example .env
-# Edit .env with your settings
 
-# Deploy production
-docker-compose up -d nas-app
+# Edit ONLY these 3 required variables:
+nano .env
 ```
 
-### Linux with Systemd Service
+**Required changes in .env:**
+```env
+# Change to your GitHub repository (important!)
+GITHUB_REPOSITORY=YOUR-USERNAME/nas
+
+# Change secret key (generate random 32+ character string)
+JWT_SECRET=your-random-64-character-string
+
+# Change admin password
+ADMIN_PASSWORD=your-secure-password
+```
+
+#### 4. One-Click Deploy
 ```bash
-# Install and configure
-git clone <your-repo>
-cd nas-main
-npm install && npm run build
+# Deploy with auto-updates
+docker-compose up -d
 
-# Setup system service
-sudo cp nas-app.service /etc/systemd/system/
-sudo systemctl enable nas-app.service
-sudo systemctl start nas-app.service
+# Verify deployment
+docker-compose ps
+curl http://localhost:7777
 ```
 
-## Deployment Options
+#### 5. Access Your NAS
+- **Web Interface**: http://localhost:7777
+- **Login**: Use `ADMIN_PASSWORD` from your .env file
+- **Auto-Updates**: Watchtower checks for updates every 5 minutes
 
-| Method | Best For | Complexity | Auto-Start | Isolation |
-|--------|----------|------------|------------|-----------|
-| **Docker** | Production, scaling | Low | ✅ | High |
-| **Systemd Service** | Linux servers | Medium | ✅ | Medium |
-| **Manual** | Development, testing | Low | ❌ | Low |
-| **PM2** | Node.js environments | Medium | ✅ | Low |
+**✅ Done!** Your NAS is running with automatic updates. When you push code changes to your fork, they'll automatically deploy to all your servers.
+
+## ⚙️ Advanced Deployment Options
+
+**For power users who need custom configurations**. Most users should use the [Quick Start](#quick-start-recommended) method above.
+
+### When to Use Advanced Options
+
+| Method | Best For | Use Case |
+|--------|----------|----------|
+| **Manual Linux** | Custom environments | When Docker isn't available |
+| **Systemd Service** | Linux system integration | When you need OS-level service management |
+| **PM2 Process Manager** | Node.js ecosystems | When you're already using PM2 |
 
 ## System Requirements
 
-### Minimum Requirements
-- **CPU**: 1 core, 1 GHz
-- **RAM**: 1 GB available
-- **Storage**: 2 GB for application + user files
-- **OS**: Linux (Ubuntu 20.04+), Windows 10+, macOS 10.15+
+### For Fork-Based Docker Deployment (Recommended)
+- **Docker**: Version 20.10+
+- **Docker Compose**: Version 2.0+
+- **RAM**: 512MB minimum, 2GB recommended
+- **Storage**: 1GB minimum (plus space for your files)
+- **OS**: Any Docker-supported system (Linux, Windows, macOS)
 
-### Recommended Production
+### For Advanced Manual Deployment
 - **CPU**: 2+ cores, 2+ GHz  
 - **RAM**: 4 GB available
 - **Storage**: SSD, 10+ GB for application + user files
 - **OS**: Ubuntu 22.04 LTS or newer
+- **Node.js**: Version 20 or higher
 - **Network**: Static IP, domain name for HTTPS
 
-### Software Dependencies
-- **Node.js**: Version 20 or higher
-- **npm**: Version 10+ (comes with Node.js)
-- **SQLite**: Built into Node.js dependencies
-- **Docker**: Version 20.10+ (for Docker deployment)
+### Advanced Docker Configuration
 
-## Docker Deployment
+**Note**: Most users should use the [Quick Start](#quick-start-recommended) method. This section is for users who need custom Docker configurations.
 
-### Production Docker Setup
+#### Custom Docker Compose Setup
 
-#### 1. Prepare Environment
+If you need to customize volumes, networks, or other Docker settings:
+
 ```bash
-# Clone repository
-git clone <your-repository>
-cd nas-main
+# Clone your forked repository
+git clone https://github.com/YOUR-USERNAME/nas.git
+cd nas
 
-# Create environment configuration
+# Create custom environment configuration
 cp .env.example .env
 ```
 
@@ -226,9 +254,11 @@ docker-compose down
 docker system prune -f
 ```
 
-## Manual Linux Deployment
+### Manual Linux Deployment
 
-### 1. System Preparation
+**For advanced users only** - most users should use the [Quick Start Docker method](#quick-start-recommended).
+
+#### 1. System Preparation
 
 #### Install Node.js 20
 ```bash
@@ -635,7 +665,7 @@ sudo certbot renew --dry-run
 
 ### Manual SSL Configuration
 
-For custom SSL certificates, see [Security Configuration](../configuration/security-config.md).
+For custom SSL certificates, see [Environment Setup](../configuration/environment-setup.md).
 
 ## Monitoring & Maintenance
 

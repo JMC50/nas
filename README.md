@@ -1,272 +1,225 @@
-# 🗂️ NAS File Manager
+# 🚀 오픈소스 NAS 시스템
 
-A modern, production-ready Network Attached Storage (NAS) file management system with comprehensive web interface, built with Svelte 5 and Express.js.
+완전 자동화된 Docker 기반 NAS 파일 관리 시스템
 
-## ✨ Key Features
+## ⚡ 주요 특징
 
-### 📁 Complete File Management
-- **Full CRUD Operations**: Upload, download, rename, delete, copy, move files and directories
-- **Drag & Drop Interface**: Intuitive file operations with progress tracking
-- **Large File Support**: Handle files up to 50GB with resumable uploads
-- **Batch Operations**: ZIP/unzip, bulk file operations, folder compression
-- **File Preview**: Built-in text editor with Monaco Editor integration
+- **🔥 원클릭 설치**: `docker-compose up -d` 한 번으로 완료
+- **🔄 자동 업데이트**: 새 버전 릴리스 시 자동 배포
+- **🐋 경량 Alpine**: 250MB 이하 초경량 이미지
+- **🔒 보안 강화**: JWT 인증 + non-root 실행
+- **📱 반응형 웹UI**: 모든 디바이스에서 접근 가능
 
-### 🎵 Advanced Media Support  
-- **Streaming Playback**: Range-request streaming for audio and video files
-- **Format Support**: MP4, MP3, WebM, and other common media formats
-- **Responsive Players**: Mobile-optimized media controls
-- **Thumbnail Generation**: Automatic image previews and thumbnails
+## 🚨 중요: Fork 필수!
 
-### 🔐 Enterprise Authentication
-- **Multi-Provider Support**: Discord OAuth, Kakao OAuth, and local ID/Password
-- **Flexible Configuration**: Choose OAuth-only, local-only, or hybrid authentication
-- **Permission System**: Granular intent-based access control (ADMIN, VIEW, DOWNLOAD, UPLOAD, COPY, DELETE, RENAME)
-- **Session Management**: Secure JWT-based sessions with configurable expiration
-- **Password Policies**: Configurable complexity requirements for production security
+이 프로젝트를 사용하려면 **반드시 본인 계정으로 Fork**해야 합니다.
 
-### 🖥️ System Management
-- **User Administration**: Complete user management with permission control
-- **Activity Logging**: Comprehensive audit trails for all file operations
-- **System Information**: Real-time CPU, memory, disk usage monitoring
-- **Health Checks**: Built-in monitoring and alerting capabilities
+### 왜 Fork가 필요한가요?
 
-### 🚀 Production Deployment
-- **Systemd Integration**: Native Linux service with auto-startup and monitoring
-- **Docker Support**: Multi-stage containerized deployment with volume persistence
-- **Reverse Proxy Ready**: Nginx/Apache configuration with SSL support
-- **Auto-Scaling**: Process management with automatic restart on failure
+- 🔧 **본인만의 이미지**: 각자의 GitHub Container Registry 사용
+- 💰 **비용 절약**: 원본 저장소 대역폭 비용 방지
+- 🎛️ **자유로운 커스터마이징**: 개인 요구사항에 맞게 수정 가능
+- 🔄 **독립적인 업데이트**: 본인 일정에 맞춰 업데이트 관리
 
-### 📱 Cross-Platform Design
-- **Responsive Interface**: Adaptive design for desktop, tablet, and mobile
-- **Mobile Components**: Dedicated mobile interface components
-- **Touch-Friendly**: Optimized for touch interactions and gestures
-- **Progressive Web App**: Installable web app capabilities
+## 📋 설치 가이드
 
-## 🚀 Quick Start
-
-### Development Setup
+### 1단계: Repository Fork
 ```bash
-git clone <your-repository>
-cd nas-main
-npm run test
-# Access: http://localhost:5050 (frontend) + http://localhost:7777 (backend)
+# GitHub에서 이 저장소를 본인 계정으로 Fork
+# https://github.com/original-author/nas → Fork 버튼 클릭
 ```
 
-### Production Docker Deployment
+### 2단계: Fork된 저장소 클론
 ```bash
-# Configure environment
+git clone https://github.com/YOUR-USERNAME/nas.git
+cd nas
+```
+
+### 3단계: 환경 설정
+```bash
+# .env 파일 생성
 cp .env.example .env
-# Edit .env with your production settings
 
-# Deploy with Docker Compose
-docker-compose up -d nas-app
-# Access: http://your-server:7777
+# 필수 설정 수정
+vim .env
 ```
 
-### Linux Systemd Service
+**수정 필요한 항목들:**
 ```bash
-# Install as system service (auto-start on boot)
-sudo cp nas-app.service /etc/systemd/system/
-sudo systemctl enable nas-app.service
-sudo systemctl start nas-app.service
-# Access: http://your-server:7777
+# 본인의 GitHub 저장소로 변경 (중요!)
+GITHUB_REPOSITORY=YOUR-USERNAME/nas
+
+# 시크릿 키 변경 (보안 필수!)
+JWT_SECRET=your-random-64-character-string
+
+# 관리자 비밀번호 변경
+ADMIN_PASSWORD=your-secure-password
+
+# 데이터 저장 경로
+DATA_PATH=./data
 ```
 
-## 🏗️ Architecture
-
-### Technology Stack
-- **Frontend**: Svelte 5 + TypeScript + Vite with hot reload
-- **Backend**: Express.js + TypeScript with comprehensive API
-- **Database**: SQLite with Write-Ahead Logging and entity-based schema
-- **Authentication**: JWT with bcrypt password hashing
-- **Storage**: Configurable file system with cross-platform path resolution
-- **Deployment**: Multi-stage Docker builds with Ubuntu 22.04 base
-
-### Component Architecture
-```
-📦 NAS Application
-├── 🎨 Frontend (Svelte 5)
-│   ├── File Explorer with mobile variants
-│   ├── Media players and file viewers
-│   ├── User management interface
-│   ├── System monitoring dashboard
-│   └── Authentication components
-├── ⚙️ Backend (Express.js)
-│   ├── REST API with 40+ endpoints
-│   ├── JWT authentication middleware
-│   ├── File operation handlers
-│   ├── Media streaming engine
-│   └── Database integration layer
-├── 🗄️ Data Layer (SQLite)
-│   ├── User management with permissions
-│   ├── Activity logging system
-│   └── Configuration storage
-└── 🚀 Deployment
-    ├── Docker containerization
-    ├── Systemd service integration
-    └── Reverse proxy configuration
-```
-
-## 📚 Complete Documentation
-
-Comprehensive documentation covering all aspects from development to production:
-
-### 🛠️ Development
-- **[Development Guide](Docs/development/development-guide.md)** - Complete setup, workflow, and coding standards
-- **[API Reference](Docs/development/api-reference.md)** - Full REST API documentation with examples
-- **[Component Guide](Docs/development/component-guide.md)** - Frontend architecture and components
-- **[Testing Guide](Docs/development/testing-guide.md)** - Testing procedures and best practices
-
-### 🚢 Deployment & Infrastructure
-- **[Deployment Guide](Docs/deployment/deployment-guide.md)** - Production deployment across all platforms
-- **[Docker Guide](Docs/deployment/docker-guide.md)** - Container deployment and orchestration
-- **[Systemd Service](Docs/deployment/systemd-service.md)** - Linux service setup and management
-- **[Production Setup](Docs/deployment/production-setup.md)** - Production environment configuration
-
-### ⚙️ Configuration
-- **[Environment Setup](Docs/configuration/environment-setup.md)** - Complete configuration reference
-- **[Authentication Config](Docs/configuration/authentication.md)** - OAuth and security setup
-- **[Storage Configuration](Docs/configuration/storage-config.md)** - File systems and storage backends
-
-### 🔧 Operations & Maintenance  
-- **[Troubleshooting](Docs/operations/troubleshooting.md)** - Comprehensive problem-solving guide
-- **[Maintenance](Docs/operations/maintenance.md)** - System maintenance procedures
-- **[Monitoring](Docs/operations/monitoring.md)** - Performance monitoring and alerting
-- **[Backup & Restore](Docs/operations/backup-restore.md)** - Data protection and disaster recovery
-
-**📖 [Complete Documentation Index](Docs/README.md)** - Full documentation navigation
-
-## 🎯 Use Cases
-
-- **Personal Cloud Storage**: Host your own private file server
-- **Media Center**: Stream your music and video collection
-- **Team Collaboration**: Share files within small teams
-- **Development Assets**: Store and manage project resources
-- **Home Network Storage**: Central file hub for your home network
-
-## 📋 Requirements
-
-### Development
-- Node.js 20+
-- npm 10+
-- Git
-- Modern web browser
-
-### Production
-- Docker and Docker Compose
-- 2GB+ RAM recommended
-- Adequate storage for your files
-
-## 🔧 Configuration
-
-The application uses a centralized `.env` file for all configuration:
-
-```env
-# Basic setup
-NODE_ENV=production
-PORT=7777
-AUTH_TYPE=both
-
-# Security
-PRIVATE_KEY=your-secure-secret-key
-ADMIN_PASSWORD=your-secure-admin-password
-
-# Storage paths (auto-detected for platform)
-NAS_DATA_DIR=../../nas-data         # Development
-# NAS_DATA_DIR=/app/data             # Docker
-# NAS_DATA_DIR=/home/nas/storage     # Linux production
-```
-
-See [Environment Setup](Docs/configuration/environment-setup.md) for complete configuration options.
-
-## 🚀 Deployment Options
-
-### Docker (Recommended)
+### 4단계: 원클릭 설치
 ```bash
-docker run -d --name nas-app -p 7777:7777 \
-  -e PRIVATE_KEY="your-key" -e ADMIN_PASSWORD="your-password" \
-  -v nas-data:/app/data nas-app:latest
+# 자동 설치 스크립트 실행
+chmod +x scripts/setup.sh
+./scripts/setup.sh
+
+# 또는 직접 실행
+docker-compose up -d
 ```
 
-### Manual Linux Deployment
+### 5단계: 접속 확인
 ```bash
-# Install dependencies
-sudo apt install nodejs npm python3 build-essential sqlite3
+# 웹 인터페이스 접속
+http://localhost:7777
 
-# Setup application
-npm install && npm run build
-
-# Configure environment
-cp .env.example .env
-# Edit .env with your settings
-
-# Start application
-node backend/dist/index.js
+# 상태 확인
+docker-compose ps
 ```
 
-## 🔐 Authentication
+## 🔄 자동 업데이트 시스템
 
-Support for multiple authentication methods:
+### 작동 원리
+1. **본인이 Fork한 저장소**에 코드 push
+2. **GitHub Actions**가 자동으로 이미지 빌드
+3. **본인의 GHCR**에 이미지 저장
+4. **Watchtower**가 5분마다 체크하여 자동 업데이트
 
-- **OAuth Providers**: Discord, Kakao
-- **Local Authentication**: ID/Password with configurable complexity
-- **Flexible Configuration**: Use OAuth only, local only, or both
+### 업데이트 흐름
+```bash
+# 개발자 (본인)
+git add . && git commit -m "feature: 새 기능 추가"
+git push origin main
 
-## 📱 API Access
+# 5분 후 자동으로...
+# 1. GitHub Actions 빌드 시작
+# 2. 새 이미지가 ghcr.io/YOUR-USERNAME/nas:latest로 푸시
+# 3. 운영 중인 모든 서버에서 Watchtower가 감지
+# 4. 자동으로 무중단 업데이트 완료 ✨
+```
 
-The application provides a complete REST API:
-
-- **Base URL**: `http://localhost:7777`
-- **Authentication**: JWT tokens via query parameter or header
-- **Health Check**: `GET /` (returns application status)
-
-See [API Reference](Docs/development/api-reference.md) for detailed endpoint documentation.
-
-## 🛠️ Development
+## 🛠️ 관리 명령어
 
 ```bash
-# Install dependencies
-npm install
-cd backend && npm install && cd ..
-cd frontend && npm install && cd ..
+# 로그 확인
+docker-compose logs -f
 
-# Start development servers
-npm run test  # Starts both frontend (port 5050) and backend (port 7777)
+# 서비스 재시작
+docker-compose restart
 
-# Build for production
-npm run build
+# 수동 업데이트
+docker-compose pull && docker-compose up -d
+
+# 서비스 중지
+docker-compose down
+
+# 전체 업그레이드 (스크립트 사용)
+./scripts/setup.sh --upgrade
 ```
 
-## 🔧 Troubleshooting
+## 📊 시스템 요구사항
 
-Common issues and solutions:
+- **OS**: Linux, macOS, Windows (Docker 지원 환경)
+- **RAM**: 최소 512MB, 권장 1GB
+- **Storage**: 최소 1GB (데이터 별도)
+- **Docker**: 20.10+ 
+- **Docker Compose**: 2.0+
 
-- **Port conflicts**: Change `PORT` in `.env`
-- **Permission errors**: Check file system permissions
-- **OAuth issues**: Verify OAuth provider configuration
-- **Database problems**: Check SQLite path and permissions
+## 🔧 고급 설정
 
-See [Common Issues](Docs/troubleshooting/common-issues.md) for comprehensive troubleshooting.
+### 포트 변경
+```bash
+# .env 파일에서
+PORT=8080
+```
 
-## 📊 Project Status
+### 데이터 경로 변경
+```bash
+# .env 파일에서
+DATA_PATH=/mnt/nas-storage
+```
 
-- ✅ **Docker-centric deployment** (migrated from PM2)
-- ✅ **Centralized configuration** (single `.env` file)
-- ✅ **TypeScript support** throughout
-- ✅ **Comprehensive documentation**
-- ✅ **Cross-platform support** (Windows dev, Linux prod, Docker)
+### 업데이트 주기 변경
+```bash
+# .env 파일에서 (초 단위)
+WATCHTOWER_POLL_INTERVAL=1800  # 30분마다
+```
 
-## 🤝 Contributing
+### Watchtower 비활성화
+```bash
+# docker-compose.yml에서 watchtower 서비스 주석 처리
+# watchtower:
+#   image: containrrr/watchtower:latest
+#   ...
+```
 
-1. Fork the repository
-2. Follow the [Development Guide](Docs/development/development-guide.md)
-3. Make your changes with proper testing
-4. Submit a pull request
+## 🐛 문제 해결
 
-## 📄 License
+### 이미지를 찾을 수 없음
+```bash
+# .env에서 GITHUB_REPOSITORY 확인
+GITHUB_REPOSITORY=YOUR-USERNAME/nas  # 정확한 저장소명
 
-This project is licensed under the terms specified in the repository.
+# GitHub Container Registry가 public인지 확인
+# GitHub → 본인 저장소 → Packages → nas → Package settings → Change visibility
+```
+
+### 자동 업데이트 안됨
+```bash
+# Watchtower 로그 확인
+docker-compose logs watchtower
+
+# 수동으로 업데이트 테스트
+docker-compose pull
+```
+
+### 포트 충돌
+```bash
+# .env에서 다른 포트 사용
+PORT=8080
+
+# 재시작
+docker-compose down && docker-compose up -d
+```
+
+## 🤝 기여 가이드
+
+1. 이슈 등록 또는 기능 요청
+2. 본인 Fork에서 개발 브랜치 생성
+3. 기능 개발 및 테스트
+4. 원본 저장소에 Pull Request
+
+## 📄 라이선스
+
+MIT License - 자세한 내용은 [LICENSE](LICENSE) 참조
+
+## ⚠️ 주의사항
+
+- **보안**: JWT_SECRET과 ADMIN_PASSWORD를 반드시 변경하세요
+- **백업**: 정기적으로 데이터 백업을 수행하세요
+- **모니터링**: 시스템 리소스 사용량을 주기적으로 확인하세요
+- **업데이트**: 주요 업데이트 전에는 데이터 백업을 권장합니다
 
 ---
 
-*For detailed information, see the complete [Documentation](Docs/README.md)*
+## 📚 고급 기능 및 개발자 문서
+
+이 간단한 설치 가이드 외에도 다음과 같은 고급 기능들이 제공됩니다:
+
+- **🔐 OAuth 인증**: Discord, Kakao 등 소셜 로그인 연동
+- **👥 사용자 관리**: 권한 기반 접근 제어 시스템  
+- **🎨 프론트엔드 개발**: Svelte 5 + TypeScript 아키텍처
+- **🛠️ 백엔드 API**: Express.js + SQLite 완전한 REST API
+- **🚀 다양한 배포 방식**: PM2, systemd, 수동 설치 옵션
+
+자세한 내용은 **[📖 완전한 문서](Docs/README.md)**를 참조하세요.
+
+## 💡 도움이 필요하신가요?
+
+- 📚 **완전한 문서**: [Docs 폴더](Docs/README.md) - 모든 기능과 설정 가이드
+- 🐛 **버그 리포트**: [Issues](../../issues) 등록
+- 💬 **질문**: [Discussions](../../discussions) 활용
+- 🌐 **English Version**: [README_EN.md](README_EN.md)
+
+**즐거운 NAS 라이프 되세요! 🎉**

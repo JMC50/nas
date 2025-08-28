@@ -1,18 +1,52 @@
 # 🛠️ Development Guide
 
-Complete guide for setting up and working with the NAS File Manager development environment.
+Development guide for the NAS File Manager - from simple local development to advanced debugging.
 
 ## 📋 Table of Contents
 
+- [🎯 Quick Start Development](#quick-start-development)
 - [Prerequisites](#prerequisites)
-- [Environment Setup](#environment-setup)
-- [Development Workflow](#development-workflow)
+- [🔧 Advanced Development Setup](#advanced-development-setup)
 - [Project Structure](#project-structure)
 - [Development Commands](#development-commands)
 - [Code Standards](#code-standards)
 - [Testing](#testing)
 - [Debugging](#debugging)
 - [Common Issues](#common-issues)
+
+## 🎯 Quick Start Development
+
+**Get developing in 2 minutes** - simple setup for most development tasks.
+
+### 1. Clone Your Fork
+```bash
+git clone https://github.com/YOUR-USERNAME/nas.git
+cd nas
+```
+
+### 2. Install Dependencies
+```bash
+npm install
+```
+
+### 3. Start Development
+```bash
+# This single command starts everything:
+npm run test
+
+# Starts:
+# - Frontend dev server at http://localhost:5050  
+# - Backend server at http://localhost:7777
+# - TypeScript compiler in watch mode
+# - Hot reload for both frontend and backend
+```
+
+### 4. Access Development Environment
+- **Frontend**: http://localhost:5050
+- **Backend API**: http://localhost:7777
+- **Test Authentication**: Use default admin credentials
+
+**✅ Done!** You're now developing with full hot-reload and debugging support.
 
 ## Prerequisites
 
@@ -69,7 +103,9 @@ brew install node npm sqlite3
 node --version
 ```
 
-## Environment Setup
+## 🔧 Advanced Development Setup
+
+**For developers who need custom configurations** - most developers can use the [Quick Start](#quick-start-development) above.
 
 ### 1. Clone Repository
 ```bash
@@ -659,9 +695,8 @@ npm run check
 After completing development setup:
 
 1. **Read API Reference**: [API Reference](api-reference.md)
-2. **Understand Components**: [Component Guide](component-guide.md)
-3. **Learn Testing**: [Testing Guide](testing-guide.md)
-4. **Prepare Deployment**: [Deployment Guide](../deployment/deployment-guide.md)
+2. **Prepare Deployment**: [Deployment Guide](../deployment/deployment-guide.md)
+3. **Review Configuration**: [Environment Setup](../configuration/environment-setup.md)
 
 ## Development Resources
 

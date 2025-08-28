@@ -1,29 +1,63 @@
 # ⚙️ Environment Configuration
 
-Complete guide for configuring the NAS File Manager environment variables and settings.
+Complete guide for configuring the NAS File Manager - from simple 3-variable setup to comprehensive customization.
 
 ## 📋 Table of Contents
 
-- [Overview](#overview)
-- [Environment File Structure](#environment-file-structure)
-- [Configuration Categories](#configuration-categories)
+- [🎯 Quick Setup (3 Variables)](#quick-setup-3-variables)
+- [Environment File Structure](#environment-file-structure)  
+- [🔧 Advanced Configuration](#advanced-configuration)
 - [Environment-Specific Settings](#environment-specific-settings)
 - [Configuration Validation](#configuration-validation)
-- [Path Configuration](#path-configuration)
-- [Security Configuration](#security-configuration)
 - [Troubleshooting](#troubleshooting)
 
-## Overview
+## 🎯 Quick Setup (3 Variables)
 
-The NAS File Manager uses a centralized configuration system with a single `.env` file at the project root containing all environment variables for both frontend and backend components.
+**For 90% of users** - get your NAS running with just these 3 variables:
 
-### Configuration Philosophy
+### 1. Create Configuration File
+```bash
+# Copy the template
+cp .env.example .env
 
-- **Single Source of Truth**: One `.env` file for all settings
-- **Environment-Aware**: Different settings for development/production
-- **Platform-Agnostic**: Automatic path resolution for Windows/Linux/Docker
-- **Security-First**: Secure defaults with production overrides
-- **Validation**: Built-in configuration validation and warnings
+# Edit only these 3 required variables
+nano .env
+```
+
+### 2. Required Variables
+```env
+# Your GitHub repository (for auto-updates)
+GITHUB_REPOSITORY=YOUR-USERNAME/nas
+
+# JWT secret key (generate a random 32+ character string)
+JWT_SECRET=your-random-64-character-string  
+
+# Admin password (use a secure password)
+ADMIN_PASSWORD=your-secure-password
+```
+
+### 3. Generate JWT Secret
+```bash
+# Generate a secure JWT secret
+node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
+# Or use: openssl rand -base64 32
+```
+
+**That's it!** These 3 variables are all you need for a fully functional NAS system with auto-updates.
+
+### Optional Basic Settings
+
+If you need to change default ports or paths:
+
+```env
+# Optional: Change port (default: 7777)
+PORT=8080
+
+# Optional: Change data storage location (default: ./data)
+DATA_PATH=/mnt/nas-storage
+```
+
+**✅ Result**: Fork-based auto-updating NAS with minimal configuration complexity.
 
 ## Environment File Structure
 
@@ -45,7 +79,9 @@ cp .env.example .env
 nano .env  # or your preferred editor
 ```
 
-## Configuration Categories
+## 🔧 Advanced Configuration
+
+**For power users** who need custom authentication, OAuth providers, or specialized configurations. Most users can skip this section.
 
 ### 1. Application Environment
 

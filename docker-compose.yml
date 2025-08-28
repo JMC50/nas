@@ -1,32 +1,51 @@
-version: '3.8'
+version: "3.8"
 
 services:
-  nas-app:
-    build:
-      context: .
-      target: production
-    container_name: nas-application
+  # NAS Application
+  nas:
+    image: ghcr.io/${GITHUB_REPOSITORY:-your-github-username/nas}:latest
+    container_name: nas-app
+    restart: unless-stopped
     ports:
-      - "8086:7777"
+      - "${PORT:-7777}:7777"
     volumes:
-      # 새로운 통합 경로 시스템 사용
-      # DATA_PATH 환경변수를 기반으로 모든 경로 자동 결정
-      - ${DATA_PATH:-/mnt/nas-storage}/files:/app/data/files
-      - ${DATA_PATH:-/mnt/nas-storage}/admin:/app/data/admin
-      - ${DATA_PATH:-/mnt/nas-storage}/database:/app/data/database
-      - ${DATA_PATH:-/mnt/nas-storage}/temp:/app/data/temp
+      - ${DATA_PATH:-./data}:/app/data
+      - ${CONFIG_PATH:-./config}:/app/config
     env_file:
       - .env
     environment:
       - NODE_ENV=production
       - DATA_PATH=/app/data
-    restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:7777/"]
+      test: ["CMD", "curl", "-f", "http://localhost:7777/health"]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 30s
+    labels:
+      # Watchtower 자동 업데이트 활성화
+      - "com.centurylinklabs.watchtower.enable=true"
+    networks:
+      - nas-network
 
-# 볼륨 대신 호스트 마운트 사용 (RAID 직접 연결)
-# 기존 네트워크 설정 제거 (단순화)
+  # 자동 업데이트 에이전트
+  watchtower:
+    image: containrrr/watchtower:latest
+    container_name: nas-watchtower
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ${HOME}/.docker/config.json:/config.json:ro # 인증 정보
+    environment:
+      - WATCHTOWER_CLEANUP=true # 구 이미지 자동 삭제
+      - WATCHTOWER_POLL_INTERVAL=300 # 5분마다 체크
+      - WATCHTOWER_INCLUDE_RESTARTING=true
+      - WATCHTOWER_ROLLING_RESTART=true # 무중단 업데이트
+      - TZ=${TZ:-UTC}
+    command: nas-app # nas-app 컨테이너만 모니터링
+    networks:
+      - nas-network
+
+networks:
+  nas-network:
+    driver: bridge

@@ -1,19 +1,78 @@
 # 🔧 Troubleshooting Guide
 
-Comprehensive troubleshooting guide for common issues with the NAS File Manager.
+Troubleshooting guide for the NAS File Manager - from simple Docker issues to advanced system problems.
 
 ## 📋 Table of Contents
 
+- [🎯 Docker Troubleshooting (Most Users)](#docker-troubleshooting-most-users)
 - [Quick Diagnostics](#quick-diagnostics)
-- [Service Issues](#service-issues)
+- [🔧 Advanced System Issues](#advanced-system-issues)
 - [Authentication Problems](#authentication-problems)
 - [File Operation Issues](#file-operation-issues)
-- [Database Problems](#database-problems)
 - [Network & Connectivity](#network--connectivity)
-- [Performance Issues](#performance-issues)
-- [Storage Problems](#storage-problems)
 - [Configuration Issues](#configuration-issues)
-- [Log Analysis](#log-analysis)
+
+## 🎯 Docker Troubleshooting (Most Users)
+
+**For fork-based Docker deployments** - covers 90% of common issues.
+
+### Container Won't Start
+```bash
+# Check container status
+docker-compose ps
+
+# View container logs
+docker-compose logs nas
+
+# Common fixes:
+# 1. Check .env file exists and has required variables
+ls -la .env
+grep -E "(GITHUB_REPOSITORY|JWT_SECRET|ADMIN_PASSWORD)" .env
+
+# 2. Restart container
+docker-compose restart
+
+# 3. Force rebuild and restart
+docker-compose down
+docker-compose up -d --build
+```
+
+### Port Already in Use
+```bash
+# Error: "port 7777 already in use"
+# Find what's using the port
+sudo lsof -i :7777  # Linux/macOS
+netstat -ano | findstr :7777  # Windows
+
+# Change port in .env
+echo "PORT=7778" >> .env
+docker-compose down && docker-compose up -d
+```
+
+### Container Crashes/Restarts
+```bash
+# Check for memory/resource issues
+docker stats nas
+
+# Check detailed logs
+docker-compose logs --tail=50 nas
+
+# Check system resources
+df -h  # disk space
+free -h  # memory
+```
+
+### Auto-Updates Not Working
+```bash
+# Check Watchtower logs
+docker-compose logs watchtower
+
+# Verify GitHub repository setting
+grep GITHUB_REPOSITORY .env
+
+# Manual update
+docker-compose pull && docker-compose up -d
+```
 
 ## Quick Diagnostics
 
@@ -66,7 +125,11 @@ When encountering issues, check these items first:
 5. **Environment File**: `ls -la .env`
 6. **Recent Logs**: `sudo journalctl -u nas-app.service -f`
 
-## Service Issues
+## 🔧 Advanced System Issues
+
+**For manual deployments and system administrators** - most users should try the [Docker troubleshooting](#docker-troubleshooting-most-users) first.
+
+### Service Issues
 
 ### Service Won't Start
 

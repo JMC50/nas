@@ -1,34 +1,42 @@
 # 🔐 Authentication Configuration
 
-Complete guide for configuring authentication systems in the NAS File Manager.
+Authentication guide for the NAS File Manager - from simple admin login to advanced OAuth integration.
 
 ## 📋 Table of Contents
 
-- [Authentication Overview](#authentication-overview)
-- [Local Authentication](#local-authentication)
-- [OAuth Authentication](#oauth-authentication)
-- [User Management](#user-management)
+- [🎯 Quick Start (Admin Login)](#quick-start-admin-login)
+- [Local User Management](#local-user-management)
+- [🔧 Advanced: OAuth Providers](#advanced-oauth-providers)  
 - [Permission System](#permission-system)
 - [Security Best Practices](#security-best-practices)
 - [Troubleshooting](#troubleshooting)
 
-## Authentication Overview
+## 🎯 Quick Start (Admin Login)
 
-The NAS File Manager supports three authentication modes:
+**Your NAS works immediately** with the admin credentials from your `.env` file - no additional authentication setup required.
 
-### Authentication Types
+### Default Authentication
 
-| Mode | Description | Use Case | Setup Complexity |
-|------|-------------|----------|------------------|
-| `local` | ID/Password only | Self-contained systems | Low |
-| `oauth` | OAuth providers only | External authentication | Medium |
-| `both` | Local + OAuth | Maximum flexibility | Medium |
-
-### Configuration
+With your basic `.env` configuration:
 ```env
-# Set authentication type
-AUTH_TYPE=both  # local | oauth | both
+ADMIN_PASSWORD=your-secure-password
 ```
+
+**You can immediately:**
+- Login as admin using your `ADMIN_PASSWORD`
+- Access all files and features
+- Create additional local users if needed
+- Full system administration
+
+### Accessing Your NAS
+
+1. **Navigate to**: http://localhost:7777
+2. **Login with**: 
+   - Username: `admin` 
+   - Password: Your `ADMIN_PASSWORD` from `.env`
+3. **Done!** - Full access to your NAS system
+
+**No OAuth setup required** - the system works immediately with secure admin authentication.
 
 ## Local Authentication
 
@@ -157,7 +165,16 @@ Content-Type: application/json
 #### Password Reset (Admin)
 Administrators can reset user passwords through the user management interface.
 
-## OAuth Authentication
+## 🔧 Advanced: OAuth Providers
+
+**For advanced users only** - most users can use the simple admin authentication above. OAuth setup is completely optional.
+
+### Why Use OAuth?
+
+OAuth providers are useful when you want:
+- Users to login with their Discord/Kakao accounts
+- Integration with external user management systems
+- Social login convenience for multiple users
 
 ### Supported Providers
 
@@ -584,4 +601,4 @@ echo "🧪 Authentication test complete"
 
 ---
 
-*For additional security configuration, see [Environment Setup](environment-setup.md). For user management procedures, see [User Management Guide](../operations/user-management.md).*
+*For additional security configuration, see [Environment Setup](environment-setup.md). For user management procedures, see [Troubleshooting Guide](../operations/troubleshooting.md).*

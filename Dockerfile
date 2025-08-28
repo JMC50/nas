@@ -76,7 +76,7 @@ COPY --from=development --chown=nasapp:nasapp /app/backend/src/migrations ./back
 
 # Copy production package files and install production dependencies
 COPY --chown=nasapp:nasapp package*.json ./
-RUN npm ci --only=production
+RUN npm install --omit=dev
 
 # Create data directories with proper permissions
 RUN mkdir -p /app/data /app/admin-data /app/db /tmp/nas && \
@@ -91,7 +91,7 @@ ENV PORT=7777
 ENV HOST=0.0.0.0
 ENV NAS_DATA_DIR=/app/data
 ENV NAS_ADMIN_DATA_DIR=/app/admin-data
-ENV DB_PATH=/app/db
+ENV DB_PATH=/app/db/nas.sqlite
 ENV NAS_TEMP_DIR=/tmp/nas
 
 # Health check

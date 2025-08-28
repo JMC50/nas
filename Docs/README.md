@@ -1,141 +1,186 @@
-# 📚 NAS File Manager Documentation
+# 📚 NAS File Manager - Complete Documentation
 
-Welcome to the comprehensive documentation for the NAS File Manager application.
+Welcome to the comprehensive documentation for the NAS File Manager application - a modern, full-stack web-based Network Attached Storage system.
 
-## 🚀 Quick Start
-
-New to the project? Start here:
-
-- **Development**: [Development Guide](development/development-guide.md)
-- **Simple Deployment**: [Simple Deployment](deployment/simple-deployment.md)
-- **Docker Guide**: [Docker Guide](deployment/docker-guide.md)
-
-## 📖 Documentation Structure
+## 🚀 Quick Navigation
 
 ### 🛠️ Development
-
-- [Development Guide](development/development-guide.md) - Complete development environment setup and workflow
-- [API Reference](development/api-reference.md) - Backend API endpoints and usage _(Coming Soon)_
-- [Component Guide](development/component-guide.md) - Frontend component architecture _(Coming Soon)_
+- **[Development Guide](development/development-guide.md)** - Complete development environment setup and workflow
+- **[API Reference](development/api-reference.md)** - Backend API endpoints and usage
+- **[Component Guide](development/component-guide.md)** - Frontend component architecture
+- **[Testing Guide](development/testing-guide.md)** - Testing procedures and best practices
 
 ### 🚢 Deployment
-
-- [Simple Deployment](deployment/simple-deployment.md) - Easy Docker deployment guide
-- [Docker Guide](deployment/docker-guide.md) - Advanced Docker deployment options
-- [Deployment Guide](deployment/deployment-guide.md) - Complete deployment across all platforms
+- **[Deployment Guide](deployment/deployment-guide.md)** - Complete deployment across all platforms
+- **[Docker Guide](deployment/docker-guide.md)** - Docker-specific deployment options
+- **[Systemd Service](deployment/systemd-service.md)** - System service setup for auto-startup
+- **[Production Setup](deployment/production-setup.md)** - Production environment configuration
 
 ### ⚙️ Configuration
+- **[Environment Setup](configuration/environment-setup.md)** - Complete environment configuration guide
+- **[Authentication Setup](configuration/authentication.md)** - OAuth and local authentication configuration
+- **[Storage Configuration](configuration/storage-config.md)** - File system and storage settings
 
-- [Environment Setup](configuration/environment-setup.md) - Complete environment configuration guide
-- [Authentication Setup](configuration/auth-setup.md) - OAuth and local authentication configuration _(Coming Soon)_
-- [Storage Configuration](configuration/storage-config.md) - File system and storage settings _(Coming Soon)_
-
-### 🔧 Troubleshooting
-
-- [Common Issues](troubleshooting/common-issues.md) - Comprehensive troubleshooting guide
-- [Performance Tuning](troubleshooting/performance.md) - Performance optimization tips _(Coming Soon)_
-- [Security Guide](troubleshooting/security.md) - Security best practices _(Coming Soon)_
+### 🔧 Operations
+- **[Troubleshooting](operations/troubleshooting.md)** - Common issues and solutions
+- **[Maintenance](operations/maintenance.md)** - System maintenance procedures
+- **[Monitoring](operations/monitoring.md)** - Monitoring and logging setup
+- **[Backup & Restore](operations/backup-restore.md)** - Data backup and recovery procedures
 
 ## 🏗️ Architecture Overview
 
-The NAS File Manager is a full-stack web application built with:
+The NAS File Manager is a comprehensive full-stack application featuring:
 
-- **Frontend**: Svelte 5 + TypeScript + Vite
-- **Backend**: Express.js + TypeScript + SQLite
-- **Authentication**: JWT with OAuth (Discord/Kakao) and Local ID/Password
-- **Deployment**: Docker containers (Ubuntu 22.04) with volume persistence
+- **Frontend**: Svelte 5 + TypeScript + Vite with responsive design
+- **Backend**: Express.js + TypeScript + SQLite with entity-based architecture
+- **Authentication**: JWT with multi-provider support (Discord/Kakao OAuth + Local ID/Password)
+- **File Management**: Complete CRUD operations with media streaming support
+- **Storage**: Configurable file system paths with cross-platform support
+- **Deployment**: Docker containers with systemd service integration
 
-### Key Features
+### Key Components
 
-- 📁 **File Management**: Upload, download, rename, delete files and directories
-- 🎵 **Media Streaming**: Built-in streaming for audio and video files
-- 🔐 **Flexible Authentication**: Support for OAuth providers and local accounts
-- 📱 **Responsive Design**: Works on desktop and mobile devices
-- 🐳 **Docker Ready**: Containerized deployment with docker-compose
-- 🔧 **Centralized Configuration**: Single `.env` file for all settings
+#### Backend Architecture
+- **Modular Design**: Separate modules for auth, file operations, and system functions
+- **Entity-Based Database**: SQLite with TypeScript entities and migrations
+- **Intent System**: Granular permission control (ADMIN, VIEW, DOWNLOAD, UPLOAD, etc.)
+- **Streaming Support**: Range-based streaming for media files
+- **Cross-Platform Paths**: Automatic path resolution for Windows/Linux/Docker
+
+#### Frontend Architecture
+- **Component-Based**: Reusable Svelte 5 components with mobile variants
+- **State Management**: Centralized stores for user data and application state
+- **Responsive Design**: Desktop and mobile interfaces
+- **File Operations**: Upload, download, preview, and management capabilities
+- **Real-time Updates**: Live file system monitoring and updates
+
+#### Security Features
+- **JWT Authentication**: Secure token-based authentication with configurable expiry
+- **Multi-Provider Auth**: Support for OAuth providers and local authentication
+- **Permission System**: Role-based access control with granular intents
+- **Path Sanitization**: Protection against directory traversal attacks
+- **Secure File Operations**: Validated file uploads with size and type restrictions
 
 ## 🎯 Use Cases
 
-This application is perfect for:
+This NAS system is designed for:
 
-- **Personal Cloud Storage**: Host your own file server
-- **Media Center**: Stream music and videos from your collection
-- **Team File Sharing**: Share files within small teams
-- **Development Projects**: Store and access development assets
-- **Home Network Storage**: Central storage for home network devices
+- **Personal Cloud Storage**: Private file server with web access
+- **Media Center**: Streaming audio and video with built-in players
+- **Team Collaboration**: File sharing with user management and permissions
+- **Development Assets**: Project file storage and management
+- **Home Network Storage**: Central storage hub for home networks
+- **Small Business**: Departmental file sharing with access controls
 
-## 📋 Requirements
+## 📋 System Requirements
 
-### Development
+### Development Environment
+- **Node.js**: Version 20 or higher
+- **npm**: Version 10 or higher (comes with Node.js)
+- **Git**: For version control and development workflow
+- **Modern Browser**: Chrome, Firefox, Safari, or Edge (latest versions)
+- **Operating System**: Windows 10/11, macOS, or Linux
 
-- Node.js 20+
-- npm 10+
-- Git
-- Modern web browser
+### Production Environment
+- **Server OS**: Linux (Ubuntu 20.04+ recommended)
+- **Runtime**: Node.js 20+ or Docker Engine
+- **Memory**: 2GB RAM minimum, 4GB recommended
+- **Storage**: SSD recommended for database, adequate space for user files
+- **Network**: Stable internet connection for OAuth providers (if used)
 
-### Production
+### Docker Environment
+- **Docker**: Version 20.10 or higher
+- **Docker Compose**: Version 2.0 or higher
+- **Host Resources**: 2GB RAM, adequate storage for volumes
 
-- Linux server (Ubuntu 20.04+ recommended)
-- Docker and Docker Compose
-- 2GB+ RAM
-- Storage space for your files
+## 🚦 Getting Started
 
-## 🚀 Quick Installation
+### Quick Start Options
 
-### Development (Windows)
-
+#### 1. Development Setup (Windows/Linux)
 ```bash
-git clone <your-repo>
+git clone <your-repository>
 cd nas-main
 npm run test
+# Access: http://localhost:5050 (frontend) + http://localhost:7777 (backend)
 ```
 
-### Production (Docker)
-
+#### 2. Docker Development
 ```bash
-docker build -t nas-app .
-docker run -d --name nas-app -p 7777:7777 \
-  -e PRIVATE_KEY="your-key" -e ADMIN_PASSWORD="your-password" \
-  -v nas-data:/app/data nas-app:latest
+docker-compose up nas-dev
+# Access: http://localhost:7777
 ```
 
-## 🔗 Important Links
+#### 3. Production Docker
+```bash
+# Configure environment
+cp .env.example .env
+# Edit .env with your settings
 
-- **Application Access**: http://localhost:7777 (production) or http://localhost:5050 (development frontend)
-- **API Endpoint**: http://localhost:7777 (backend API)
-- **Health Check**: http://localhost:7777/ (application status)
+# Deploy
+docker-compose up -d nas-app
+# Access: http://your-server:7777
+```
 
-## 📞 Getting Help
+#### 4. Systemd Service (Linux)
+```bash
+# After installation
+sudo cp nas-app.service /etc/systemd/system/
+sudo systemctl enable nas-app.service
+sudo systemctl start nas-app.service
+```
 
-1. **Check the troubleshooting guide**: [Common Issues](troubleshooting/common-issues.md)
-2. **Review logs**: Enable debug mode in your `.env` file
-3. **Verify configuration**: Use the [Environment Setup](configuration/environment-setup.md) guide
-4. **Test components**: Follow the [Development Guide](development/development-guide.md) testing steps
+## 📊 Feature Matrix
 
-## 🔄 Migration from PM2
+| Feature | Status | Documentation |
+|---------|--------|---------------|
+| File Upload/Download | ✅ Complete | [API Reference](development/api-reference.md) |
+| Media Streaming | ✅ Complete | [Component Guide](development/component-guide.md) |
+| User Management | ✅ Complete | [Authentication Setup](configuration/authentication.md) |
+| OAuth Integration | ✅ Complete | [Authentication Setup](configuration/authentication.md) |
+| Local Authentication | ✅ Complete | [Authentication Setup](configuration/authentication.md) |
+| Permission System | ✅ Complete | [API Reference](development/api-reference.md) |
+| Mobile Interface | ✅ Complete | [Component Guide](development/component-guide.md) |
+| Docker Support | ✅ Complete | [Docker Guide](deployment/docker-guide.md) |
+| Systemd Service | ✅ Complete | [Systemd Service](deployment/systemd-service.md) |
+| Activity Logging | ✅ Complete | [Monitoring](operations/monitoring.md) |
+| System Information | ✅ Complete | [Component Guide](development/component-guide.md) |
+| File Preview | ✅ Complete | [Component Guide](development/component-guide.md) |
 
-This application previously used PM2 for process management but has been migrated to Docker for better isolation and deployment consistency. If you're upgrading from a PM2-based deployment:
+## 🔍 Documentation Standards
 
-1. Stop your PM2 processes
-2. Follow the [Docker Guide](deployment/docker-guide.md)
-3. Migrate your data to Docker volumes
-4. Update your `.env` configuration
+This documentation follows these principles:
 
-## 🤝 Contributing
+- **Comprehensive**: Covers all aspects from development to production
+- **Practical**: Includes working examples and copy-paste commands
+- **Current**: Reflects the latest codebase state and features
+- **Cross-Platform**: Addresses Windows development and Linux production
+- **Secure**: Emphasizes security best practices throughout
 
-To contribute to this project:
+## 🤝 Contributing to Documentation
 
-1. Fork the repository
-2. Follow the [Development Guide](development/development-guide.md) setup
-3. Make your changes
-4. Test thoroughly using the provided test procedures
-5. Submit a pull request
+To improve this documentation:
 
-## 📄 License
+1. **Identify Gaps**: Note missing or unclear information
+2. **Follow Format**: Use the established markdown structure and style
+3. **Test Examples**: Verify all code examples and commands work
+4. **Update References**: Maintain cross-references between documents
+5. **Version Tracking**: Update version information when making changes
 
-This project is licensed under the terms specified in the project repository.
+## 📞 Support and Resources
+
+- **Issues**: Check [Troubleshooting Guide](operations/troubleshooting.md) first
+- **Development**: See [Development Guide](development/development-guide.md) for setup help
+- **Deployment**: Reference [Deployment Guide](deployment/deployment-guide.md) for production issues
+- **Configuration**: Review [Environment Setup](configuration/environment-setup.md) for config problems
+
+## 📄 Documentation Version
+
+- **Version**: 3.0 (Complete Rewrite)
+- **Last Updated**: 2025-08-28
+- **Coverage**: Full-stack application with systemd integration
+- **Target Audience**: Developers, system administrators, end users
 
 ---
 
-_Last updated: 2025-08-27_
-_Documentation version: 2.0 (Docker-centric)_
+*This documentation is maintained alongside the codebase to ensure accuracy and completeness. For the latest updates, refer to the git repository.*

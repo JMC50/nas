@@ -1,456 +1,676 @@
-# 💻 Development Guide
+# 🛠️ Development Guide
 
-Comprehensive guide for developing the NAS File Manager application.
+Complete guide for setting up and working with the NAS File Manager development environment.
 
-## Development Environment Setup
+## 📋 Table of Contents
 
-### Prerequisites
+- [Prerequisites](#prerequisites)
+- [Environment Setup](#environment-setup)
+- [Development Workflow](#development-workflow)
+- [Project Structure](#project-structure)
+- [Development Commands](#development-commands)
+- [Code Standards](#code-standards)
+- [Testing](#testing)
+- [Debugging](#debugging)
+- [Common Issues](#common-issues)
 
-- **Node.js**: Version 18 or higher
-- **npm**: Comes with Node.js
-- **Git**: For version control
-- **Visual Studio Code**: Recommended IDE
+## Prerequisites
 
-### Quick Setup
+### Required Software
 
+**Node.js 20+**
 ```bash
-# Clone repository
-git clone <your-repo-url>
+# Verify installation
+node --version  # Should be v20.x.x or higher
+npm --version   # Should be 10.x.x or higher
+```
+
+**Git**
+```bash
+# Verify installation
+git --version
+```
+
+**Code Editor**
+- **Recommended**: Visual Studio Code with extensions:
+  - Svelte for VS Code
+  - TypeScript and JavaScript Language Server
+  - Prettier - Code formatter
+  - ESLint
+
+### Platform-Specific Setup
+
+#### Windows 11 Development
+```bash
+# Install Node.js from https://nodejs.org/
+# Install Git from https://git-scm.com/
+# Install Visual Studio Build Tools for native modules
+npm install -g windows-build-tools
+```
+
+#### Linux Development
+```bash
+# Ubuntu/Debian
+sudo apt update
+sudo apt install nodejs npm python3 build-essential sqlite3
+
+# Verify Node.js version (should be 20+)
+node --version
+# If version is older, install Node.js 20:
+curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+sudo apt-get install -y nodejs
+```
+
+#### macOS Development
+```bash
+# Using Homebrew
+brew install node npm sqlite3
+# Verify version
+node --version
+```
+
+## Environment Setup
+
+### 1. Clone Repository
+```bash
+git clone <your-repository-url>
 cd nas-main
+```
 
-# Install dependencies
+### 2. Install Dependencies
+```bash
+# Install root dependencies
 npm install
-cd backend && npm install && cd ..
-cd frontend && npm install && cd ..
 
-# Start development servers
-npm run test  # Starts both frontend and backend
-```
-
-## Architecture Overview
-
-### Technology Stack
-
-- **Frontend**: Svelte 5 + TypeScript + Vite
-- **Backend**: Express + TypeScript + SQLite
-- **Authentication**: JWT with OAuth (Discord/Kakao) and Local ID/Password
-- **Build System**: TypeScript compiler + Vite
-
-### Project Structure
-
-```
-nas-main/
-├── backend/                 # Express.js backend
-│   ├── src/
-│   │   ├── index.ts        # Main server file
-│   │   ├── config/         # Configuration management
-│   │   ├── functions/      # Business logic
-│   │   ├── modules/        # Authentication modules
-│   │   └── db/             # Database entities
-│   └── dist/               # Compiled JavaScript
-├── frontend/               # Svelte frontend
-│   ├── src/
-│   │   ├── App.svelte      # Main application
-│   │   ├── lib/            # Components
-│   │   └── store/          # State management
-│   └── dist/               # Built frontend
-├── Docs/                   # Documentation
-└── .env                    # Environment configuration
-```
-
-## Development Workflow
-
-### Starting Development
-
-```bash
-# Terminal 1: Backend with auto-restart
+# Install backend dependencies
 cd backend
-npm start  # Compiles TypeScript and starts server
+npm install
+cd ..
 
-# Terminal 2: Frontend dev server
+# Install frontend dependencies
 cd frontend
-npm run dev  # Starts Vite dev server with HMR
-
-# Or start both simultaneously
-npm run test  # Starts both backend and frontend
+npm install
+cd ..
 ```
 
-### Available Commands
-
-#### Root Level
+### 3. Environment Configuration
 ```bash
-npm run test              # Start both frontend and backend
-npm run build             # Build both for production
-npm install               # Install all dependencies
+# Copy environment template
+cp .env.example .env
+
+# Edit .env with development settings
 ```
 
-#### Backend
-```bash
-cd backend
-npm start                 # Development mode (build + watch)
-npm run build             # Compile TypeScript
-npm run dev               # Start with nodemon
-tsc -w                    # Watch TypeScript compilation
-```
-
-#### Frontend
-```bash
-cd frontend
-npm run dev               # Development server with HMR
-npm run build             # Build for production
-npm run preview           # Preview production build
-npm run check             # Type checking
-```
-
-## Configuration System
-
-### Environment Configuration
-
-The application uses a centralized `.env` file in the project root:
-
+#### Development .env Configuration
 ```env
-# Development Configuration
+# Environment
 NODE_ENV=development
 PORT=7777
 HOST=localhost
 FRONTEND_PORT=5050
 
-# Authentication
+# URLs
+SERVER_URL=http://localhost:7777
+FRONTEND_URL=http://localhost:5050
+API_BASE_URL=http://localhost:7777
+
+# Authentication (Development defaults)
 AUTH_TYPE=both
 PRIVATE_KEY=development-secret-key
 ADMIN_PASSWORD=admin123
+JWT_EXPIRY=24h
 
-# Storage Paths
+# Password Requirements (Relaxed for development)
+PASSWORD_MIN_LENGTH=4
+PASSWORD_REQUIRE_UPPERCASE=false
+PASSWORD_REQUIRE_LOWERCASE=false
+PASSWORD_REQUIRE_NUMBER=false
+PASSWORD_REQUIRE_SPECIAL=false
+
+# Storage Paths (Windows Development)
 NAS_DATA_DIR=../../nas-data
 NAS_ADMIN_DATA_DIR=../../nas-data-admin
-DB_PATH=./db/nas.sqlite
+DB_PATH=./backend/db/nas.sqlite
+NAS_TEMP_DIR=/tmp/nas
+
+# Storage Configuration
+MAX_FILE_SIZE=10gb
+ALLOWED_EXTENSIONS=*
+ENABLE_STREAMING=true
+
+# Development Features
+DEBUG_MODE=true
+LOG_LEVEL=debug
+ENABLE_CORS=true
+ENABLE_REQUEST_LOGGING=true
+
+# CORS (Development - allow all)
+CORS_ORIGIN=*
+
+# OAuth (Optional - leave empty if not testing OAuth)
+DISCORD_CLIENT_ID=
+DISCORD_CLIENT_SECRET=
+KAKAO_REST_API_KEY=
+KAKAO_CLIENT_SECRET=
 ```
 
-### Backend Configuration
+### 4. Create Data Directories
+```bash
+# Windows
+mkdir ..\..\nas-data
+mkdir ..\..\nas-data-admin
 
-Configuration is loaded from `backend/src/config/environment.ts`:
-
-```typescript
-import { config } from "dotenv";
-
-// Load from root .env file
-const rootEnvPath = join(__dirname, '../../../.env');
-config({ path: rootEnvPath });
-
-export class Environment {
-  static readonly NODE_ENV = process.env.NODE_ENV || 'development';
-  static readonly PORT = parseInt(process.env.PORT || '7777');
-  // ... other configurations
-}
+# Linux/macOS
+mkdir -p ../../nas-data
+mkdir -p ../../nas-data-admin
 ```
 
-### Frontend Configuration
+### 5. Start Development Environment
+```bash
+# Start both frontend and backend servers
+npm run test
 
-Frontend uses Vite's `loadEnv` to read environment variables:
-
-```typescript
-// vite.config.ts
-import { loadEnv } from 'vite';
-
-export default defineConfig(({ mode }) => {
-  const env = loadEnv(mode, process.cwd(), '');
-  
-  return {
-    define: {
-      __SERVER_URL__: JSON.stringify(env.SERVER_URL),
-      __KAKAO_LOGIN_URL__: JSON.stringify(env.KAKAO_LOGIN_URL),
-      // ... other environment variables
-    }
-  };
-});
+# This starts:
+# - Frontend dev server at http://localhost:5050
+# - Backend server at http://localhost:7777
+# - TypeScript compiler in watch mode
+# - Hot reload for both frontend and backend
 ```
 
-## Backend Development
+## Development Workflow
 
-### Core Components
+### Daily Development Process
 
-#### Main Server (`backend/src/index.ts`)
-- Express.js server setup
-- All API endpoints
+1. **Start Development Servers**
+```bash
+npm run test
+```
+
+2. **Access Application**
+- **Frontend**: http://localhost:5050
+- **Backend API**: http://localhost:7777
+- **Health Check**: http://localhost:7777/
+
+3. **Test Authentication**
+- Navigate to Account tab
+- Try local registration/login
+- Test OAuth if configured
+
+4. **Development Features**
+- Hot reload for both frontend and backend changes
+- TypeScript compilation errors shown in terminal
+- Automatic backend restart on file changes
+
+### Git Workflow
+
+```bash
+# Create feature branch
+git checkout -b feature/your-feature-name
+
+# Make changes and test
+npm run test
+
+# Stage and commit changes
+git add .
+git commit -m "[feat] your feature description"
+
+# Push feature branch
+git push origin feature/your-feature-name
+```
+
+## Project Structure
+
+```
+nas-main/
+├── README.md                 # Project overview
+├── package.json              # Root package.json for monorepo
+├── .env                      # Environment configuration
+├── Dockerfile               # Multi-stage Docker build
+├── docker-compose.yml       # Docker orchestration
+├── nas-app.service          # Systemd service definition
+├── scripts/                 # Deployment and utility scripts
+│   ├── docker-build.sh      # Docker build automation
+│   └── setup-raid.sh        # RAID configuration
+├── backend/                 # Backend application
+│   ├── package.json         # Backend dependencies
+│   ├── tsconfig.json        # TypeScript configuration
+│   ├── src/                 # Source code
+│   │   ├── index.ts         # Main server entry point
+│   │   ├── sqlite.ts        # Database connection
+│   │   ├── config/          # Configuration modules
+│   │   │   ├── config.ts    # Main configuration
+│   │   │   └── paths.ts     # Path resolution
+│   │   ├── entity/          # Database entities
+│   │   │   ├── user.entity.ts
+│   │   │   ├── intents.entity.ts
+│   │   │   └── log.entity.ts
+│   │   ├── functions/       # Business logic
+│   │   │   ├── auth.ts      # Authentication functions
+│   │   │   └── general.ts   # General utilities
+│   │   ├── modules/         # Feature modules
+│   │   │   └── authModule.ts # Authentication module
+│   │   ├── migrations/      # Database migrations
+│   │   │   └── addLocalAuth.ts
+│   │   └── db/             # Database utilities
+│   │       ├── init.ts     # Database initialization
+│   │       └── metadata.ts # Entity metadata
+│   └── db/                 # SQLite database location
+├── frontend/               # Frontend application
+│   ├── package.json        # Frontend dependencies
+│   ├── vite.config.ts      # Vite configuration
+│   ├── tsconfig.json       # TypeScript configuration
+│   ├── src/                # Source code
+│   │   ├── main.ts         # Application entry point
+│   │   ├── App.svelte      # Root component
+│   │   ├── vite-env.d.ts   # Vite type definitions
+│   │   ├── store/          # State management
+│   │   │   └── store.ts    # Svelte stores
+│   │   └── lib/            # Svelte components
+│   │       ├── Explorer.svelte          # File browser
+│   │       ├── Explorer_mobile.svelte   # Mobile file browser
+│   │       ├── FileViewer.svelte        # File preview/editor
+│   │       ├── FileViewer_mobile.svelte # Mobile file viewer
+│   │       ├── FileManager.svelte       # File operations
+│   │       ├── UserManager.svelte       # User management
+│   │       ├── Account.svelte           # Account management
+│   │       ├── LocalLogin.svelte        # Local authentication
+│   │       ├── ActivityLog.svelte       # System activity
+│   │       ├── SystemInfo.svelte        # System information
+│   │       ├── SystemInfo_mobile.svelte # Mobile system info
+│   │       └── Setting.svelte           # Application settings
+└── Docs/                   # Documentation
+    ├── README.md           # Documentation index
+    ├── development/        # Development guides
+    ├── deployment/         # Deployment guides
+    ├── configuration/      # Configuration guides
+    └── operations/         # Operations guides
+```
+
+### Key Architecture Components
+
+#### Backend Architecture
+
+**Main Server (`backend/src/index.ts`)**
+- Express.js server with TypeScript
+- All API endpoints in single file for simplicity
 - JWT authentication middleware
-- File handling operations
+- File upload/download handling
+- Media streaming support
 
-#### Database (`backend/src/sqlite.ts`)
-- SQLite connection using better-sqlite3
-- Database initialization
-- Entity-based table creation
+**Database Layer**
+- SQLite with better-sqlite3
+- Entity-based schema definition
+- Migration system for schema updates
+- Intent-based permission system
 
-#### Authentication (`backend/src/modules/authModule.ts`)
-- Centralized authentication logic
-- OAuth providers (Discord, Kakao)
-- Local ID/Password authentication
-- JWT token management
+**Authentication System**
+- Multi-provider support (OAuth + Local)
+- JWT token generation and validation
+- User registration and management
+- Permission-based access control
 
-### API Endpoints
+#### Frontend Architecture
 
-#### Authentication
-```typescript
-GET  /auth/config          # Get auth configuration
-POST /auth/register        # Register new user
-POST /auth/login           # Local login
-POST /auth/change-password # Change password
-GET  /login                # Discord OAuth callback
-GET  /kakaoLogin           # Kakao OAuth callback
+**Svelte 5 Components**
+- Reactive component system
+- TypeScript support throughout
+- Mobile-responsive design
+- State management with stores
+
+**Component Categories**
+- **File Management**: Explorer, FileViewer, FileManager
+- **Authentication**: Account, LocalLogin, OAuth redirects
+- **Administration**: UserManager, ActivityLog, SystemInfo
+- **Navigation**: SideMenu, BottomMenu
+- **Settings**: Setting component for configuration
+
+## Development Commands
+
+### Root Level Commands
+```bash
+# Start development environment (both frontend and backend)
+npm run test
+
+# Build both frontend and backend for production
+npm run build
+
+# Install dependencies for all packages
+npm install
 ```
 
-#### File Operations
-```typescript
-GET    /files              # List files
-POST   /upload             # Upload files
-GET    /download           # Download files
-POST   /delete             # Delete files
-POST   /rename             # Rename files
-GET    /stream             # Stream media files
+### Backend Commands
+```bash
+cd backend
+
+# Compile TypeScript and watch for changes
+tsc -w
+
+# Run compiled backend with auto-restart
+nodemon dist/index.js
+
+# Development mode (compile + run)
+npm start
+
+# Build for production
+npm run build
+
+# Type check without building
+tsc --noEmit
 ```
 
-### Database Schema
+### Frontend Commands
+```bash
+cd frontend
 
-```typescript
-// User entity
-interface User {
-  id: string;
-  discord_id?: string;
-  kakao_id?: string;
-  local_id?: string;
-  password?: string;  // bcrypt hashed
-  auth_type: 'oauth' | 'local';
-  created_at: string;
+# Start development server (port 5050)
+npm run dev
+
+# Build for production
+npm run build
+
+# Type check Svelte components
+npm run check
+
+# Preview production build
+npm run preview
+```
+
+## Code Standards
+
+### TypeScript Configuration
+
+**Backend tsconfig.json**
+```json
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "commonjs",
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist"]
 }
+```
 
-// Permission system
-interface UserIntent {
-  user_id: string;
-  intent: 'ADMIN' | 'VIEW' | 'DOWNLOAD' | 'UPLOAD' | 'DELETE';
+**Frontend tsconfig.json**
+```json
+{
+  "extends": "@tsconfig/svelte/tsconfig.json",
+  "compilerOptions": {
+    "target": "ES2020",
+    "useDefineForClassFields": true,
+    "module": "ESNext",
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "strict": true
+  },
+  "include": ["src/**/*.d.ts", "src/**/*.ts", "src/**/*.svelte"],
+  "references": [{ "path": "./tsconfig.node.json" }]
 }
 ```
 
-## Frontend Development
+### Coding Conventions
 
-### Component Architecture
+**File Naming**
+- **TypeScript**: camelCase.ts (e.g., `authModule.ts`)
+- **Svelte Components**: PascalCase.svelte (e.g., `FileViewer.svelte`)
+- **Configuration**: kebab-case (e.g., `tsconfig.json`)
 
-#### Main Application (`App.svelte`)
+**Code Style**
+- **Indentation**: 2 spaces
+- **Quotes**: Single quotes for strings
+- **Semicolons**: Required
+- **Trailing Commas**: Required in multiline structures
+
+**Component Structure (Svelte)**
 ```svelte
 <script lang="ts">
+  // Imports
   import { onMount } from 'svelte';
-  import Explorer from './lib/Explorer.svelte';
-  import Account from './lib/Account.svelte';
   
-  let currentTab = 'explorer';
-  let userToken = '';
+  // Props
+  export let prop1: string;
+  export let prop2: number = 0;
+  
+  // Variables
+  let localVariable = '';
+  
+  // Functions
+  function handleAction() {
+    // Implementation
+  }
+  
+  // Lifecycle
+  onMount(() => {
+    // Initialization
+  });
 </script>
 
-{#if currentTab === 'explorer'}
-  <Explorer bind:token={userToken} />
-{:else if currentTab === 'account'}
-  <Account bind:token={userToken} />
-{/if}
-```
+<!-- HTML Template -->
+<div class="component-root">
+  <!-- Content -->
+</div>
 
-#### File Explorer (`lib/Explorer.svelte`)
-- File browser interface
-- Upload/download functionality
-- File preview capabilities
-- Drag-and-drop support
-
-#### Authentication (`lib/Account.svelte`)
-- Dynamic authentication UI
-- OAuth and local login options
-- User registration forms
-
-### State Management
-
-Using Svelte stores for global state:
-
-```typescript
-// store/store.ts
-import { writable } from 'svelte/store';
-
-export const userToken = writable<string>('');
-export const currentPath = writable<string>('');
-export const fileList = writable<FileItem[]>([]);
-```
-
-### API Integration
-
-```typescript
-// API helper functions
-async function apiCall(endpoint: string, options = {}) {
-  const response = await fetch(`${SERVER_URL}${endpoint}`, {
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    ...options
-  });
-  
-  return response.json();
-}
+<!-- Styles -->
+<style>
+  .component-root {
+    /* Styles */
+  }
+</style>
 ```
 
 ## Testing
 
-### Backend Testing
+### Manual Testing Checklist
 
+**Authentication Testing**
 ```bash
-# Test API endpoints
-curl http://localhost:7777/auth/config
+# 1. Start development environment
+npm run test
 
-# Test authentication
-curl -X POST http://localhost:7777/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{"id":"test","password":"test123"}'
+# 2. Test local authentication
+# - Go to Account tab
+# - Register new user with ID/password
+# - Logout and login again
+# - Verify JWT token in browser storage
+
+# 3. Test file operations (requires login)
+# - Upload files
+# - Browse directories
+# - Download files
+# - Test media streaming (audio/video files)
+
+# 4. Test user management (admin user)
+# - Login with admin credentials
+# - Access User Manager
+# - View user list and permissions
+# - Test activity logging
 ```
 
-### Frontend Testing
+**Cross-Browser Testing**
+- Chrome (latest)
+- Firefox (latest)
+- Safari (if on macOS)
+- Edge (latest)
 
+**Responsive Testing**
+- Desktop: 1920x1080, 1366x768
+- Tablet: 768x1024
+- Mobile: 375x667, 414x896
+
+### API Testing
+
+**Health Check**
 ```bash
-# Type checking
-cd frontend && npm run check
+curl http://localhost:7777/
+# Should return HTML page
+```
 
-# Manual testing
-# 1. Open http://localhost:5050
-# 2. Test authentication flows
-# 3. Test file operations
+**Authentication API**
+```bash
+# Get auth config
+curl http://localhost:7777/auth/config
+
+# Register user (local auth)
+curl -X POST http://localhost:7777/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"userId":"test","password":"test123"}'
+
+# Login
+curl -X POST http://localhost:7777/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"userId":"test","password":"test123"}'
 ```
 
 ## Debugging
 
 ### Backend Debugging
 
-```bash
-# Enable debug mode in .env
+**Enable Debug Mode**
+```env
+# In .env
 DEBUG_MODE=true
 LOG_LEVEL=debug
+ENABLE_REQUEST_LOGGING=true
+```
 
-# View logs in terminal
-cd backend && npm start
+**Common Debug Scenarios**
+```bash
+# Check server logs
+# Logs appear in terminal where you ran 'npm run test'
+
+# Check database
+# Database file: backend/db/nas.sqlite
+# Use SQLite browser or CLI to inspect
+
+# Check file paths
+# Verify data directories exist: ../../nas-data, ../../nas-data-admin
+```
+
+**VS Code Backend Debugging**
+```json
+// .vscode/launch.json
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Debug Backend",
+      "type": "node",
+      "request": "launch",
+      "program": "${workspaceFolder}/backend/dist/index.js",
+      "preLaunchTask": "tsc:build",
+      "outFiles": ["${workspaceFolder}/backend/dist/**/*.js"],
+      "envFile": "${workspaceFolder}/.env"
+    }
+  ]
+}
 ```
 
 ### Frontend Debugging
 
+**Browser Developer Tools**
+- **Console**: Check for JavaScript errors
+- **Network**: Monitor API calls and responses
+- **Application**: Inspect localStorage for JWT tokens
+- **Sources**: Debug Svelte component code
+
+**Svelte DevTools**
+Install browser extension for enhanced Svelte debugging
+
+## Common Issues
+
+### Port Conflicts
 ```bash
-# Vite dev server provides:
-# - Hot Module Replacement (HMR)
-# - Source maps
-# - Browser dev tools integration
+# Error: Port 7777 already in use
+# Solution: Kill existing process
+# Windows:
+netstat -ano | findstr :7777
+taskkill /PID <PID> /F
 
-cd frontend && npm run dev
+# Linux/macOS:
+lsof -ti:7777
+kill -9 <PID>
+
+# Or change port in .env:
+PORT=7778
 ```
 
-### Common Issues
-
-1. **Port conflicts**: Change PORT in .env
-2. **Permission errors**: Check file system permissions
-3. **Build errors**: Verify dependencies are installed
-4. **CORS issues**: Check CORS_ORIGIN in .env
-
-## Code Style
-
-### TypeScript Configuration
-
-```json
-// tsconfig.json
-{
-  "compilerOptions": {
-    "target": "ES2020",
-    "module": "commonjs",
-    "strict": true,
-    "esModuleInterop": true
-  }
-}
-```
-
-### Formatting
-
-- Use consistent indentation (2 spaces)
-- Follow TypeScript naming conventions
-- Use meaningful variable names
-- Add JSDoc comments for functions
-
-### File Organization
-
-```
-backend/src/
-├── index.ts           # Main server
-├── config/           # Configuration files
-├── functions/        # Business logic
-├── modules/          # Feature modules
-├── db/              # Database entities
-└── types/           # TypeScript types
-
-frontend/src/
-├── App.svelte        # Main component
-├── lib/             # Reusable components
-├── store/           # State management
-└── types/           # TypeScript types
-```
-
-## Performance Optimization
-
-### Backend Optimization
-
-- Use streaming for large file transfers
-- Implement proper caching headers
-- Optimize database queries
-- Use compression middleware
-
-### Frontend Optimization
-
-- Vite provides automatic code splitting
-- Use Svelte's reactive features efficiently
-- Implement virtual scrolling for large file lists
-- Optimize asset loading
-
-## Deployment Preparation
-
-### Building for Production
-
+### Node Modules Issues
 ```bash
-# Build both frontend and backend
-npm run build
+# Error: Module resolution problems
+# Solution: Clean install
+rm -rf node_modules package-lock.json
+rm -rf backend/node_modules backend/package-lock.json
+rm -rf frontend/node_modules frontend/package-lock.json
 
-# Verify build artifacts
-ls backend/dist/
-ls frontend/dist/
+npm install
+cd backend && npm install && cd ..
+cd frontend && npm install && cd ..
 ```
 
-### Environment Configuration
-
+### Database Issues
 ```bash
-# Production .env example
-NODE_ENV=production
-HOST=0.0.0.0
-PRIVATE_KEY=secure-production-key
-ADMIN_PASSWORD=secure-admin-password
+# Error: Database locked or permission denied
+# Solution: Check database file permissions
+ls -la backend/db/
+
+# If directory doesn't exist:
+mkdir -p backend/db
+
+# Check SQLite installation
+sqlite3 --version
 ```
 
-## Troubleshooting
+### TypeScript Compilation Issues
+```bash
+# Error: TypeScript compilation errors
+# Solution: Check tsconfig.json settings and fix type errors
 
-### Common Development Issues
+# Backend compilation
+cd backend
+npx tsc --noEmit
 
-1. **TypeScript compilation errors**
-   ```bash
-   cd backend && npx tsc --noEmit  # Check for errors
-   ```
+# Frontend type checking
+cd frontend
+npm run check
+```
 
-2. **Frontend build failures**
-   ```bash
-   cd frontend && npm run check    # Type check
-   cd frontend && npm run build    # Build check
-   ```
+### OAuth Configuration
+```bash
+# Error: OAuth authentication failing
+# Check .env configuration:
+# - DISCORD_CLIENT_ID and DISCORD_CLIENT_SECRET
+# - KAKAO_REST_API_KEY and KAKAO_CLIENT_SECRET
+# - Redirect URIs match OAuth provider settings
+```
 
-3. **Database connection issues**
-   - Check DB_PATH in .env
-   - Verify directory permissions
-   - Ensure SQLite is installed
+## Next Steps
 
-4. **Authentication problems**
-   - Verify OAuth credentials
-   - Check JWT token generation
-   - Validate password hashing
+After completing development setup:
 
-For production deployment, see [Deployment Guide](../deployment/deployment-guide.md)
+1. **Read API Reference**: [API Reference](api-reference.md)
+2. **Understand Components**: [Component Guide](component-guide.md)
+3. **Learn Testing**: [Testing Guide](testing-guide.md)
+4. **Prepare Deployment**: [Deployment Guide](../deployment/deployment-guide.md)
+
+## Development Resources
+
+- **Svelte 5 Documentation**: https://svelte.dev/docs
+- **TypeScript Handbook**: https://www.typescriptlang.org/docs/
+- **Express.js Guide**: https://expressjs.com/en/guide/
+- **Vite Documentation**: https://vitejs.dev/guide/
+- **SQLite Documentation**: https://www.sqlite.org/docs.html
+
+---
+
+*This guide covers the complete development workflow. For production deployment, see the [Deployment Guide](../deployment/deployment-guide.md).*

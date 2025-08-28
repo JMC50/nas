@@ -9,17 +9,17 @@ services:
     ports:
       - "8086:7777"
     volumes:
-      - nas-data:/app/data
-      - nas-admin-data:/app/admin-data
-      - nas-db:/app/db
+      # 새로운 통합 경로 시스템 사용
+      # DATA_PATH 환경변수를 기반으로 모든 경로 자동 결정
+      - ${DATA_PATH:-/mnt/nas-storage}/files:/app/data/files
+      - ${DATA_PATH:-/mnt/nas-storage}/admin:/app/data/admin
+      - ${DATA_PATH:-/mnt/nas-storage}/database:/app/data/database
+      - ${DATA_PATH:-/mnt/nas-storage}/temp:/app/data/temp
+    env_file:
+      - .env
     environment:
       - NODE_ENV=production
-      - PRIVATE_KEY=${PRIVATE_KEY}
-      - ADMIN_PASSWORD=${ADMIN_PASSWORD}
-      - AUTH_TYPE=${AUTH_TYPE:-both}
-      - CORS_ORIGIN=${CORS_ORIGIN:-*}
-      - MAX_FILE_SIZE=${MAX_FILE_SIZE:-50gb}
-      - PASSWORD_MIN_LENGTH=${PASSWORD_MIN_LENGTH:-8}
+      - DATA_PATH=/app/data
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:7777/"]
@@ -28,31 +28,5 @@ services:
       retries: 3
       start_period: 30s
 
-  # Development service (uses .env file)
-  nas-dev:
-    build:
-      context: .
-      target: development
-    container_name: nas-development
-    ports:
-      - "8086:5050"
-    volumes:
-      - .:/app
-      - /app/node_modules
-      - /app/backend/node_modules
-      - /app/frontend/node_modules
-    environment:
-      - NODE_ENV=development
-      - PORT=7777
-      - HOST=0.0.0.0
-    command: npm run test
-    profiles:
-      - dev
-
-volumes:
-  nas-data:
-    driver: local
-  nas-admin-data:
-    driver: local
-  nas-db:
-    driver: local
+# 볼륨 대신 호스트 마운트 사용 (RAID 직접 연결)
+# 기존 네트워크 설정 제거 (단순화)

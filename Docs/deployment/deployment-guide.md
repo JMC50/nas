@@ -1,213 +1,94 @@
-# 🚀 NAS File Manager Deployment Guide
+# 🚀 Deployment Guide
 
 Complete deployment guide for the NAS File Manager application across different platforms and environments.
 
 ## 📋 Table of Contents
 
 - [Quick Start](#quick-start)
-- [Environment Setup](#environment-setup)
-- [Windows Development](#windows-development)
-- [Linux Production Deployment](#linux-production-deployment)
+- [Deployment Options](#deployment-options)  
+- [System Requirements](#system-requirements)
 - [Docker Deployment](#docker-deployment)
-- [Configuration Management](#configuration-management)
+- [Manual Linux Deployment](#manual-linux-deployment)
+- [Systemd Service Setup](#systemd-service-setup)
+- [Production Configuration](#production-configuration)
+- [Reverse Proxy Setup](#reverse-proxy-setup)
+- [SSL/HTTPS Setup](#sslhttps-setup)
 - [Monitoring & Maintenance](#monitoring--maintenance)
 - [Troubleshooting](#troubleshooting)
 
 ## Quick Start
 
-### Windows 11 Development Setup
-
-#### 1. Prerequisites
-- Install [Node.js 20+](https://nodejs.org/)
-- Install [Git](https://git-scm.com/)
-
-#### 2. Clone and Start
+### Docker (Recommended)
 ```bash
-git clone <your-repo-url>
+# Clone and configure
+git clone <your-repo>
 cd nas-main
-
-# Manual setup
-npm install
-cd backend && npm install && cd ..
-cd frontend && npm install && cd ..
-npm run test
-```
-
-#### 3. Access Application
-- **Frontend**: http://localhost:5050
-- **Backend API**: http://localhost:7777
-
-#### 4. Test Authentication
-1. Go to Account tab
-2. Try both OAuth and Local login options
-3. For local auth: Register with any ID/password
-
-### Docker Quick Start
-
-#### Development
-```bash
-# Start development environment
-docker-compose up nas-dev
-```
-
-#### Production
-```bash
-# Copy and edit environment file
 cp .env.example .env
 # Edit .env with your settings
 
-# Start production
+# Deploy production
 docker-compose up -d nas-app
 ```
 
-## Environment Setup
+### Linux with Systemd Service
+```bash
+# Install and configure
+git clone <your-repo>
+cd nas-main
+npm install && npm run build
 
-### Prerequisites
+# Setup system service
+sudo cp nas-app.service /etc/systemd/system/
+sudo systemctl enable nas-app.service
+sudo systemctl start nas-app.service
+```
 
+## Deployment Options
+
+| Method | Best For | Complexity | Auto-Start | Isolation |
+|--------|----------|------------|------------|-----------|
+| **Docker** | Production, scaling | Low | ✅ | High |
+| **Systemd Service** | Linux servers | Medium | ✅ | Medium |
+| **Manual** | Development, testing | Low | ❌ | Low |
+| **PM2** | Node.js environments | Medium | ✅ | Low |
+
+## System Requirements
+
+### Minimum Requirements
+- **CPU**: 1 core, 1 GHz
+- **RAM**: 1 GB available
+- **Storage**: 2 GB for application + user files
+- **OS**: Linux (Ubuntu 20.04+), Windows 10+, macOS 10.15+
+
+### Recommended Production
+- **CPU**: 2+ cores, 2+ GHz  
+- **RAM**: 4 GB available
+- **Storage**: SSD, 10+ GB for application + user files
+- **OS**: Ubuntu 22.04 LTS or newer
+- **Network**: Static IP, domain name for HTTPS
+
+### Software Dependencies
 - **Node.js**: Version 20 or higher
-- **npm**: Comes with Node.js
-- **Git**: For version control
-- **SQLite**: Included in dependencies
-
-### Platform-Specific Requirements
-
-#### Windows 11 Development
-```bash
-# Install Node.js from https://nodejs.org/
-# Install Git from https://git-scm.com/
-# Install Visual Studio Build Tools (for native modules)
-npm install -g windows-build-tools
-```
-
-#### Linux Production
-```bash
-# Ubuntu/Debian
-sudo apt update
-sudo apt install nodejs npm python3 build-essential sqlite3
-
-# CentOS/RHEL
-sudo yum install nodejs npm python3 gcc-c++ make sqlite
-```
-
-## Windows Development
-
-### Manual Development Setup
-
-```bash
-# Install dependencies
-npm install
-cd backend && npm install && cd ..
-cd frontend && npm install && cd ..
-
-# Create data directories (Windows)
-mkdir ..\..\nas-data
-mkdir ..\..\nas-data-admin
-
-# Start development servers
-npm run test  # Starts both frontend and backend
-```
-
-### Common Commands
-
-```bash
-npm run test          # Start both frontend and backend
-npm run build         # Build both frontend and backend for production
-```
-
-## Linux Production Deployment
-
-### System Setup
-
-```bash
-# Update system
-sudo apt update && sudo apt upgrade -y
-
-# Install Node.js 20
-curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
-sudo apt-get install -y nodejs
-
-# Install system dependencies
-sudo apt install -y python3 build-essential sqlite3
-```
-
-### Application Setup
-
-```bash
-# Create application user
-sudo useradd -r -s /bin/false -d /opt/nas nas
-
-# Create directories
-sudo mkdir -p /opt/nas
-sudo mkdir -p /home/nas/nas-storage/{data,admin-data,db}
-
-# Copy application files
-sudo cp -r . /opt/nas/
-sudo chown -R nas:nas /opt/nas /home/nas/nas-storage
-```
-
-### Build and Configure
-
-```bash
-cd /opt/nas
-
-# Install dependencies and build
-sudo -u nas npm install
-sudo -u nas npm run build
-
-# Setup environment
-sudo -u nas cp .env.example .env
-# Edit .env with production values
-```
-
-### Access Application
-- **Direct**: http://your-server-ip:7777
-- **With Nginx**: http://your-domain.com
+- **npm**: Version 10+ (comes with Node.js)
+- **SQLite**: Built into Node.js dependencies
+- **Docker**: Version 20.10+ (for Docker deployment)
 
 ## Docker Deployment
 
-Docker is the recommended deployment method as it eliminates process management complexity and provides better isolation.
+### Production Docker Setup
 
-### Development with Docker
-
+#### 1. Prepare Environment
 ```bash
-# Start development environment
-docker-compose up nas-dev
+# Clone repository
+git clone <your-repository>
+cd nas-main
 
-# Build and start production
-docker-compose up nas-app
-```
-
-### Production Docker Deployment
-
-```bash
-# Build production image
-docker build -t nas-app:latest .
-
-# Run with docker-compose
-docker-compose up -d nas-app
-
-# Or run directly
-docker run -d \
-  --name nas-app \
-  -p 7777:7777 \
-  -v $(pwd)/data:/app/data \
-  -v $(pwd)/admin-data:/app/admin-data \
-  -v $(pwd)/db:/app/db \
-  --env-file .env \
-  nas-app:latest
-```
-
-## Configuration Management
-
-### Environment Variables
-
-Create `.env` file from template:
-```bash
+# Create environment configuration
 cp .env.example .env
 ```
 
-Key configurations:
-
+#### 2. Configure Environment
+Edit `.env` for production:
 ```env
 # Application
 NODE_ENV=production
@@ -215,56 +96,414 @@ PORT=7777
 HOST=0.0.0.0
 
 # Authentication
-AUTH_TYPE=both  # oauth, local, or both
-PRIVATE_KEY=your-secure-key
-ADMIN_PASSWORD=your-admin-password
-
-# Storage (Linux Production)
-NAS_DATA_DIR=/home/nas/nas-storage/data
-NAS_ADMIN_DATA_DIR=/home/nas/nas-storage/admin-data
-DB_PATH=/home/nas/nas-storage/db
-```
-
-### Configuration Examples
-
-#### Development (.env with NODE_ENV=development)
-```env
-NODE_ENV=development
-AUTH_TYPE=both
-PRIVATE_KEY=dev-secret-key
-ADMIN_PASSWORD=admin123
-PASSWORD_MIN_LENGTH=4
-```
-
-#### Production (.env)
-```env
-NODE_ENV=production
 AUTH_TYPE=both
 PRIVATE_KEY=your-secure-secret-key-here
 ADMIN_PASSWORD=your-secure-admin-password
-NAS_DATA_DIR=/home/nas/nas-storage/data
+JWT_EXPIRY=24h
+
+# Production Password Requirements  
+PASSWORD_MIN_LENGTH=8
+PASSWORD_REQUIRE_UPPERCASE=true
+PASSWORD_REQUIRE_LOWERCASE=true
+PASSWORD_REQUIRE_NUMBER=true
+PASSWORD_REQUIRE_SPECIAL=false
+
+# Storage (Docker paths)
+DATA_PATH=/app/data
+MAX_FILE_SIZE=50gb
+ALLOWED_EXTENSIONS=*
+
+# Security
+CORS_ORIGIN=https://your-domain.com,https://www.your-domain.com
+ENABLE_CORS=true
+
+# Logging
+DEBUG_MODE=false
+LOG_LEVEL=info
+ENABLE_REQUEST_LOGGING=true
 ```
 
-### Platform-Specific Paths
+#### 3. Deploy with Docker Compose
+```bash
+# Start production container
+docker-compose up -d nas-app
 
-The application automatically detects the platform and sets appropriate paths:
+# Check status
+docker-compose ps
+docker-compose logs -f nas-app
+```
 
-- **Windows Development**: Relative paths (`../../nas-data`)
-- **Linux Production**: `/home/nas/nas-storage/`
-- **Docker**: `/app/data`, `/app/admin-data`, `/app/db`
+#### 4. Verify Deployment
+```bash
+# Health check
+curl http://localhost:7777/
 
-## Reverse Proxy Setup (Nginx)
+# Check container status
+docker-compose ps nas-app
 
+# View logs
+docker-compose logs nas-app
+```
+
+### Docker Compose Configuration
+
+**Complete docker-compose.yml:**
+```yaml
+version: '3.8'
+
+services:
+  nas-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    container_name: nas-app
+    restart: unless-stopped
+    ports:
+      - "7777:7777"
+    volumes:
+      - nas-data:/app/data
+      - nas-admin-data:/app/admin-data  
+      - nas-db:/app/db
+      - nas-temp:/tmp/nas
+    env_file:
+      - .env
+    environment:
+      - NODE_ENV=production
+      - DATA_PATH=/app/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:7777/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.nas.rule=Host(`your-domain.com`)"
+      - "traefik.http.services.nas.loadbalancer.server.port=7777"
+
+volumes:
+  nas-data:
+    driver: local
+  nas-admin-data:
+    driver: local
+  nas-db:
+    driver: local
+  nas-temp:
+    driver: local
+
+networks:
+  default:
+    name: nas-network
+```
+
+### Docker Commands
+
+```bash
+# Build and start
+docker-compose up -d nas-app
+
+# View logs
+docker-compose logs -f nas-app
+
+# Restart application
+docker-compose restart nas-app
+
+# Stop application  
+docker-compose stop nas-app
+
+# Update and redeploy
+git pull
+docker-compose build nas-app
+docker-compose up -d nas-app
+
+# Backup volumes
+docker run --rm -v nas-app_nas-data:/data -v $(pwd)/backups:/backup \
+  alpine tar czf /backup/nas-data-$(date +%Y%m%d).tar.gz -C /data .
+
+# Clean up
+docker-compose down
+docker system prune -f
+```
+
+## Manual Linux Deployment
+
+### 1. System Preparation
+
+#### Install Node.js 20
+```bash
+# Ubuntu/Debian - Install Node.js 20
+curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+sudo apt-get install -y nodejs
+
+# CentOS/RHEL/Rocky Linux
+curl -fsSL https://rpm.nodesource.com/setup_20.x | sudo bash -
+sudo yum install -y nodejs
+
+# Verify installation
+node --version  # Should be v20.x.x
+npm --version   # Should be 10.x.x
+```
+
+#### Install System Dependencies
+```bash
+# Ubuntu/Debian
+sudo apt update
+sudo apt install -y python3 build-essential sqlite3 curl git
+
+# CentOS/RHEL
+sudo yum install -y python3 gcc-c++ make sqlite curl git
+```
+
+### 2. Application Setup
+
+#### Create Application User
+```bash
+# Create dedicated user for security
+sudo useradd -r -s /bin/false -d /opt/nas nas
+
+# Create directories
+sudo mkdir -p /opt/nas
+sudo mkdir -p /mnt/nas-storage/{data,admin-data,database,temp}
+
+# Set permissions
+sudo chown -R nas:nas /opt/nas /mnt/nas-storage
+```
+
+#### Install Application
+```bash
+# Clone repository
+cd /opt/nas
+sudo -u nas git clone <your-repository> .
+
+# Install dependencies and build
+sudo -u nas npm install
+sudo -u nas npm run build
+
+# Create environment configuration
+sudo -u nas cp .env.example .env
+# Edit .env with production settings (see configuration section)
+```
+
+### 3. Manual Service Management
+
+#### Start Application
+```bash
+# Start as nas user
+sudo -u nas NODE_ENV=production npm start
+
+# Or start backend only
+cd /opt/nas/backend
+sudo -u nas node dist/index.js
+```
+
+#### Process Management with PM2
+```bash
+# Install PM2 globally
+sudo npm install -g pm2
+
+# Create PM2 configuration
+cat > /opt/nas/ecosystem.config.js << 'EOF'
+module.exports = {
+  apps: [{
+    name: 'nas-app',
+    script: './backend/dist/index.js',
+    cwd: '/opt/nas',
+    user: 'nas',
+    env: {
+      NODE_ENV: 'production',
+      PORT: 7777
+    },
+    instances: 1,
+    exec_mode: 'fork',
+    watch: false,
+    max_memory_restart: '1G',
+    error_file: '/var/log/nas-app/error.log',
+    out_file: '/var/log/nas-app/out.log',
+    log_file: '/var/log/nas-app/combined.log',
+    time: true
+  }]
+};
+EOF
+
+# Create log directory
+sudo mkdir -p /var/log/nas-app
+sudo chown nas:nas /var/log/nas-app
+
+# Start with PM2
+sudo -u nas pm2 start ecosystem.config.js
+
+# Enable PM2 auto-start
+sudo -u nas pm2 save
+sudo -u nas pm2 startup
+```
+
+## Systemd Service Setup
+
+The application includes a systemd service file for automatic startup and management.
+
+### 1. Install Service
+```bash
+# Copy service file
+sudo cp nas-app.service /etc/systemd/system/
+
+# Reload systemd
+sudo systemctl daemon-reload
+
+# Enable auto-start
+sudo systemctl enable nas-app.service
+```
+
+### 2. Service Management
+```bash
+# Start service
+sudo systemctl start nas-app.service
+
+# Check status
+sudo systemctl status nas-app.service
+
+# Stop service
+sudo systemctl stop nas-app.service
+
+# Restart service
+sudo systemctl restart nas-app.service
+
+# View logs
+sudo journalctl -u nas-app.service -f
+```
+
+### 3. Service Configuration
+
+**nas-app.service file:**
+```ini
+[Unit]
+Description=NAS File Management System
+After=network.target
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+Restart=always
+RestartSec=1
+User=heesung
+Environment=NODE_ENV=production
+WorkingDirectory=/home/heesung/NAS
+ExecStart=/usr/bin/npm start
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=nas-app
+
+[Install]
+WantedBy=multi-user.target
+```
+
+For detailed systemd setup, see [Systemd Service Guide](systemd-service.md).
+
+## Production Configuration
+
+### Environment Variables
+
+**Critical Production Settings:**
+```env
+# Security - REQUIRED CHANGES
+NODE_ENV=production
+PRIVATE_KEY=your-very-secure-random-key-here
+ADMIN_PASSWORD=your-secure-admin-password
+
+# Network Security
+HOST=0.0.0.0
+CORS_ORIGIN=https://yourdomain.com,https://www.yourdomain.com
+
+# Strong Password Requirements
+PASSWORD_MIN_LENGTH=12
+PASSWORD_REQUIRE_UPPERCASE=true
+PASSWORD_REQUIRE_LOWERCASE=true  
+PASSWORD_REQUIRE_NUMBER=true
+PASSWORD_REQUIRE_SPECIAL=true
+
+# File Security
+MAX_FILE_SIZE=50gb
+ALLOWED_EXTENSIONS=*
+# Or restrict: ALLOWED_EXTENSIONS=jpg,jpeg,png,pdf,doc,docx,txt,zip
+
+# Logging
+DEBUG_MODE=false
+LOG_LEVEL=warn
+ENABLE_REQUEST_LOGGING=true
+```
+
+### File System Security
+```bash
+# Set proper permissions
+sudo chmod 600 .env
+sudo chmod -R 750 /mnt/nas-storage
+sudo chown -R nas:nas /mnt/nas-storage
+
+# Create backup user
+sudo useradd -r -s /bin/false backup
+sudo usermod -a -G nas backup
+```
+
+### Firewall Configuration
+```bash
+# Ubuntu/Debian with UFW
+sudo ufw allow ssh
+sudo ufw allow 80/tcp
+sudo ufw allow 443/tcp  
+sudo ufw allow 7777/tcp  # If no reverse proxy
+sudo ufw enable
+
+# CentOS/RHEL with firewalld
+sudo firewall-cmd --permanent --add-service=ssh
+sudo firewall-cmd --permanent --add-service=http
+sudo firewall-cmd --permanent --add-service=https
+sudo firewall-cmd --permanent --add-port=7777/tcp
+sudo firewall-cmd --reload
+```
+
+## Reverse Proxy Setup
+
+### Nginx Configuration
+
+#### Install Nginx
+```bash
+# Ubuntu/Debian
+sudo apt install nginx
+
+# CentOS/RHEL
+sudo yum install nginx
+```
+
+#### Configure Virtual Host
 ```nginx
+# /etc/nginx/sites-available/nas-app
 server {
     listen 80;
-    server_name your-domain.com;
+    server_name your-domain.com www.your-domain.com;
     
+    # Redirect HTTP to HTTPS
+    return 301 https://$server_name$request_uri;
+}
+
+server {
+    listen 443 ssl http2;
+    server_name your-domain.com www.your-domain.com;
+    
+    # SSL Configuration (see SSL section)
+    ssl_certificate /etc/letsencrypt/live/your-domain.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/your-domain.com/privkey.pem;
+    
+    # Large file upload support
     client_max_body_size 50G;
+    client_body_timeout 300s;
+    client_header_timeout 60s;
     
+    # Proxy settings
     location / {
-        proxy_pass http://localhost:7777;
+        proxy_pass http://127.0.0.1:7777;
         proxy_http_version 1.1;
+        
+        # Headers
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection 'upgrade';
         proxy_set_header Host $host;
@@ -272,147 +511,339 @@ server {
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
         
-        # Large file upload timeouts
-        proxy_connect_timeout 600s;
-        proxy_send_timeout 600s;
-        proxy_read_timeout 600s;
+        # Timeouts for large files
+        proxy_connect_timeout 300s;
+        proxy_send_timeout 300s;
+        proxy_read_timeout 300s;
+        
+        # Buffer settings
+        proxy_buffering off;
+        proxy_cache off;
+    }
+    
+    # Static asset caching
+    location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg)$ {
+        proxy_pass http://127.0.0.1:7777;
+        expires 1y;
+        add_header Cache-Control "public, immutable";
     }
 }
 ```
 
+#### Enable Configuration
+```bash
+# Enable site
+sudo ln -s /etc/nginx/sites-available/nas-app /etc/nginx/sites-enabled/
+
+# Test configuration
+sudo nginx -t
+
+# Restart Nginx
+sudo systemctl restart nginx
+```
+
+### Apache Configuration
+
+#### Install Apache
+```bash
+# Ubuntu/Debian  
+sudo apt install apache2
+
+# CentOS/RHEL
+sudo yum install httpd
+```
+
+#### Configure Virtual Host
+```apache
+# /etc/apache2/sites-available/nas-app.conf
+<VirtualHost *:80>
+    ServerName your-domain.com
+    ServerAlias www.your-domain.com
+    Redirect permanent / https://your-domain.com/
+</VirtualHost>
+
+<VirtualHost *:443>
+    ServerName your-domain.com
+    ServerAlias www.your-domain.com
+    
+    # SSL Configuration
+    SSLEngine on
+    SSLCertificateFile /etc/letsencrypt/live/your-domain.com/cert.pem
+    SSLCertificateKeyFile /etc/letsencrypt/live/your-domain.com/privkey.pem
+    SSLCertificateChainFile /etc/letsencrypt/live/your-domain.com/chain.pem
+    
+    # Proxy settings
+    ProxyPreserveHost On
+    ProxyRequests Off
+    ProxyPass / http://127.0.0.1:7777/
+    ProxyPassReverse / http://127.0.0.1:7777/
+    
+    # Large file support
+    LimitRequestBody 53687091200  # 50GB
+    
+    # Headers
+    ProxyPassReverse / http://127.0.0.1:7777/
+    ProxyPassReverse / https://your-domain.com/
+</VirtualHost>
+```
+
+#### Enable Modules and Site
+```bash
+# Enable required modules
+sudo a2enmod ssl proxy proxy_http headers
+
+# Enable site
+sudo a2ensite nas-app.conf
+
+# Restart Apache
+sudo systemctl restart apache2
+```
+
+## SSL/HTTPS Setup
+
+### Let's Encrypt with Certbot
+
+#### Install Certbot
+```bash
+# Ubuntu/Debian
+sudo apt install certbot python3-certbot-nginx
+
+# CentOS/RHEL
+sudo yum install certbot python3-certbot-nginx
+```
+
+#### Obtain SSL Certificate
+```bash
+# For Nginx
+sudo certbot --nginx -d your-domain.com -d www.your-domain.com
+
+# For Apache  
+sudo certbot --apache -d your-domain.com -d www.your-domain.com
+
+# Standalone mode (if no web server running)
+sudo certbot certonly --standalone -d your-domain.com -d www.your-domain.com
+```
+
+#### Auto-Renewal Setup
+```bash
+# Add to crontab
+echo "0 12 * * * /usr/bin/certbot renew --quiet" | sudo crontab -
+
+# Test renewal
+sudo certbot renew --dry-run
+```
+
+### Manual SSL Configuration
+
+For custom SSL certificates, see [Security Configuration](../configuration/security-config.md).
+
 ## Monitoring & Maintenance
-
-### Health Checks
-
-The application includes health check endpoint:
-```bash
-curl http://localhost:7777/
-```
-
-### Updates
-
-For Docker deployments:
-```bash
-# Pull latest code
-git pull origin main
-
-# Rebuild and restart
-docker-compose down
-docker-compose build nas-app
-docker-compose up -d nas-app
-```
-
-For Linux production:
-```bash
-# Manual update
-# Stop application (using your process manager)
-# Update code
-sudo -u nas npm install
-sudo -u nas npm run build
-# Start application
-```
 
 ### Log Management
 
-Logs are stored in:
-- Docker logs: `docker-compose logs -f nas-app`
-- Application logs: `./logs/` (if configured)
+#### Docker Logs
+```bash
+# View application logs
+docker-compose logs -f nas-app
+
+# Configure log rotation in docker-compose.yml
+logging:
+  driver: "json-file"
+  options:
+    max-size: "100m"
+    max-file: "5"
+```
+
+#### Systemd Logs
+```bash
+# View service logs
+sudo journalctl -u nas-app.service -f
+
+# Log retention configuration
+sudo mkdir -p /etc/systemd/journald.conf.d
+echo -e "[Journal]\nMaxRetentionSec=1month" | sudo tee /etc/systemd/journald.conf.d/retention.conf
+sudo systemctl restart systemd-journald
+```
+
+### Health Monitoring
+
+#### Create Health Check Script
+```bash
+#!/bin/bash
+# /opt/nas/scripts/health-check.sh
+
+HEALTH_URL="http://localhost:7777/"
+TIMEOUT=10
+
+if curl -f -s --max-time $TIMEOUT "$HEALTH_URL" > /dev/null; then
+    echo "$(date): NAS service is healthy"
+    exit 0
+else
+    echo "$(date): NAS service is unhealthy"
+    # Optional: restart service
+    # sudo systemctl restart nas-app.service
+    exit 1
+fi
+```
+
+#### Add to Cron
+```bash
+# Add health check every 5 minutes
+echo "*/5 * * * * /opt/nas/scripts/health-check.sh >> /var/log/nas-health.log 2>&1" | crontab -
+```
+
+### Backup Strategy
+
+#### Automated Backup Script
+```bash
+#!/bin/bash
+# /opt/nas/scripts/backup.sh
+
+BACKUP_DIR="/backup/nas-$(date +%Y%m%d-%H%M%S)"
+DATA_DIR="/mnt/nas-storage"
+
+mkdir -p "$BACKUP_DIR"
+
+# Stop service for consistent backup
+sudo systemctl stop nas-app.service
+
+# Backup data and database
+tar -czf "$BACKUP_DIR/nas-data.tar.gz" -C "$DATA_DIR" data admin-data database
+
+# Backup configuration
+cp /opt/nas/.env "$BACKUP_DIR/"
+
+# Restart service
+sudo systemctl start nas-app.service
+
+# Clean old backups (keep 7 days)
+find /backup -name "nas-*" -mtime +7 -exec rm -rf {} \;
+
+echo "Backup completed: $BACKUP_DIR"
+```
+
+### Updates and Maintenance
+
+#### Update Application
+```bash
+# Stop service
+sudo systemctl stop nas-app.service
+
+# Backup current version
+sudo -u nas cp -r /opt/nas /opt/nas-backup-$(date +%Y%m%d)
+
+# Update code
+cd /opt/nas
+sudo -u nas git pull
+
+# Update dependencies and rebuild
+sudo -u nas npm install
+sudo -u nas npm run build
+
+# Start service
+sudo systemctl start nas-app.service
+
+# Check status
+sudo systemctl status nas-app.service
+```
 
 ## Troubleshooting
 
 ### Common Issues
 
-#### Port 7777 already in use
+#### Service Won't Start
 ```bash
-# Windows
-netstat -ano | findstr :7777
-taskkill /PID <PID> /F
+# Check service status
+sudo systemctl status nas-app.service
 
-# Linux
-sudo netstat -tulpn | grep :7777
+# Check logs
+sudo journalctl -u nas-app.service -n 50
+
+# Check configuration
+cd /opt/nas
+sudo -u nas node -c "require('dotenv').config(); console.log('Config loaded')"
+
+# Check permissions
+ls -la /opt/nas
+ls -la /mnt/nas-storage
+```
+
+#### Port Already in Use
+```bash
+# Find process using port 7777
+sudo lsof -i :7777
+sudo netstat -tulpn | grep 7777
+
+# Kill process
 sudo kill -9 <PID>
+
+# Or change port in .env
+PORT=7778
 ```
 
-#### Can't access application
-1. Check if services are running
-2. Verify firewall settings
-3. Ensure correct ports are exposed
-
-#### Database errors
-1. Check data directory permissions
-2. Ensure SQLite is installed
-3. Verify database path in configuration
-
-#### Permission errors (Linux)
+#### Database Issues
 ```bash
+# Check database file
+ls -la /mnt/nas-storage/database/
+
+# Check SQLite version
+sqlite3 --version
+
+# Test database connection
+cd /opt/nas/backend
+node -e "
+const db = require('./dist/sqlite');
+console.log('Database connected');
+"
+```
+
+#### Permission Errors
+```bash
+# Fix file permissions
 sudo chown -R nas:nas /opt/nas
-sudo chown -R nas:nas /home/nas/nas-storage
+sudo chown -R nas:nas /mnt/nas-storage
+sudo chmod 600 /opt/nas/.env
+sudo chmod -R 750 /mnt/nas-storage
 ```
 
-#### Node.js modules compilation
+#### High Memory Usage
 ```bash
-# Rebuild native modules
-sudo -u nas npm rebuild
+# Check memory usage
+free -h
+ps aux | grep node
+
+# Restart service to clear memory
+sudo systemctl restart nas-app.service
+
+# Add memory limit to service file
+[Service]
+MemoryLimit=2G
 ```
 
-### Development vs Production Differences
+### Performance Optimization
 
-| Aspect | Development (Windows) | Production (Linux) | Docker |
-|--------|----------------------|-------------------|---------|
-| Data Path | `../../nas-data` | `/home/nas/nas-storage/data` | `/app/data` |
-| Process Manager | Direct npm scripts | Custom scripts | Docker |
-| Environment | `.env` | `.env` | `.env` |
-| Build | Watch mode | Built artifacts | Built artifacts |
-| Database | `backend/db/` | `/home/nas/nas-storage/db/` | `/app/db` |
+#### Node.js Optimization
+```env
+# Add to .env
+NODE_OPTIONS="--max-old-space-size=2048"
+```
 
-## Security Considerations
-
-1. **Firewall Configuration**
-   ```bash
-   sudo ufw allow ssh
-   sudo ufw allow 80
-   sudo ufw allow 443
-   sudo ufw enable
-   ```
-
-2. **SSL Certificate** (Let's Encrypt)
-   ```bash
-   sudo certbot --nginx -d your-domain.com
-   ```
-
-3. **File Permissions**
-   - Application files: `nas:nas` with 755/644 permissions
-   - Data directories: `nas:nas` with 750/640 permissions
-   - Configuration files: 600 permissions
-
-4. **Regular Updates**
-   - Keep Node.js and dependencies updated
-   - Monitor security advisories
-   - Regular backup of data and database
-
-## Backup Strategy
-
+#### Database Optimization
 ```bash
-# Create backup script
-#!/bin/bash
-DATE=$(date +%Y%m%d_%H%M%S)
-
-# For Docker deployments
-docker-compose stop nas-app
-docker run --rm -v nas-app_nas-data:/data -v $(pwd)/backups:/backup alpine tar czf /backup/nas-data-$DATE.tar.gz -C /data .
-docker-compose start nas-app
-
-# For Linux deployments
-sudo tar -czf /backups/nas-backup-$DATE.tar.gz \
-  /home/nas/nas-storage \
-  /opt/nas/.env
+# SQLite optimization
+echo "PRAGMA optimize;" | sqlite3 /mnt/nas-storage/database/nas.sqlite
 ```
 
-## Next Steps
+#### File System Optimization
+```bash
+# For large file operations, consider faster filesystem
+# Mount SSD for database and temp files
+sudo mkdir /mnt/ssd
+# Add to /etc/fstab for permanent mount
+```
 
-1. **Security**: Change default passwords and keys
-2. **SSL**: Set up HTTPS with Let's Encrypt
-3. **Monitoring**: Configure log rotation and monitoring
-4. **Backup**: Set up automated data backups
+For detailed troubleshooting, see [Operations Guide](../operations/troubleshooting.md).
 
-For Docker-specific detailed information, see [Docker Guide](docker-guide.md)
+---
+
+*This deployment guide covers production deployment scenarios. For development setup, see the [Development Guide](../development/development-guide.md).*

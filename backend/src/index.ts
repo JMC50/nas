@@ -2,6 +2,7 @@ import express from "express";
 import path from "path";
 import fs from "fs/promises";
 import fsNP from "fs";
+import { PATHS, getDataPath, getAdminDataPath } from "./config/paths";
 import yauzl from "yauzl";
 import jwt from "jsonwebtoken";
 import {
@@ -74,29 +75,30 @@ process.on("SIGINT", async () => {
 });
 
 const checkFolders = async () => {
-  const check = fsNP.existsSync(`../../nas-data`);
-  if (!check) {
-    await fs.mkdir(`../../nas-data`);
-    console.log("created data folder");
-  }
+  // 통합 경로 시스템 기반 폴더 생성
+  const foldersToCreate = [
+    { path: PATHS.dataDir, name: "user data folder" },
+    { path: PATHS.adminDataDir, name: "admin data folder" },
+    { path: PATHS.dbDir, name: "database folder" },
+    { path: PATHS.tempDir, name: "temporary folder" }
+  ];
 
-  const check2 = fsNP.existsSync(`../../nas-data-admin`);
-  if (!check2) {
-    await fs.mkdir(`../../nas-data-admin`);
-    console.log("created admin data folder");
+  for (const folder of foldersToCreate) {
+    if (!fsNP.existsSync(folder.path)) {
+      await fs.mkdir(folder.path, { recursive: true });
+      console.log(`✅ Created ${folder.name}: ${folder.path}`);
+    }
   }
+  
+  console.log("📁 All necessary folders verified");
 };
 
-app.get("/", async (req, res) => {
-  res.end("server is running :D");
-});
+// Serve frontend static files
+app.use(express.static(path.join(__dirname, "..", "..", "frontend", "dist")));
 
-process.on("uncaughtException", (err) => {
-  console.error("Uncaught Exception:", err);
-});
-
-process.on("unhandledRejection", (reason, promise) => {
-  console.error("Unhandled Rejection at:", promise, "reason:", reason);
+// API routes should be defined before the catch-all
+app.get("/api", async (req, res) => {
+  res.json({ status: "server is running :D" });
 });
 
 app.get("/getSystemInfo", async (req, res) => {
@@ -109,10 +111,18 @@ app.get("/getSystemInfo", async (req, res) => {
   });
 });
 
+process.on("uncaughtException", (err) => {
+  console.error("Uncaught Exception:", err);
+});
+
+process.on("unhandledRejection", (reason, promise) => {
+  console.error("Unhandled Rejection at:", promise, "reason:", reason);
+});
+
 app.get("/stat", async (req, res) => {
   const loc = decodeURIComponent(req.query.loc as string);
   const name = decodeURIComponent(req.query.name as string);
-  const targetPath = path.resolve(`../../nas-data/${loc}/${name}`);
+  const targetPath = path.join(PATHS.dataDir, loc.replace(/^\/+/, ""), name);
   const stat = await fs.stat(targetPath);
 
   const fileInfo = {
@@ -150,7 +160,7 @@ app.get("/download", async (req, res) => {
     return;
   }
 
-  const filepath = path.resolve(`../../nas-data/${loc}/${name}`);
+  const filepath = path.join(PATHS.dataDir, loc.replace(/^\/+/, ""), name);
   res.download(filepath, `${name}`);
 });
 
@@ -178,7 +188,7 @@ app.get("/getTextFile", async (req, res) => {
     return;
   }
 
-  const targetPath = path.resolve(`../../nas-data/${loc}/${name}`);
+  const targetPath = path.join(PATHS.dataDir, loc.replace(/^\/+/, ""), name);
   const content = await fs.readFile(targetPath, "utf-8");
 
   res.json({ name, content });
@@ -210,7 +220,7 @@ app.post("/saveTextFile", async (req, res) => {
     return;
   }
 
-  const targetPath = path.resolve(`../../nas-data/${loc}/${name}`);
+  const targetPath = path.join(PATHS.dataDir, loc.replace(/^\/+/, ""), name);
   await fs.writeFile(targetPath, saveText);
 
   res.end("complete");
@@ -240,7 +250,7 @@ app.get("/getVideoData", async (req, res) => {
     return;
   }
 
-  const videoPath = path.resolve(`../../nas-data/${loc}/${name}`);
+  const videoPath = path.join(PATHS.dataDir, loc.replace(/^\/+/, ""), name);
   const stat = fsNP.statSync(videoPath);
   const fileSize = stat.size;
   const range = req.headers.range;
@@ -293,7 +303,7 @@ app.get("/getAudioData", async (req, res) => {
     return;
   }
 
-  const audioPath = path.resolve(`../../nas-data/${loc}/${name}`);
+  const audioPath = path.join(PATHS.dataDir, loc.replace(/^\/+/, ""), name);
   const stat = fsNP.statSync(audioPath);
   const fileSize = stat.size;
   const range = req.headers.range;
@@ -357,7 +367,7 @@ app.get("/getImageData", async (req, res) => {
   }
 
   res.setHeader("Content-Type", contentType);
-  const file = await fs.readFile(path.resolve(`../../nas-data/${loc}/${name}`));
+  const file = await fs.readFile(path.join(PATHS.dataDir, loc.replace(/^\/+/, ""), name));
   res.end(file);
 });
 
@@ -392,7 +402,7 @@ app.get("/forceDelete", async (req, res) => {
     time: Date.now(),
   });
 
-  const targetPath = path.resolve(`../../nas-data/${loc}/${name}`);
+  const targetPath = path.join(PATHS.dataDir, loc.replace(/^\/+/, ""), name);
 
   await fs.rm(targetPath, { recursive: true, force: true });
   res.end("complete");
@@ -432,8 +442,8 @@ app.get("/copy", async (req, res) => {
     time: Date.now(),
   });
 
-  const sourcePath = path.resolve(`../../nas-data/${originLoc}/${fileName}`);
-  const targetPath = path.resolve(`../../nas-data/${targetLoc}/${fileName}`);
+  const sourcePath = path.join(PATHS.dataDir, originLoc.replace(/^\/+/, ""), fileName);
+  const targetPath = path.join(PATHS.dataDir, targetLoc.replace(/^\/+/, ""), fileName);
 
   const stat = await fs.stat(sourcePath);
 
@@ -480,8 +490,8 @@ app.get("/move", async (req, res) => {
     time: Date.now(),
   });
 
-  const sourcePath = path.resolve(`../../nas-data/${originLoc}/${fileName}`);
-  const targetPath = path.resolve(`../../nas-data/${targetLoc}/${fileName}`);
+  const sourcePath = path.join(PATHS.dataDir, originLoc.replace(/^\/+/, ""), fileName);
+  const targetPath = path.join(PATHS.dataDir, targetLoc.replace(/^\/+/, ""), fileName);
 
   try {
     await fs.rename(sourcePath, targetPath);
@@ -526,8 +536,8 @@ app.get("/rename", async (req, res) => {
   });
 
   await fs.rename(
-    path.resolve(`../../nas-data/${loc}/${name}`),
-    path.resolve(`../../nas-data/${loc}/${change}`)
+    path.join(PATHS.dataDir, loc.replace(/^\/+/, ""), name),
+    path.join(PATHS.dataDir, loc.replace(/^\/+/, ""), change)
   );
   res.end("complete");
 });
@@ -566,7 +576,7 @@ app.post("/zipFiles", async (req, res) => {
     JSON.stringify({ percent: 0, status: "zipping" })
   );
 
-  const basePath = "../../nas-data";
+  const basePath = PATHS.dataDir;
   const zipLoc = path.join(basePath, files[0].loc, `archive_${Date.now()}.zip`);
   const output = fsNP.createWriteStream(zipLoc);
   const archive = archiver("zip", { zlib: { level: 9 } });
@@ -649,7 +659,7 @@ app.post("/unzipFile", async (req, res) => {
     JSON.stringify({ percent: 0, status: "unzipping" })
   );
 
-  const basePath = "../../nas-data";
+  const basePath = PATHS.dataDir;
   const zipFilePath = path.join(basePath, file.loc, file.name);
   const extractTo = path.join(
     basePath,
@@ -790,11 +800,11 @@ app.get("/makedir", async (req, res) => {
     time: Date.now(),
   });
 
-  const check = fsNP.existsSync(path.resolve(`../../nas-data/${loc}/${name}`));
+  const check = fsNP.existsSync(path.join(PATHS.dataDir, loc.replace(/^\/+/, ""), name));
   if (check) {
     res.end("failed");
   } else {
-    await fs.mkdir(path.resolve(`../../nas-data/${loc}/${name}`), {
+    await fs.mkdir(path.join(PATHS.dataDir, loc.replace(/^\/+/, ""), name), {
       recursive: true,
     });
     res.end("complete");
@@ -824,7 +834,7 @@ app.get("/readFolder", async (req, res) => {
     return;
   }
 
-  const dir = await fs.opendir(path.resolve(`../../nas-data/${loc}`));
+  const dir = await fs.opendir(path.join(PATHS.dataDir, loc.replace(/^\/+/, "")));
   const arr = [];
   for await (let i of dir) {
     const match = i.name.match(/\.([^.]+)$/);
@@ -875,7 +885,7 @@ app.get("/searchInAllFiles", async (req, res) => {
     return;
   }
 
-  const baseDir = path.resolve("../../nas-data/");
+  const baseDir = PATHS.dataDir;
   const result: FileInfo[] = [];
 
   await searchFilesInDir(baseDir, query, result);
@@ -928,7 +938,7 @@ app.post("/input", async (req, res) => {
     time: Date.now(),
   });
 
-  const targetPath = path.resolve(`../../nas-data/${loc}/${name}`);
+  const targetPath = path.join(PATHS.dataDir, loc.replace(/^\/+/, ""), name);
 
   try {
     const writeStream = fsNP.createWriteStream(targetPath);
@@ -979,8 +989,8 @@ app.post("/inputZip", async (req, res) => {
     time: Date.now(),
   });
 
-  const targetZipPath = path.resolve(`../../nas-data/${loc}/${name}`);
-  const extractPath = path.resolve(`../../nas-data/${loc}`);
+  const targetZipPath = path.join(PATHS.dataDir, loc.replace(/^\/+/, ""), name);
+  const extractPath = path.join(PATHS.dataDir, loc.replace(/^\/+/, ""));
 
   try {
     if (!fsNP.existsSync(extractPath)) {
@@ -1500,7 +1510,7 @@ app.get("/downloadZip", async (req, res) => {
     res.status(500).end("wtf is this token");
     return;
   }
-  if (!zipPath || !zipPath.startsWith("../../nas-data/")) {
+  if (!zipPath || !zipPath.startsWith(PATHS.dataDir)) {
     res.status(400).end("invalid path");
     return;
   }
@@ -1522,7 +1532,7 @@ app.get("/deleteTempZip", async (req, res) => {
     return;
   }
   try {
-    if (pathToDelete && pathToDelete.startsWith("../../nas-data/")) {
+    if (pathToDelete && pathToDelete.startsWith(PATHS.dataDir)) {
       await fs.unlink(pathToDelete);
       res.end("complete");
     } else {
@@ -1531,6 +1541,44 @@ app.get("/deleteTempZip", async (req, res) => {
   } catch (err) {
     res.status(500).end("delete failed");
   }
+});
+
+// Serve frontend for all non-API routes (SPA fallback)
+app.get("*", async (req, res) => {
+  // Skip API routes
+  if (
+    req.path.startsWith("/api") ||
+    req.path.startsWith("/getSystemInfo") ||
+    req.path.startsWith("/stat") ||
+    req.path.startsWith("/download") ||
+    req.path.startsWith("/getTextFile") ||
+    req.path.startsWith("/saveTextFile") ||
+    req.path.startsWith("/getVideoData") ||
+    req.path.startsWith("/getAudioData") ||
+    req.path.startsWith("/getImageData") ||
+    req.path.startsWith("/forceDelete") ||
+    req.path.startsWith("/copy") ||
+    req.path.startsWith("/move") ||
+    req.path.startsWith("/rename") ||
+    req.path.startsWith("/zipFiles") ||
+    req.path.startsWith("/unzipFile") ||
+    req.path.startsWith("/uploadFiles") ||
+    req.path.startsWith("/makeFolder") ||
+    req.path.startsWith("/getFolderList") ||
+    req.path.startsWith("/login") ||
+    req.path.startsWith("/kakaoLogin") ||
+    req.path.startsWith("/auth") ||
+    req.path.startsWith("/admin") ||
+    req.path.startsWith("/log") ||
+    req.path.startsWith("/monaco-editor")
+  ) {
+    return;
+  }
+
+  // Serve index.html for SPA routes
+  res.sendFile(
+    path.join(__dirname, "..", "..", "frontend", "dist", "index.html")
+  );
 });
 
 const server = app.listen(PORT, async () => {

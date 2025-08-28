@@ -169,12 +169,23 @@
         })
     })
 
+    let isDeleting = false;
+    
     async function deleteFile() {
+        if(isDeleting) return;
+        isDeleting = true;
+        
         const loginCheck = await checkLogin("DELETE");
-        if(!loginCheck) return;
+        if(!loginCheck) {
+            isDeleting = false;
+            return;
+        }
 
         const check = confirm(`파일/폴더 ${tempSelect.length} 개가 선택되었습니다. 정말로 삭제하시겠습니까?`);
-        if(!check) return;
+        if(!check) {
+            isDeleting = false;
+            return;
+        }
         const promises = [];
         for(let i of tempSelect){
             promises.push(fetch(`/server/forceDelete?loc=/${encodeURIComponent(currentPath.join("/"))}&name=${encodeURIComponent(sortedFiles[i].name)}&token=${$useAuth.token}`));
@@ -183,6 +194,7 @@
         tempSelect = [];
         showContext = false;
         loading = getFiles();
+        isDeleting = false;
     }
 
     async function renameFile() {

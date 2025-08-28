@@ -1,0 +1,19 @@
+[Unit]
+Description=NAS File Management System
+After=network.target
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+Restart=always
+RestartSec=1
+User=heesung
+Environment=NODE_ENV=production
+WorkingDirectory=/home/heesung/NAS
+ExecStart=/usr/bin/npm start
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=nas-app
+
+[Install]
+WantedBy=multi-user.target

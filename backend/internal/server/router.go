@@ -14,6 +14,7 @@ import (
 	"github.com/JMC50/nas/internal/config"
 	"github.com/JMC50/nas/internal/db"
 	"github.com/JMC50/nas/internal/files"
+	"github.com/JMC50/nas/internal/stream"
 )
 
 func NewRouter(cfg *config.Config, conn *sql.DB) http.Handler {
@@ -34,6 +35,7 @@ func NewRouter(cfg *config.Config, conn *sql.DB) http.Handler {
 	authHandlers := &auth.Handlers{Config: cfg, DB: conn}
 	adminHandlers := &admin.Handlers{Config: cfg, DB: conn}
 	fileHandlers := &files.Handlers{Config: cfg, DB: conn}
+	streamHandlers := &stream.Handlers{Config: cfg, DB: conn}
 	requireToken := auth.RequireToken(cfg.PrivateKey)
 
 	// Public root + health
@@ -82,6 +84,13 @@ func NewRouter(cfg *config.Config, conn *sql.DB) http.Handler {
 	addFileRoute(r, "GET", "/copy", auth.IntentCopy, requireToken, conn, fileHandlers.Copy)
 	addFileRoute(r, "GET", "/move", auth.IntentCopy, requireToken, conn, fileHandlers.Move)
 	addFileRoute(r, "GET", "/rename", auth.IntentRename, requireToken, conn, fileHandlers.Rename)
+
+	// Streaming + download
+	addFileRoute(r, "GET", "/getVideoData", auth.IntentOpen, requireToken, conn, streamHandlers.Video)
+	addFileRoute(r, "GET", "/getAudioData", auth.IntentOpen, requireToken, conn, streamHandlers.Audio)
+	addFileRoute(r, "GET", "/getImageData", auth.IntentOpen, requireToken, conn, streamHandlers.Image)
+	addFileRoute(r, "GET", "/download", auth.IntentDownload, requireToken, conn, streamHandlers.Download)
+	r.Get("/img", streamHandlers.Img) // bundled icons — no auth (matches legacy)
 
 	return r
 }

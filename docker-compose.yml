@@ -1,48 +1,56 @@
-version: "3.8"
-
 services:
-  # NAS Application
-  nas:
-    image: ghcr.io/${GITHUB_REPOSITORY:-your-github-username/nas}:latest
+  # Go backend (local build during Phase 1; switch to ghcr.io image after CI is ready)
+  nas-app:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
     container_name: nas-app
     restart: unless-stopped
     ports:
       - "${PORT:-7777}:7777"
     volumes:
-      - ${DATA_PATH:-./data}:/app/data
-      - ${CONFIG_PATH:-./config}:/app/config
+      - ${DATA_PATH:-./data}/nas:/data/nas
+      - ${DATA_PATH:-./data}/nas-admin:/data/nas-admin
+      - ${DATA_PATH:-./data}/db:/data/db
     env_file:
       - .env
     environment:
       - NODE_ENV=production
-      - DATA_PATH=/app/data
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:7777/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 30s
+      - PRIVATE_KEY=${PRIVATE_KEY:-${JWT_SECRET:-}}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD:-}
+      - AUTH_TYPE=${AUTH_TYPE:-both}
+      - CORS_ORIGIN=${CORS_ORIGIN:-*}
+      - MAX_FILE_SIZE=${MAX_FILE_SIZE:-50gb}
+      - PASSWORD_MIN_LENGTH=${PASSWORD_MIN_LENGTH:-8}
+      - DISCORD_CLIENT_ID=${DISCORD_CLIENT_ID:-}
+      - DISCORD_CLIENT_SECRET=${DISCORD_CLIENT_SECRET:-}
+      - DISCORD_REDIRECT_URI=${DISCORD_REDIRECT_URI:-}
+      - KAKAO_REST_API_KEY=${KAKAO_REST_API_KEY:-}
+      - KAKAO_CLIENT_SECRET=${KAKAO_CLIENT_SECRET:-}
+      - KAKAO_REDIRECT_URI=${KAKAO_REDIRECT_URI:-}
+      - TZ=${TZ:-UTC}
     labels:
-      # Watchtower 자동 업데이트 활성화
       - "com.centurylinklabs.watchtower.enable=true"
     networks:
       - nas-network
 
-  # 자동 업데이트 에이전트
+  # Auto-update agent — only useful once Go image is published to ghcr.io.
+  # Started with: docker compose --profile autoupdate up -d
   watchtower:
     image: containrrr/watchtower:latest
     container_name: nas-watchtower
     restart: unless-stopped
+    profiles: ["autoupdate"]
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - ${HOME}/.docker/config.json:/config.json:ro # 인증 정보
+      - ${HOME}/.docker/config.json:/config.json:ro
     environment:
-      - WATCHTOWER_CLEANUP=true # 구 이미지 자동 삭제
-      - WATCHTOWER_POLL_INTERVAL=300 # 5분마다 체크
+      - WATCHTOWER_CLEANUP=true
+      - WATCHTOWER_POLL_INTERVAL=${WATCHTOWER_POLL_INTERVAL:-300}
       - WATCHTOWER_INCLUDE_RESTARTING=true
-      - WATCHTOWER_ROLLING_RESTART=true # 무중단 업데이트
+      - WATCHTOWER_ROLLING_RESTART=true
       - TZ=${TZ:-UTC}
-    command: nas-app # nas-app 컨테이너만 모니터링
+    command: nas-app
     networks:
       - nas-network
 

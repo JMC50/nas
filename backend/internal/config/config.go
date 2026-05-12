@@ -46,6 +46,7 @@ type Config struct {
 	NASAdminDataDir string
 	NASTempDir      string
 	DBPath          string
+	FrontendDir     string
 
 	PasswordRequirements PasswordRequirements
 	CorsOrigin           string
@@ -77,6 +78,7 @@ func LoadFromEnv() (*Config, error) {
 	c.NASAdminDataDir = getEnv("NAS_ADMIN_DATA_DIR", "")
 	c.NASTempDir = getEnv("NAS_TEMP_DIR", os.TempDir())
 	c.DBPath = getEnv("DB_PATH", "")
+	c.FrontendDir = getEnv("FRONTEND_DIR", "")
 
 	c.PasswordRequirements = PasswordRequirements{
 		MinLength:        getEnvInt("PASSWORD_MIN_LENGTH", 8),

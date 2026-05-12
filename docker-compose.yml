@@ -2,8 +2,8 @@ services:
   # Go backend (local build during Phase 1; switch to ghcr.io image after CI is ready)
   nas-app:
     build:
-      context: ./backend
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: ./backend/Dockerfile
     container_name: nas-app
     restart: unless-stopped
     ports:

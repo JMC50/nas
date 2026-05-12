@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"path/filepath"
+	"strings"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -21,6 +22,7 @@ import (
 	"github.com/JMC50/nas/internal/stream"
 	"github.com/JMC50/nas/internal/system"
 	"github.com/JMC50/nas/internal/upload"
+	"github.com/JMC50/nas/internal/web"
 )
 
 func NewRouter(cfg *config.Config, conn *sql.DB) http.Handler {
@@ -28,6 +30,10 @@ func NewRouter(cfg *config.Config, conn *sql.DB) http.Handler {
 	r.Use(middleware.Recoverer)
 	r.Use(middleware.RealIP)
 	r.Use(middleware.Logger)
+	// Frontend code (built with Vite dev proxy) prefixes API calls with /server.
+	// Production proxy is gone; this middleware reproduces the rewrite so existing
+	// frontend builds keep working unchanged.
+	r.Use(stripServerPrefix)
 
 	r.Use(cors.Handler(cors.Options{
 		AllowedOrigins:   []string{cfg.CorsOrigin},
@@ -47,11 +53,19 @@ func NewRouter(cfg *config.Config, conn *sql.DB) http.Handler {
 	archiveHandlers := &archive.Handlers{Config: cfg, DB: conn, Tracker: archiveTracker}
 	requireToken := auth.RequireToken(cfg.PrivateKey)
 
-	// Public root + health
-	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
+	// Public root + health.
+	// When FRONTEND_DIR is configured, serve the SPA index at /. Otherwise return
+	// the legacy "server is running :D" probe response.
+	rootHandler := func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/plain")
 		w.Write([]byte("server is running :D"))
-	})
+	}
+	if cfg.FrontendDir != "" {
+		if spa := web.MountSPA(cfg.FrontendDir); spa != nil {
+			rootHandler = spa.ServeHTTP
+		}
+	}
+	r.Get("/", rootHandler)
 	r.Get("/healthz", healthzHandler(conn))
 
 	// Local auth (no token required)
@@ -118,6 +132,13 @@ func NewRouter(cfg *config.Config, conn *sql.DB) http.Handler {
 	// System info (no auth — legacy compat)
 	r.Get("/getSystemInfo", system.GetSystemInfoHandler)
 
+	// SPA fallback — served LAST so API routes take precedence
+	if cfg.FrontendDir != "" {
+		if spa := web.MountSPA(cfg.FrontendDir); spa != nil {
+			r.NotFound(spa.ServeHTTP)
+		}
+	}
+
 	// tus resumable upload protocol at /files/*
 	stagingDir := filepath.Join(cfg.NASTempDir, "tus")
 	tusHandler, err := uploadHandlers.MountTus(stagingDir)
@@ -127,6 +148,18 @@ func NewRouter(cfg *config.Config, conn *sql.DB) http.Handler {
 	}
 
 	return r
+}
+
+func stripServerPrefix(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch {
+		case r.URL.Path == "/server":
+			r.URL.Path = "/"
+		case strings.HasPrefix(r.URL.Path, "/server/"):
+			r.URL.Path = strings.TrimPrefix(r.URL.Path, "/server")
+		}
+		next.ServeHTTP(w, r)
+	})
 }
 
 func addFileRoute(

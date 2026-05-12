@@ -2,9 +2,12 @@
   import { onMount } from "svelte";
   import { goto } from "$app/navigation";
   import { auth } from "$lib/store/auth.svelte";
+  import { ui } from "$lib/store/ui.svelte";
   import Header from "$lib/components/Shell/Header.svelte";
   import VerticalNav from "$lib/components/Shell/VerticalNav.svelte";
   import StatusBar from "$lib/components/Shell/StatusBar.svelte";
+  import DragDropOverlay from "$lib/components/Uploads/DragDropOverlay.svelte";
+  import UploadPanel from "$lib/components/Uploads/UploadPanel.svelte";
 
   let { children } = $props();
 
@@ -23,3 +26,6 @@
   </main>
   <StatusBar />
 </div>
+
+<DragDropOverlay />
+<UploadPanel open={ui.uploadsPanelOpen} onClose={() => ui.closeUploadsPanel()} />

@@ -14,6 +14,7 @@ const BREAKPOINTS: Record<Breakpoint, number> = {
 class UIStore {
   sidebarCollapsed = $state<boolean>(false);
   quickOpenVisible = $state<boolean>(QUICKOPEN_DEFAULT);
+  uploadsPanelOpen = $state<boolean>(false);
   viewportWidth = $state<number>(0);
   viewportHeight = $state<number>(0);
 
@@ -54,6 +55,14 @@ class UIStore {
 
   closeQuickOpen() {
     this.quickOpenVisible = false;
+  }
+
+  toggleUploadsPanel() {
+    this.uploadsPanelOpen = !this.uploadsPanelOpen;
+  }
+
+  closeUploadsPanel() {
+    this.uploadsPanelOpen = false;
   }
 }
 

@@ -1,0 +1,116 @@
+@import "tailwindcss";
+
+/* ─────────────────────────────────────────────────────────────────
+   Dark mode variant: matches when <html> is NOT .light.
+   (Default = dark; mode-watcher adds .dark class but we also want
+   dark to be the fallback when no class is set yet during initial paint.)
+
+   Light mode variant: matches when <html> is .light (mode-watcher set).
+   ───────────────────────────────────────────────────────────────── */
+@custom-variant dark (&:where(html:not(.light) *, html:not(.light)));
+@custom-variant light (&:where(html.light *, html.light));
+
+/* ─────────────────────────────────────────────────────────────────
+   gruvbox-dark color tokens (default — Pavel Pertsev's gruvbox).
+
+   @theme registers tokens — Tailwind 4 generates CSS vars at :root
+   AND utility classes like `bg-bg-base`, `text-fg-primary`, etc.
+   ───────────────────────────────────────────────────────────────── */
+@theme {
+    --color-bg-base: #1d2021;
+    --color-bg-surface: #282828;
+    --color-bg-elevated: #32302f;
+    --color-bg-overlay: #3c3836;
+    --color-bg-hover: #504945;
+    --color-bg-selected: #665c54;
+
+    --color-border-default: #504945;
+    --color-border-strong: #665c54;
+    --color-border-focus: #fabd2f;
+
+    --color-fg: #ebdbb2;
+    --color-fg-primary: #ebdbb2;
+    --color-fg-secondary: #d5c4a1;
+    --color-fg-muted: #a89984;
+    --color-fg-disabled: #928374;
+
+    --color-fg-accent: #fabd2f;
+    --color-fg-success: #b8bb26;
+    --color-fg-warning: #fe8019;
+    --color-fg-danger: #fb4934;
+    --color-fg-info: #83a598;
+    --color-fg-link: #8ec07c;
+    --color-fg-purple: #d3869b;
+
+    --color-accent: #fabd2f;
+    --color-accent-hover: #fbe69b;
+    --color-accent-fg: #282828;
+    --color-accent-muted: #d79921;
+
+    --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+    --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+
+    --text-xs: 12px;
+    --text-sm: 13px;
+    --text-base: 14px;
+    --text-md: 16px;
+    --text-lg: 18px;
+    --text-xl: 24px;
+    --text-2xl: 32px;
+
+    --ease-smooth: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* gruvbox-light overrides — applied when <html> has .light class */
+html.light {
+    --color-bg-base: #f9f5d7;
+    --color-bg-surface: #fbf1c7;
+    --color-bg-elevated: #f2e5bc;
+    --color-bg-overlay: #ebdbb2;
+    --color-bg-hover: #d5c4a1;
+    --color-bg-selected: #bdae93;
+
+    --color-border-default: #d5c4a1;
+    --color-border-strong: #bdae93;
+    --color-border-focus: #b57614;
+
+    --color-fg: #3c3836;
+    --color-fg-primary: #3c3836;
+    --color-fg-secondary: #504945;
+    --color-fg-muted: #7c6f64;
+    --color-fg-disabled: #928374;
+
+    --color-fg-accent: #b57614;
+    --color-fg-success: #79740e;
+    --color-fg-warning: #af3a03;
+    --color-fg-danger: #9d0006;
+    --color-fg-info: #076678;
+    --color-fg-link: #427b58;
+    --color-fg-purple: #8f3f71;
+
+    --color-accent: #b57614;
+    --color-accent-hover: #d79921;
+    --color-accent-fg: #fbf1c7;
+    --color-accent-muted: #fabd2f;
+}
+
+@layer base {
+    html {
+        background-color: var(--color-bg-base);
+        color: var(--color-fg-primary);
+        font-family: var(--font-sans);
+        font-size: 13px;
+    }
+
+    body {
+        height: 100vh;
+        width: 100vw;
+        overflow: hidden;
+        margin: 0;
+    }
+
+    *:focus-visible {
+        outline: 2px solid var(--color-border-focus);
+        outline-offset: 2px;
+    }
+}

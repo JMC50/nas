@@ -1,6 +1,6 @@
 <script lang="ts">
     import { onMount } from "svelte";
-    import { useAuth } from "../store/store";
+    import { useAuth } from "$lib/store/store";
 
     interface folderData {
         name: string;

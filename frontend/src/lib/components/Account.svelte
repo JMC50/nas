@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { Logout, useAuth } from "../store/store";
+    import { Logout, useAuth } from "$lib/store/store";
     import { onMount } from "svelte";
 
     type intentList = "ADMIN"|"VIEW"|"OPEN"|"DOWNLOAD"|"UPLOAD"|"COPY"|"DELETE"|"RENAME";

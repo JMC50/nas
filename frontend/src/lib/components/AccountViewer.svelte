@@ -1,6 +1,6 @@
 <script lang="ts">
     import { onMount } from "svelte";
-    import { useAuth } from "../store/store";
+    import { useAuth } from "$lib/store/store";
 
     type intentList = "ADMIN"|"VIEW"|"OPEN"|"DOWNLOAD"|"UPLOAD"|"COPY"|"DELETE"|"RENAME";
     const intents:intentList[] = ["ADMIN", "VIEW", "OPEN", "DOWNLOAD", "UPLOAD", "COPY", "DELETE", "RENAME"];

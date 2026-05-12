@@ -1,7 +1,7 @@
 <script lang="ts">
     import { onMount } from "svelte";
     import { BlobWriter, ZipWriter, BlobReader } from "@zip.js/zip.js";
-    import { useAuth } from "../store/store";
+    import { useAuth } from "$lib/store/store";
     
     type intentList = "ADMIN"|"VIEW"|"OPEN"|"DOWNLOAD"|"UPLOAD"|"COPY"|"DELETE"|"RENAME";
 

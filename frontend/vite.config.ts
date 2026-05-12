@@ -1,4 +1,5 @@
 import { sveltekit } from "@sveltejs/kit/vite";
+import tailwindcss from "@tailwindcss/vite";
 import { defineConfig, loadEnv } from "vite";
 
 export default defineConfig(({ mode }) => {
@@ -9,7 +10,7 @@ export default defineConfig(({ mode }) => {
     `https://discord.com/oauth2/authorize?client_id=${env.DISCORD_CLIENT_ID}&response_type=token&redirect_uri=http://localhost:5050/login&scope=identify`;
 
   return {
-    plugins: [sveltekit()],
+    plugins: [tailwindcss(), sveltekit()],
     server: {
       port: 8086,
       host: "0.0.0.0",

@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { useAuth } from "../store/store";
+    import { useAuth } from "$lib/store/store";
 
     type intentList = "ADMIN"|"VIEW"|"OPEN"|"DOWNLOAD"|"UPLOAD"|"COPY"|"DELETE"|"RENAME";
 

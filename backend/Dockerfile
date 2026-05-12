@@ -8,6 +8,7 @@ RUN npm ci --prefer-offline --no-audit --silent
 COPY frontend ./frontend
 WORKDIR /work/frontend
 RUN npx vite build
+# SvelteKit (adapter-static) writes to /work/frontend/build
 
 # --- Stage 2: build Go binary ---
 FROM golang:1.25-alpine AS go-build
@@ -23,7 +24,7 @@ RUN apk add --no-cache ca-certificates tzdata wget
 # Phase 3+ will add: ffmpeg libreoffice
 WORKDIR /app
 COPY --from=go-build /out/server /app/server
-COPY --from=frontend-build /work/frontend/dist /app/frontend/dist
+COPY --from=frontend-build /work/frontend/build /app/frontend/build
 
 ENV NODE_ENV=production \
     PORT=7777 \
@@ -32,7 +33,7 @@ ENV NODE_ENV=production \
     NAS_ADMIN_DATA_DIR=/data/nas-admin \
     DB_PATH=/data/db/nas.sqlite \
     NAS_TEMP_DIR=/tmp/nas \
-    FRONTEND_DIR=/app/frontend/dist
+    FRONTEND_DIR=/app/frontend/build
 
 EXPOSE 7777
 

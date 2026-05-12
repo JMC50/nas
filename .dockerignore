@@ -15,6 +15,8 @@ yarn-error.log*
 # Build output (exclude from build context)
 backend/dist/
 frontend/dist/
+frontend/build/
+frontend/.svelte-kit/
 build/
 dist/
 

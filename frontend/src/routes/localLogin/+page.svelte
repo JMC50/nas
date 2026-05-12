@@ -1,6 +1,6 @@
 <script lang="ts">
     import { onMount } from "svelte";
-    import { useAuth } from "../store/store";
+    import { useAuth } from "$lib/store/store";
 
     interface AuthConfig {
         authType: 'oauth' | 'local' | 'both';
@@ -28,16 +28,15 @@
     let koreanName = "";
 
     onMount(async () => {
-        // Get auth configuration
         const res = await fetch('/server/auth/config');
         authConfig = await res.json();
     });
 
     function validatePassword(pwd: string): string | null {
         if (!authConfig) return null;
-        
+
         const reqs = authConfig.passwordRequirements;
-        
+
         if (pwd.length < reqs.minLength) {
             return `Password must be at least ${reqs.minLength} characters`;
         }
@@ -53,7 +52,7 @@
         if (reqs.requireSpecial && !/[!@#$%^&*(),.?":{}|<>]/.test(pwd)) {
             return "Password must contain at least one special character";
         }
-        
+
         return null;
     }
 
@@ -83,7 +82,7 @@
                     global_name: data.user.global_name,
                     token: data.token
                 });
-                
+
                 const baseUrl = `${window.location.protocol}//${window.location.host}/`;
                 window.location.replace(baseUrl);
             } else {
@@ -98,8 +97,7 @@
 
     async function handleRegister() {
         error = "";
-        
-        // Validate form
+
         if (!userId || !username || !password) {
             error = "Please fill in all required fields";
             return;
@@ -142,7 +140,7 @@
                     global_name: data.user.global_name,
                     token: data.token
                 });
-                
+
                 const baseUrl = `${window.location.protocol}//${window.location.host}/`;
                 window.location.replace(baseUrl);
             } else {
@@ -158,7 +156,6 @@
     function switchMode() {
         mode = mode === 'login' ? 'register' : 'login';
         error = "";
-        // Clear form
         userId = "";
         username = "";
         password = "";
@@ -171,7 +168,7 @@
 <!-- svelte-ignore a11y_click_events_have_key_events -->
 <main>
     <div class="title">🔐 {mode === 'login' ? 'Login' : 'Register'}</div>
-    
+
     {#if authConfig}
         {#if authConfig.localAuthEnabled}
             {#if error}
@@ -182,10 +179,10 @@
             <form on:submit|preventDefault={mode === 'login' ? handleLogin : handleRegister}>
                 <div class="inputCon">
                     <div class="inputTitle">User ID</div>
-                    <input 
-                        type="text" 
-                        class="edit" 
-                        bind:value={userId} 
+                    <input
+                        type="text"
+                        class="edit"
+                        bind:value={userId}
                         placeholder="Enter your user ID"
                         disabled={loading}
                         required
@@ -195,10 +192,10 @@
                 {#if mode === 'register'}
                     <div class="inputCon">
                         <div class="inputTitle">Username</div>
-                        <input 
-                            type="text" 
-                            class="edit" 
-                            bind:value={username} 
+                        <input
+                            type="text"
+                            class="edit"
+                            bind:value={username}
                             placeholder="Enter your username"
                             disabled={loading}
                             required
@@ -207,10 +204,10 @@
 
                     <div class="inputCon">
                         <div class="inputTitle">Korean Name (Optional)</div>
-                        <input 
-                            type="text" 
-                            class="edit" 
-                            bind:value={koreanName} 
+                        <input
+                            type="text"
+                            class="edit"
+                            bind:value={koreanName}
                             placeholder="Enter your Korean name"
                             disabled={loading}
                         />
@@ -219,10 +216,10 @@
 
                 <div class="inputCon">
                     <div class="inputTitle">Password</div>
-                    <input 
-                        type="password" 
-                        class="edit" 
-                        bind:value={password} 
+                    <input
+                        type="password"
+                        class="edit"
+                        bind:value={password}
                         placeholder="Enter your password"
                         disabled={loading}
                         required
@@ -232,10 +229,10 @@
                 {#if mode === 'register'}
                     <div class="inputCon">
                         <div class="inputTitle">Confirm Password</div>
-                        <input 
-                            type="password" 
-                            class="edit" 
-                            bind:value={confirmPassword} 
+                        <input
+                            type="password"
+                            class="edit"
+                            bind:value={confirmPassword}
                             placeholder="Confirm your password"
                             disabled={loading}
                             required
@@ -272,9 +269,9 @@
                         {mode === 'login' ? 'LOGIN' : 'REGISTER'}
                     {/if}
                 </div>
-                
+
                 <div class="margin"></div>
-                
+
                 <div class="switchMode" on:click={switchMode}>
                     {mode === 'login' ? "Don't have an account? Register here" : "Already have an account? Login here"}
                 </div>
@@ -371,7 +368,7 @@
         ul {
             margin: 0;
             padding-left: 20px;
-            
+
             li {
                 color: $light-gray;
                 font-size: small;

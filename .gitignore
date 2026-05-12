@@ -4,6 +4,9 @@ node_modules
 # Build outputs
 backend/dist
 frontend/dist
+frontend/build
+frontend/.svelte-kit
+.svelte-kit
 
 # Database files
 backend/db/*

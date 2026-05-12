@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"net/http"
+	"path/filepath"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -15,6 +16,7 @@ import (
 	"github.com/JMC50/nas/internal/db"
 	"github.com/JMC50/nas/internal/files"
 	"github.com/JMC50/nas/internal/stream"
+	"github.com/JMC50/nas/internal/upload"
 )
 
 func NewRouter(cfg *config.Config, conn *sql.DB) http.Handler {
@@ -36,6 +38,7 @@ func NewRouter(cfg *config.Config, conn *sql.DB) http.Handler {
 	adminHandlers := &admin.Handlers{Config: cfg, DB: conn}
 	fileHandlers := &files.Handlers{Config: cfg, DB: conn}
 	streamHandlers := &stream.Handlers{Config: cfg, DB: conn}
+	uploadHandlers := &upload.Handlers{Config: cfg, DB: conn}
 	requireToken := auth.RequireToken(cfg.PrivateKey)
 
 	// Public root + health
@@ -91,6 +94,18 @@ func NewRouter(cfg *config.Config, conn *sql.DB) http.Handler {
 	addFileRoute(r, "GET", "/getImageData", auth.IntentOpen, requireToken, conn, streamHandlers.Image)
 	addFileRoute(r, "GET", "/download", auth.IntentDownload, requireToken, conn, streamHandlers.Download)
 	r.Get("/img", streamHandlers.Img) // bundled icons — no auth (matches legacy)
+
+	// Legacy upload wrappers (raw body stream)
+	addFileRoute(r, "POST", "/input", auth.IntentUpload, requireToken, conn, uploadHandlers.LegacyInput)
+	addFileRoute(r, "POST", "/inputZip", auth.IntentUpload, requireToken, conn, uploadHandlers.LegacyInputZip)
+
+	// tus resumable upload protocol at /files/*
+	stagingDir := filepath.Join(cfg.NASTempDir, "tus")
+	tusHandler, err := uploadHandlers.MountTus(stagingDir)
+	if err == nil {
+		r.Handle("/files/*", http.StripPrefix("/files", tusHandler))
+		r.Handle("/files", http.StripPrefix("/files", tusHandler))
+	}
 
 	return r
 }

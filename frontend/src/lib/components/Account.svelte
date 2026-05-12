@@ -121,13 +121,17 @@
       {#if !authConfig}
         <div class="text-xs text-fg-muted">Loading auth options…</div>
       {:else}
-        <SignInOptions
-          oauthEnabled={authConfig.oauthEnabled}
-          localEnabled={authConfig.localAuthEnabled}
-          onDiscord={loginDiscord}
-          onGoogle={loginGoogle}
-          onLocal={loginLocal}
-        />
+        <div class="max-w-md mx-auto mt-12 p-6 rounded-lg bg-bg-surface border border-border-default">
+          <h2 class="text-base font-semibold text-fg-primary mb-1">Sign in</h2>
+          <p class="text-xs text-fg-muted mb-6">Choose a provider to continue.</p>
+          <SignInOptions
+            oauthEnabled={authConfig.oauthEnabled}
+            localEnabled={authConfig.localAuthEnabled}
+            onDiscord={loginDiscord}
+            onGoogle={loginGoogle}
+            onLocal={loginLocal}
+          />
+        </div>
       {/if}
     {:else}
       <div class="max-w-2xl">

@@ -6,6 +6,22 @@
   import UserPlus from "lucide-svelte/icons/user-plus";
   import TextField from "$lib/components/Auth/TextField.svelte";
   import PasswordRules from "$lib/components/Auth/PasswordRules.svelte";
+  import SignInOptions from "$lib/components/Auth/SignInOptions.svelte";
+
+  const googleClientId = (typeof process !== "undefined" ? process.env.GOOGLE_CLIENT_ID : "") as string;
+  const googleRedirect = (typeof process !== "undefined" ? process.env.GOOGLE_REDIRECT_URI : "") as string;
+  const discordLoginURL = (typeof process !== "undefined" ? process.env.LOGIN_URL : "") as string;
+
+  function loginDiscord() {
+    if (discordLoginURL) location.href = discordLoginURL;
+  }
+
+  function loginGoogle() {
+    if (!googleClientId || !googleRedirect) return;
+    const scope = encodeURIComponent("openid email profile");
+    const redirect = encodeURIComponent(googleRedirect);
+    location.href = `https://accounts.google.com/o/oauth2/v2/auth?response_type=code&client_id=${googleClientId}&redirect_uri=${redirect}&scope=${scope}`;
+  }
 
   interface Rules {
     minLength: number;
@@ -144,54 +160,73 @@
 
     {#if !authConfig}
       <div class="text-xs text-fg-muted">Loading configuration…</div>
-    {:else if !authConfig.localAuthEnabled}
+    {:else if !authConfig.oauthEnabled && !authConfig.localAuthEnabled}
       <div class="p-3 rounded-md bg-fg-warning/10 border border-fg-warning/30 text-fg-warning text-xs">
-        Local authentication is disabled. Use an OAuth provider instead.
+        No authentication methods enabled.
       </div>
     {:else}
-      {#if error}
-        <div class="mb-4 p-3 rounded-md bg-fg-danger/10 border border-fg-danger/30 text-fg-danger text-xs">
-          {error}
-        </div>
+      {#if authConfig.oauthEnabled}
+        <SignInOptions
+          oauthEnabled={true}
+          localEnabled={false}
+          onDiscord={loginDiscord}
+          onGoogle={loginGoogle}
+          onLocal={() => {}}
+        />
+        {#if authConfig.localAuthEnabled}
+          <div class="flex items-center gap-3 my-4 text-xs text-fg-muted">
+            <div class="flex-1 h-px bg-border-default"></div>
+            <span>or</span>
+            <div class="flex-1 h-px bg-border-default"></div>
+          </div>
+        {/if}
       {/if}
 
-      <form class="space-y-3" onsubmit={submit}>
-        <TextField id="userId" label="User ID" value={userId} placeholder="your-id" disabled={loading} required onInput={(v) => (userId = v)} />
-
-        {#if mode === "register"}
-          <TextField id="username" label="Username" value={username} placeholder="Display name" disabled={loading} required onInput={(v) => (username = v)} />
-          <TextField id="krname-reg" label="Korean name (optional)" value={koreanName} placeholder="홍길동" disabled={loading} onInput={(v) => (koreanName = v)} />
+      {#if authConfig.localAuthEnabled}
+        {#if error}
+          <div class="mb-4 p-3 rounded-md bg-fg-danger/10 border border-fg-danger/30 text-fg-danger text-xs">
+            {error}
+          </div>
         {/if}
 
-        <TextField id="password" label="Password" type="password" value={password} disabled={loading} required onInput={(v) => (password = v)} />
+        <form class="space-y-3" onsubmit={submit}>
+          <TextField id="userId" label="User ID" value={userId} placeholder="your-id" disabled={loading} required onInput={(v) => (userId = v)} />
 
-        {#if mode === "register"}
-          <TextField id="confirmPassword" label="Confirm password" type="password" value={confirmPassword} disabled={loading} required onInput={(v) => (confirmPassword = v)} />
-          <PasswordRules rules={authConfig.passwordRequirements} />
-        {/if}
-
-        <button
-          type="submit"
-          class="w-full h-10 inline-flex items-center justify-center gap-2 rounded-md bg-accent text-accent-fg text-sm font-semibold hover:bg-accent-hover transition-colors disabled:opacity-60"
-          disabled={loading}
-        >
-          {#if mode === "login"}
-            <LogIn size="14" />
-            {loading ? "Signing in…" : "Sign in"}
-          {:else}
-            <UserPlus size="14" />
-            {loading ? "Creating…" : "Create account"}
+          {#if mode === "register"}
+            <TextField id="username" label="Username" value={username} placeholder="Display name" disabled={loading} required onInput={(v) => (username = v)} />
+            <TextField id="krname-reg" label="Korean name (optional)" value={koreanName} placeholder="홍길동" disabled={loading} onInput={(v) => (koreanName = v)} />
           {/if}
-        </button>
 
-        <button
-          type="button"
-          class="w-full text-xs text-fg-muted hover:text-fg-link mt-2 transition-colors"
-          onclick={switchMode}
-        >
-          {mode === "login" ? "Need an account? Register" : "Already registered? Sign in"}
-        </button>
-      </form>
+          <TextField id="password" label="Password" type="password" value={password} disabled={loading} required onInput={(v) => (password = v)} />
+
+          {#if mode === "register"}
+            <TextField id="confirmPassword" label="Confirm password" type="password" value={confirmPassword} disabled={loading} required onInput={(v) => (confirmPassword = v)} />
+            <PasswordRules rules={authConfig.passwordRequirements} />
+          {/if}
+
+          <button
+            type="submit"
+            class="w-full h-10 inline-flex items-center justify-center gap-2 rounded-md bg-accent text-accent-fg text-sm font-semibold hover:bg-accent-hover transition-colors disabled:opacity-60"
+            disabled={loading}
+          >
+            {#if mode === "login"}
+              <LogIn size="14" />
+              {loading ? "Signing in…" : "Sign in"}
+            {:else}
+              <UserPlus size="14" />
+              {loading ? "Creating…" : "Create account"}
+            {/if}
+          </button>
+
+          <button
+            type="button"
+            class="w-full text-xs text-fg-muted hover:text-fg-link mt-2 transition-colors"
+            onclick={switchMode}
+          >
+            {mode === "login" ? "Need an account? Register" : "Already registered? Sign in"}
+          </button>
+        </form>
+      {/if}
     {/if}
   </div>
 </main>

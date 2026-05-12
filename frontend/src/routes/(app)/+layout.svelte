@@ -8,6 +8,7 @@
   import StatusBar from "$lib/components/Shell/StatusBar.svelte";
   import DragDropOverlay from "$lib/components/Uploads/DragDropOverlay.svelte";
   import UploadPanel from "$lib/components/Uploads/UploadPanel.svelte";
+  import QuickOpen from "$lib/components/QuickOpen.svelte";
 
   let { children } = $props();
 
@@ -29,3 +30,4 @@
 
 <DragDropOverlay />
 <UploadPanel open={ui.uploadsPanelOpen} onClose={() => ui.closeUploadsPanel()} />
+<QuickOpen />

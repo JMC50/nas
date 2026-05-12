@@ -10,12 +10,16 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
 
+	"time"
+
 	"github.com/JMC50/nas/internal/admin"
+	"github.com/JMC50/nas/internal/archive"
 	"github.com/JMC50/nas/internal/auth"
 	"github.com/JMC50/nas/internal/config"
 	"github.com/JMC50/nas/internal/db"
 	"github.com/JMC50/nas/internal/files"
 	"github.com/JMC50/nas/internal/stream"
+	"github.com/JMC50/nas/internal/system"
 	"github.com/JMC50/nas/internal/upload"
 )
 
@@ -39,6 +43,8 @@ func NewRouter(cfg *config.Config, conn *sql.DB) http.Handler {
 	fileHandlers := &files.Handlers{Config: cfg, DB: conn}
 	streamHandlers := &stream.Handlers{Config: cfg, DB: conn}
 	uploadHandlers := &upload.Handlers{Config: cfg, DB: conn}
+	archiveTracker := archive.NewTracker(1 * time.Hour)
+	archiveHandlers := &archive.Handlers{Config: cfg, DB: conn, Tracker: archiveTracker}
 	requireToken := auth.RequireToken(cfg.PrivateKey)
 
 	// Public root + health
@@ -98,6 +104,19 @@ func NewRouter(cfg *config.Config, conn *sql.DB) http.Handler {
 	// Legacy upload wrappers (raw body stream)
 	addFileRoute(r, "POST", "/input", auth.IntentUpload, requireToken, conn, uploadHandlers.LegacyInput)
 	addFileRoute(r, "POST", "/inputZip", auth.IntentUpload, requireToken, conn, uploadHandlers.LegacyInputZip)
+
+	// Archive operations
+	addFileRoute(r, "POST", "/zipFiles", auth.IntentUpload, requireToken, conn, archiveHandlers.ZipFiles)
+	addFileRoute(r, "POST", "/unzipFile", auth.IntentUpload, requireToken, conn, archiveHandlers.UnzipFile)
+	r.Get("/progress", archiveHandlers.Progress)
+	r.Group(func(r chi.Router) {
+		r.Use(requireToken)
+		r.Get("/downloadZip", archiveHandlers.DownloadZip)
+		r.Get("/deleteTempZip", archiveHandlers.DeleteTempZip)
+	})
+
+	// System info (no auth — legacy compat)
+	r.Get("/getSystemInfo", system.GetSystemInfoHandler)
 
 	// tus resumable upload protocol at /files/*
 	stagingDir := filepath.Join(cfg.NASTempDir, "tus")

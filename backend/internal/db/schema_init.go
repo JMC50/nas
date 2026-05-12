@@ -34,6 +34,10 @@ CREATE TABLE IF NOT EXISTS log (
 	loc TEXT,
 	FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
 );
+CREATE TABLE IF NOT EXISTS server_settings (
+	key TEXT PRIMARY KEY,
+	value TEXT NOT NULL
+);
 `
 
 // InitSchema runs CREATE TABLE IF NOT EXISTS for the required tables.

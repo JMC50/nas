@@ -6,12 +6,7 @@
   import TextField from "$lib/components/Auth/TextField.svelte";
   import PasswordRules from "$lib/components/Auth/PasswordRules.svelte";
   import SignInOptions from "$lib/components/Auth/SignInOptions.svelte";
-  import {
-    signInLocal,
-    signUpLocal,
-    discordUrl,
-    googleUrl,
-  } from "$lib/auth-actions";
+  import { signInLocal, signUpLocal } from "$lib/auth-actions";
 
   interface Rules {
     minLength: number;
@@ -24,6 +19,10 @@
   interface AuthConfig {
     authType: "oauth" | "local" | "both";
     localAuthEnabled: boolean;
+    discordEnabled: boolean;
+    discordLoginUrl: string;
+    googleEnabled: boolean;
+    googleLoginUrl: string;
     oauthEnabled: boolean;
     passwordRequirements: Rules;
   }
@@ -90,16 +89,6 @@
     if (mode === "login") onSignIn();
     else onRegister();
   }
-
-  function goDiscord() {
-    const target = discordUrl();
-    if (target) location.href = target;
-  }
-
-  function goGoogle() {
-    const target = googleUrl();
-    if (target) location.href = target;
-  }
 </script>
 
 <main class="min-h-screen flex items-center justify-center bg-bg-base p-6">
@@ -124,7 +113,14 @@
       </div>
     {:else}
       {#if authConfig.oauthEnabled}
-        <SignInOptions oauthEnabled={true} localEnabled={false} onDiscord={goDiscord} onGoogle={goGoogle} onLocal={() => {}} />
+        <SignInOptions
+          discordEnabled={authConfig.discordEnabled}
+          discordUrl={authConfig.discordLoginUrl}
+          googleEnabled={authConfig.googleEnabled}
+          googleUrl={authConfig.googleLoginUrl}
+          localEnabled={false}
+          onLocal={() => {}}
+        />
         {#if authConfig.localAuthEnabled}
           <div class="flex items-center gap-3 my-4 text-xs text-fg-muted">
             <div class="flex-1 h-px bg-border-default"></div>

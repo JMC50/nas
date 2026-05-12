@@ -23,12 +23,12 @@
   interface AuthConfig {
     authType: "oauth" | "local" | "both";
     localAuthEnabled: boolean;
+    discordEnabled: boolean;
+    discordLoginUrl: string;
+    googleEnabled: boolean;
+    googleLoginUrl: string;
     oauthEnabled: boolean;
   }
-
-  const loginURL = (typeof process !== "undefined" ? process.env.LOGIN_URL : "") as string;
-  const googleClientId = (typeof process !== "undefined" ? process.env.GOOGLE_CLIENT_ID : "") as string;
-  const googleRedirectURI = (typeof process !== "undefined" ? process.env.GOOGLE_REDIRECT_URI : "") as string;
 
   let authConfig: AuthConfig | null = $state(null);
   let intents: Intent[] = $state([]);
@@ -53,24 +53,6 @@
     } finally {
       loadingIntents = false;
     }
-  }
-
-  function loginDiscord() {
-    if (!loginURL) {
-      notifications.warning("Discord login URL not configured.");
-      return;
-    }
-    location.href = loginURL;
-  }
-
-  function loginGoogle() {
-    if (!googleClientId || !googleRedirectURI) {
-      notifications.warning("Google OAuth not configured.");
-      return;
-    }
-    const scope = encodeURIComponent("openid email profile");
-    const redirect = encodeURIComponent(googleRedirectURI);
-    location.href = `https://accounts.google.com/o/oauth2/v2/auth?response_type=code&client_id=${googleClientId}&redirect_uri=${redirect}&scope=${scope}`;
   }
 
   function loginLocal() {
@@ -125,10 +107,11 @@
           <h2 class="text-base font-semibold text-fg-primary mb-1">Sign in</h2>
           <p class="text-xs text-fg-muted mb-6">Choose a provider to continue.</p>
           <SignInOptions
-            oauthEnabled={authConfig.oauthEnabled}
+            discordEnabled={authConfig.discordEnabled}
+            discordUrl={authConfig.discordLoginUrl}
+            googleEnabled={authConfig.googleEnabled}
+            googleUrl={authConfig.googleLoginUrl}
             localEnabled={authConfig.localAuthEnabled}
-            onDiscord={loginDiscord}
-            onGoogle={loginGoogle}
             onLocal={loginLocal}
           />
         </div>

@@ -32,6 +32,10 @@ const fullSchema = `
 		loc TEXT,
 		FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
 	);
+	CREATE TABLE server_settings (
+		key TEXT PRIMARY KEY,
+		value TEXT NOT NULL
+	);
 `
 
 func TestVerifySchema_AcceptsCurrentSchema(t *testing.T) {

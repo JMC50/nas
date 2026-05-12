@@ -66,15 +66,3 @@ export async function signUpLocal(payload: RegisterPayload): Promise<AuthResult>
     return { success: false, message: "Network error. Please try again." };
   }
 }
-
-export function discordUrl(): string {
-  return (typeof process !== "undefined" ? process.env.LOGIN_URL : "") as string;
-}
-
-export function googleUrl(): string {
-  const clientId = (typeof process !== "undefined" ? process.env.GOOGLE_CLIENT_ID : "") as string;
-  const redirect = (typeof process !== "undefined" ? process.env.GOOGLE_REDIRECT_URI : "") as string;
-  if (!clientId || !redirect) return "";
-  const scope = encodeURIComponent("openid email profile");
-  return `https://accounts.google.com/o/oauth2/v2/auth?response_type=code&client_id=${clientId}&redirect_uri=${encodeURIComponent(redirect)}&scope=${scope}`;
-}

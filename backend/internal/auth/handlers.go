@@ -47,21 +47,58 @@ type userDTO struct {
 	AuthType   string   `json:"auth_type"`
 }
 
+type passwordRules struct {
+	MinLength        int  `json:"minLength"`
+	RequireUppercase bool `json:"requireUppercase"`
+	RequireLowercase bool `json:"requireLowercase"`
+	RequireNumber    bool `json:"requireNumber"`
+	RequireSpecial   bool `json:"requireSpecial"`
+}
+
+// authConfigBody is the public /auth/config response. The frontend reads
+// the OAuth login URLs directly from here — backend is the single source of
+// truth for provider availability and authorize URLs.
+type authConfigBody struct {
+	AuthType             string        `json:"authType"`
+	LocalAuthEnabled     bool          `json:"localAuthEnabled"`
+	DiscordEnabled       bool          `json:"discordEnabled"`
+	DiscordLoginURL      string        `json:"discordLoginUrl"`
+	GoogleEnabled        bool          `json:"googleEnabled"`
+	GoogleLoginURL       string        `json:"googleLoginUrl"`
+	OAuthEnabled         bool          `json:"oauthEnabled"`
+	PasswordRequirements passwordRules `json:"passwordRequirements"`
+}
+
 func (h *Handlers) AuthConfig(w http.ResponseWriter, r *http.Request) {
-	authType := string(h.Config.AuthType)
-	resp := map[string]any{
-		"authType":         authType,
-		"localAuthEnabled": authType == "local" || authType == "both",
-		"oauthEnabled":     authType == "oauth" || authType == "both",
-		"passwordRequirements": map[string]any{
-			"minLength":        h.Config.PasswordRequirements.MinLength,
-			"requireUppercase": h.Config.PasswordRequirements.RequireUppercase,
-			"requireLowercase": h.Config.PasswordRequirements.RequireLowercase,
-			"requireNumber":    h.Config.PasswordRequirements.RequireNumber,
-			"requireSpecial":   h.Config.PasswordRequirements.RequireSpecial,
-		},
+	writeJSON(w, http.StatusOK, h.authBody())
+}
+
+func (h *Handlers) authBody() authConfigBody {
+	authType := h.Config.AuthType
+	oauthAllowed := authType == config.AuthTypeOAuth || authType == config.AuthTypeBoth
+	localAllowed := authType == config.AuthTypeLocal || authType == config.AuthTypeBoth
+	creds := ResolveCreds(h.Config, h.DB)
+	discord := oauthAllowed && discordOK(creds)
+	google := oauthAllowed && googleOK(creds)
+	body := authConfigBody{
+		AuthType:             string(authType),
+		LocalAuthEnabled:     localAllowed,
+		DiscordEnabled:       discord,
+		GoogleEnabled:        google,
+		OAuthEnabled:         discord || google,
+		PasswordRequirements: passwordRules(h.Config.PasswordRequirements),
 	}
-	writeJSON(w, http.StatusOK, resp)
+	fillURLs(&body, creds, discord, google)
+	return body
+}
+
+func fillURLs(body *authConfigBody, creds OAuthCreds, discord, google bool) {
+	if discord {
+		body.DiscordLoginURL = discordURL(creds.DiscordClientID, creds.DiscordRedirectURI)
+	}
+	if google {
+		body.GoogleLoginURL = googleURL(creds.GoogleClientID, creds.GoogleRedirectURI)
+	}
 }
 
 func (h *Handlers) RegisterLocal(w http.ResponseWriter, r *http.Request) {

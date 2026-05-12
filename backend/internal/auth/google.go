@@ -84,15 +84,16 @@ func (h *Handlers) GoogleLogin(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "code required", http.StatusBadRequest)
 		return
 	}
-	if h.Config.GoogleClientID == "" || h.Config.GoogleClientSecret == "" || h.Config.GoogleRedirectURI == "" {
+	creds := ResolveCreds(h.Config, h.DB)
+	if !googleOK(creds) {
 		writeJSON(w, http.StatusInternalServerError, map[string]any{
 			"error":   "OAuth configuration error",
 			"message": "Google OAuth credentials not configured",
 		})
 		return
 	}
-	accessToken, err := exchangeGoogleCode(http.DefaultClient, h.Config.GoogleClientID,
-		h.Config.GoogleClientSecret, h.Config.GoogleRedirectURI, code)
+	accessToken, err := exchangeGoogleCode(http.DefaultClient, creds.GoogleClientID,
+		creds.GoogleClientSecret, creds.GoogleRedirectURI, code)
 	if err != nil {
 		writeJSON(w, http.StatusInternalServerError, map[string]any{
 			"error":   "OAuth process failed",

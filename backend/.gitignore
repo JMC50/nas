@@ -1,0 +1,19 @@
+# Binaries
+/server
+/bin/
+*.exe
+*.test
+
+# Coverage
+*.out
+coverage.html
+
+# Go workspace
+go.work
+go.work.sum
+
+# Test artifacts
+tests/fixtures/temp/
+
+# Tus staging
+tus-data/

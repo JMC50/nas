@@ -11,7 +11,6 @@ export default defineConfig(({ mode }) => {
     server: {
       port: 8086,
       host: "0.0.0.0",
-      allowedHosts: ["admin.i-foto.co.kr", "localhost", "127.0.0.1"],
       proxy: {
         "/server": {
           target: serverURL,

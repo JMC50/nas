@@ -26,6 +26,7 @@
   let googleSecret = $state("");
   let googleRedirect = $state("");
   let busy = $state(false);
+  let origin = $state("");
 
   function bearer(): HeadersInit {
     return { Authorization: `Bearer ${auth.token}` };
@@ -97,10 +98,21 @@
     }
   }
 
-  const discordHint = $derived(view && view.discord.hasSecret ? "••••••• (stored)" : "Client secret");
-  const googleHint = $derived(view && view.google.hasSecret ? "••••••• (stored)" : "Client secret");
+  const hints = $derived({
+    discord: {
+      secret: view && view.discord.hasSecret ? "••••••• (stored)" : "Client secret",
+      redirect: origin ? `${origin}/login` : "https://your-domain/login",
+    },
+    google: {
+      secret: view && view.google.hasSecret ? "••••••• (stored)" : "Client secret",
+      redirect: origin ? `${origin}/googleLogin` : "https://your-domain/googleLogin",
+    },
+  });
 
-  onMount(loadView);
+  onMount(() => {
+    origin = window.location.origin;
+    loadView();
+  });
 </script>
 
 <section class="space-y-3">
@@ -115,8 +127,8 @@
       <div class="text-sm font-medium text-fg-primary">Discord OAuth</div>
     </div>
     <TextField id="discord-client-id" label="Client ID" value={discordId} disabled={busy} onInput={(next) => (discordId = next)} />
-    <TextField id="discord-secret" label="Client secret" type="password" value={discordSecret} placeholder={discordHint} disabled={busy} onInput={(next) => (discordSecret = next)} />
-    <TextField id="discord-redirect" label="Redirect URI" value={discordRedirect} placeholder="http://localhost:7777/login" disabled={busy} onInput={(next) => (discordRedirect = next)} />
+    <TextField id="discord-secret" label="Client secret" type="password" value={discordSecret} placeholder={hints.discord.secret} disabled={busy} onInput={(next) => (discordSecret = next)} />
+    <TextField id="discord-redirect" label="Redirect URI" value={discordRedirect} placeholder={hints.discord.redirect} disabled={busy} onInput={(next) => (discordRedirect = next)} />
     <p class="text-[11px] text-fg-muted">Leave the secret empty to keep the stored value. Clear Client ID or Redirect URI to disable Discord sign-in.</p>
   </div>
 
@@ -126,8 +138,8 @@
       <div class="text-sm font-medium text-fg-primary">Google OAuth</div>
     </div>
     <TextField id="google-client-id" label="Client ID" value={googleId} disabled={busy} onInput={(next) => (googleId = next)} />
-    <TextField id="google-secret" label="Client secret" type="password" value={googleSecret} placeholder={googleHint} disabled={busy} onInput={(next) => (googleSecret = next)} />
-    <TextField id="google-redirect" label="Redirect URI" value={googleRedirect} placeholder="http://localhost:7777/googleLogin" disabled={busy} onInput={(next) => (googleRedirect = next)} />
+    <TextField id="google-secret" label="Client secret" type="password" value={googleSecret} placeholder={hints.google.secret} disabled={busy} onInput={(next) => (googleSecret = next)} />
+    <TextField id="google-redirect" label="Redirect URI" value={googleRedirect} placeholder={hints.google.redirect} disabled={busy} onInput={(next) => (googleRedirect = next)} />
     <p class="text-[11px] text-fg-muted">Leave the secret empty to keep the stored value. Google sign-in requires all three fields.</p>
   </div>
 

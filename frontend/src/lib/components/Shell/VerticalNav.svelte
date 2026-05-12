@@ -7,6 +7,7 @@
   import PanelLeft from "lucide-svelte/icons/panel-left";
   import { tabs, EXPLORER_TAB_ID } from "$lib/store/tabs.svelte";
   import { ui } from "$lib/store/ui.svelte";
+  import { auth } from "$lib/store/auth.svelte";
   import type { TabKind } from "$lib/types";
 
   interface NavItem {
@@ -14,15 +15,18 @@
     kind: TabKind;
     title: string;
     icon: typeof Folder;
+    adminOnly?: boolean;
   }
 
   const NAV_ITEMS: NavItem[] = [
     { id: EXPLORER_TAB_ID, kind: "explorer", title: "Files", icon: Folder },
-    { id: "system:user-manager", kind: "user-manager", title: "Users", icon: Users },
+    { id: "system:user-manager", kind: "user-manager", title: "Users", icon: Users, adminOnly: true },
     { id: "system:activity", kind: "activity", title: "Activity", icon: History },
-    { id: "system:settings", kind: "settings", title: "Settings", icon: Settings },
-    { id: "system:system", kind: "system", title: "System", icon: Cpu },
+    { id: "system:settings", kind: "settings", title: "Settings", icon: Settings, adminOnly: true },
+    { id: "system:system", kind: "system", title: "System", icon: Cpu, adminOnly: true },
   ];
+
+  const visibleItems = $derived(NAV_ITEMS.filter((item) => !item.adminOnly || auth.isAdmin));
 
   function activate(item: NavItem) {
     const existing = tabs.list.find((tab) => tab.id === item.id);
@@ -45,7 +49,7 @@
   class="row-start-2 col-start-1 flex flex-col border-r border-border-default bg-bg-surface transition-[width] duration-200 ease-smooth {ui.sidebarCollapsed ? 'w-12' : 'w-[200px]'}"
 >
   <nav class="flex-1 flex flex-col gap-1 p-1.5">
-    {#each NAV_ITEMS as item (item.id)}
+    {#each visibleItems as item (item.id)}
       {@const Icon = item.icon}
       {@const isActive = tabs.activeId === item.id}
       <button

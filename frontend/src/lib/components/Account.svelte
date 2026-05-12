@@ -6,6 +6,7 @@
   import KeyRound from "lucide-svelte/icons/key-round";
   import { auth } from "$lib/store/auth.svelte";
   import { notifications } from "$lib/store/notifications.svelte";
+  import { claimAdmin } from "$lib/auth-actions";
   import SignInOptions from "$lib/components/Auth/SignInOptions.svelte";
   import type { Intent } from "$lib/types";
 
@@ -68,21 +69,12 @@
   async function requestAdmin() {
     const password = prompt("Admin password?");
     if (!password) return;
-    try {
-      const response = await fetch(`/server/requestAdminIntent?token=${encodeURIComponent(auth.token)}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ pwd: password }),
-      });
-      const text = await response.text();
-      if (text === "complete") {
-        notifications.success("Admin granted.");
-        loadIntents();
-      } else {
-        notifications.error("Wrong password.");
-      }
-    } catch (cause) {
-      notifications.error(`Request failed: ${(cause as Error).message}`);
+    const result = await claimAdmin(password);
+    if (result.success) {
+      notifications.success("Admin granted.");
+      loadIntents();
+    } else {
+      notifications.error(result.message ?? "Request failed.");
     }
   }
 

@@ -1,4 +1,5 @@
 import { useAuth } from "$lib/store/store";
+import { auth } from "$lib/store/auth.svelte";
 
 interface LoginPayload {
   userId: string;
@@ -41,6 +42,27 @@ export async function signInLocal(payload: LoginPayload): Promise<AuthResult> {
     return { success: true };
   } catch {
     return { success: false, message: "Network error. Please try again." };
+  }
+}
+
+export async function claimAdmin(password: string): Promise<AuthResult> {
+  try {
+    const response = await fetch(
+      `/server/requestAdminIntent?token=${encodeURIComponent(auth.token)}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ pwd: password }),
+      },
+    );
+    const text = await response.text();
+    if (text === "complete") {
+      await auth.refreshAdmin();
+      return { success: true };
+    }
+    return { success: false, message: "Wrong admin password." };
+  } catch (cause) {
+    return { success: false, message: (cause as Error).message };
   }
 }
 

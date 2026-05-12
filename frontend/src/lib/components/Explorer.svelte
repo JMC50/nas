@@ -9,6 +9,7 @@
   import FileGrid from "$lib/components/Explorer/FileGrid.svelte";
   import FileList from "$lib/components/Explorer/FileList.svelte";
   import ContextMenu from "$lib/components/Explorer/ContextMenu.svelte";
+  import ForbiddenPanel from "$lib/components/ForbiddenPanel.svelte";
   import {
     locPath,
     readEntries,
@@ -17,11 +18,13 @@
     renameEntry,
     downloadUrl,
     openEntry,
+    FetchError,
   } from "$lib/components/Explorer/actions";
   import type { FolderEntry } from "$lib/components/Explorer/icon-for";
 
   let entries: FolderEntry[] = $state([]);
   let loading = $state(false);
+  let forbidden = $state(false);
   let errorMessage: string | null = $state(null);
   let searchQuery = $state("");
   let fileInputEl: HTMLInputElement;
@@ -42,10 +45,15 @@
   async function refresh() {
     loading = true;
     errorMessage = null;
+    forbidden = false;
     try {
       entries = await readEntries();
     } catch (cause) {
-      errorMessage = (cause as Error).message;
+      if (cause instanceof FetchError && cause.status === 403) {
+        forbidden = true;
+      } else {
+        errorMessage = (cause as Error).message;
+      }
       entries = [];
     } finally {
       loading = false;
@@ -146,7 +154,13 @@
   <input type="file" multiple bind:this={fileInputEl} onchange={onPick} class="hidden" />
 
   <div class="flex-1 overflow-auto">
-    {#if errorMessage}
+    {#if forbidden}
+      <ForbiddenPanel
+        title="Files are locked"
+        description="You don't have permission to browse files yet. Ask an administrator to grant you the View intent, or claim admin yourself with the admin password."
+        onGranted={refresh}
+      />
+    {:else if errorMessage}
       <div class="p-6 text-sm text-fg-danger">Failed to load: {errorMessage}</div>
     {:else if loading && entries.length === 0}
       <div class="p-6 text-sm text-fg-muted">Loading…</div>

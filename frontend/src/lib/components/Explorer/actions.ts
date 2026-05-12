@@ -5,6 +5,14 @@ import { notifications } from "$lib/store/notifications.svelte";
 import { pickViewer } from "$lib/components/Viewers/registry";
 import type { FolderEntry } from "./icon-for";
 
+export class FetchError extends Error {
+  status: number;
+  constructor(status: number, message: string) {
+    super(message);
+    this.status = status;
+  }
+}
+
 export function locPath(): string {
   return "/" + files.currentLoc.join("/");
 }
@@ -16,26 +24,26 @@ function url(path: string, params: Record<string, string>): string {
 
 export async function readEntries(): Promise<FolderEntry[]> {
   const response = await fetch(url("readFolder", { loc: locPath() }));
-  if (!response.ok) throw new Error(`HTTP ${response.status}`);
+  if (!response.ok) throw new FetchError(response.status, `HTTP ${response.status}`);
   const data = await response.json();
   return (data.files ?? data ?? []) as FolderEntry[];
 }
 
 export async function createFolder(name: string): Promise<void> {
   const response = await fetch(url("makedir", { name, loc: locPath() }));
-  if (!response.ok) throw new Error(`HTTP ${response.status}`);
+  if (!response.ok) throw new FetchError(response.status, `HTTP ${response.status}`);
   notifications.success(`Created ${name}`);
 }
 
 export async function deleteEntry(entry: FolderEntry): Promise<void> {
   const response = await fetch(url("forceDelete", { name: entry.name, loc: locPath() }));
-  if (!response.ok) throw new Error(`HTTP ${response.status}`);
+  if (!response.ok) throw new FetchError(response.status, `HTTP ${response.status}`);
   notifications.success(`Deleted ${entry.name}`);
 }
 
 export async function renameEntry(entry: FolderEntry, next: string): Promise<void> {
   const response = await fetch(url("rename", { loc: locPath(), name: entry.name, newName: next }));
-  if (!response.ok) throw new Error(`HTTP ${response.status}`);
+  if (!response.ok) throw new FetchError(response.status, `HTTP ${response.status}`);
   notifications.success(`Renamed to ${next}`);
 }
 

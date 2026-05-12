@@ -17,6 +17,7 @@ const EMPTY: AuthUser = {
 
 class AuthStore {
   current = $state<AuthUser>(EMPTY);
+  isAdmin = $state<boolean>(false);
 
   isAuthenticated = $derived<boolean>(this.current.token.length > 0);
   token = $derived<string>(this.current.token);
@@ -33,7 +34,27 @@ class AuthStore {
   }
 
   clear() {
+    this.isAdmin = false;
     Logout();
+  }
+
+  async refreshAdmin() {
+    if (!this.token) {
+      this.isAdmin = false;
+      return;
+    }
+    try {
+      const response = await fetch(`/server/checkAdmin?token=${encodeURIComponent(this.token)}`);
+      if (!response.ok) {
+        this.isAdmin = false;
+        return;
+      }
+      const data = await response.json();
+      this.isAdmin = data.isAdmin === true;
+    } catch (cause) {
+      console.warn("checkAdmin failed", cause);
+      this.isAdmin = false;
+    }
   }
 }
 

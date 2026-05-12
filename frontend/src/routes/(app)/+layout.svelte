@@ -15,7 +15,9 @@
   onMount(() => {
     if (!auth.isAuthenticated) {
       goto("/localLogin", { replaceState: true });
+      return;
     }
+    auth.refreshAdmin();
   });
 </script>
 

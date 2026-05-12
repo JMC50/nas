@@ -13,6 +13,7 @@ import (
 	"github.com/JMC50/nas/internal/auth"
 	"github.com/JMC50/nas/internal/config"
 	"github.com/JMC50/nas/internal/db"
+	"github.com/JMC50/nas/internal/files"
 )
 
 func NewRouter(cfg *config.Config, conn *sql.DB) http.Handler {
@@ -32,6 +33,7 @@ func NewRouter(cfg *config.Config, conn *sql.DB) http.Handler {
 
 	authHandlers := &auth.Handlers{Config: cfg, DB: conn}
 	adminHandlers := &admin.Handlers{Config: cfg, DB: conn}
+	fileHandlers := &files.Handlers{Config: cfg, DB: conn}
 	requireToken := auth.RequireToken(cfg.PrivateKey)
 
 	// Public root + health
@@ -67,9 +69,33 @@ func NewRouter(cfg *config.Config, conn *sql.DB) http.Handler {
 		r.Get("/authorize", adminHandlers.ToggleIntent)
 		r.Get("/unauthorize", adminHandlers.ToggleIntent)
 		r.Post("/requestAdminIntent", adminHandlers.RequestAdminIntent)
+		r.Get("/stat", fileHandlers.Stat)
 	})
 
+	// File operations — token + intent
+	addFileRoute(r, "GET", "/readFolder", auth.IntentView, requireToken, conn, fileHandlers.ReadFolder)
+	addFileRoute(r, "GET", "/searchInAllFiles", auth.IntentView, requireToken, conn, fileHandlers.Search)
+	addFileRoute(r, "GET", "/getTextFile", auth.IntentOpen, requireToken, conn, fileHandlers.GetTextFile)
+	addFileRoute(r, "POST", "/saveTextFile", auth.IntentUpload, requireToken, conn, fileHandlers.SaveTextFile)
+	addFileRoute(r, "GET", "/makedir", auth.IntentUpload, requireToken, conn, fileHandlers.MakeDir)
+	addFileRoute(r, "GET", "/forceDelete", auth.IntentDelete, requireToken, conn, fileHandlers.ForceDelete)
+	addFileRoute(r, "GET", "/copy", auth.IntentCopy, requireToken, conn, fileHandlers.Copy)
+	addFileRoute(r, "GET", "/move", auth.IntentCopy, requireToken, conn, fileHandlers.Move)
+	addFileRoute(r, "GET", "/rename", auth.IntentRename, requireToken, conn, fileHandlers.Rename)
+
 	return r
+}
+
+func addFileRoute(
+	r chi.Router,
+	method, path string,
+	intent auth.Intent,
+	requireToken func(http.Handler) http.Handler,
+	conn *sql.DB,
+	handler http.HandlerFunc,
+) {
+	chain := requireToken(auth.RequireIntent(conn, intent)(handler))
+	r.Method(method, path, chain)
 }
 
 func healthzHandler(conn *sql.DB) http.HandlerFunc {

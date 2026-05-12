@@ -11,8 +11,8 @@
     }
 
     const loginURL = process.env.LOGIN_URL as string;
-    const KAKAO_API_KEY = process.env.KAKAO_API_KEY as string;
-    const KAKAO_REDIRECT_URL = process.env.KAKAO_REDIRECT_URL as string;
+    const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID as string;
+    const GOOGLE_REDIRECT_URI = process.env.GOOGLE_REDIRECT_URI as string;
 
     let loading = new Promise(res => {});
     let intents:intentList[];
@@ -29,8 +29,10 @@
         location.href = loginURL;
     }
 
-    async function loginWKakao() {
-        location.href = `https://kauth.kakao.com/oauth/authorize?response_type=code&client_id=${KAKAO_API_KEY}&redirect_uri=${KAKAO_REDIRECT_URL}`;
+    async function loginWGoogle() {
+        const scope = encodeURIComponent("openid email profile");
+        const redirect = encodeURIComponent(GOOGLE_REDIRECT_URI);
+        location.href = `https://accounts.google.com/o/oauth2/v2/auth?response_type=code&client_id=${GOOGLE_CLIENT_ID}&redirect_uri=${redirect}&scope=${scope}`;
     }
 
     async function loginLocal() {
@@ -96,7 +98,7 @@
             {#if authConfig.oauthEnabled}
                 <div class="button" on:click={login}>LOGIN WITH DISCORD</div>
                 <div class="margin"></div>
-                <div class="button" on:click={loginWKakao}>LOGIN WITH KAKAO</div>
+                <div class="button" on:click={loginWGoogle}>LOGIN WITH GOOGLE</div>
                 <div class="margin"></div>
             {/if}
             {#if authConfig.localAuthEnabled}

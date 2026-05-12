@@ -74,11 +74,13 @@ func NewRouter(cfg *config.Config, conn *sql.DB) http.Handler {
 	r.Post("/auth/change-password", authHandlers.ChangePassword) // token in query, parsed inside
 	r.Get("/auth/config", authHandlers.AuthConfig)
 
-	// OAuth flows (no token required — they ISSUE tokens)
-	r.Get("/login", authHandlers.DiscordLogin)
-	r.Get("/kakaoLogin", authHandlers.KakaoLogin)
-	r.Post("/register", authHandlers.DiscordRegister)
-	r.Post("/registerKakao", authHandlers.KakaoRegister)
+	// OAuth flows (no token required — they ISSUE tokens).
+	// Frontend SPA routes /login and /googleLogin handle the OAuth callback UI.
+	// Backend endpoints live under /auth/* to avoid shadowing.
+	r.Get("/auth/discord/callback", authHandlers.DiscordLogin)
+	r.Get("/auth/google/callback", authHandlers.GoogleLogin)
+	r.Post("/auth/discord/register", authHandlers.DiscordRegister)
+	r.Post("/auth/google/register", authHandlers.GoogleRegister)
 
 	// Intent inspection (legacy compat — no auth gate per legacy behavior)
 	r.Get("/getIntents", authHandlers.GetIntents)

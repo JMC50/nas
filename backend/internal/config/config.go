@@ -38,9 +38,9 @@ type Config struct {
 	DiscordClientID     string
 	DiscordClientSecret string
 	DiscordRedirectURI  string
-	KakaoRestAPIKey     string
-	KakaoClientSecret   string
-	KakaoRedirectURI    string
+	GoogleClientID      string
+	GoogleClientSecret  string
+	GoogleRedirectURI   string
 
 	NASDataDir      string
 	NASAdminDataDir string
@@ -70,9 +70,9 @@ func LoadFromEnv() (*Config, error) {
 	c.DiscordClientID = getSecret("DISCORD_CLIENT_ID", "")
 	c.DiscordClientSecret = getSecret("DISCORD_CLIENT_SECRET", "")
 	c.DiscordRedirectURI = getEnv("DISCORD_REDIRECT_URI", "")
-	c.KakaoRestAPIKey = getSecret("KAKAO_REST_API_KEY", "")
-	c.KakaoClientSecret = getSecret("KAKAO_CLIENT_SECRET", "")
-	c.KakaoRedirectURI = getEnv("KAKAO_REDIRECT_URI", "")
+	c.GoogleClientID = getSecret("GOOGLE_CLIENT_ID", "")
+	c.GoogleClientSecret = getSecret("GOOGLE_CLIENT_SECRET", "")
+	c.GoogleRedirectURI = getEnv("GOOGLE_REDIRECT_URI", "")
 
 	c.NASDataDir = getEnv("NAS_DATA_DIR", "")
 	c.NASAdminDataDir = getEnv("NAS_ADMIN_DATA_DIR", "")

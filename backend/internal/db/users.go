@@ -96,7 +96,7 @@ func GetAllUsers(conn *sql.DB) ([]*User, error) {
 	return users, nil
 }
 
-// SaveOAuthUser inserts an OAuth user (Discord/Kakao) or updates existing.
+// SaveOAuthUser inserts an OAuth user (Discord/Google) or updates existing.
 // Returns the user's primary key.
 func SaveOAuthUser(conn *sql.DB, userID, username, globalName, krName string) (int64, error) {
 	row := conn.QueryRow("SELECT id FROM users WHERE userId = ?", userID)

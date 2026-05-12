@@ -20,7 +20,7 @@
     onMount(async () => {
         access_token = location.href.split("access_token=")[1].split("&expires_in=")[0];
 
-        const loginRES = await fetch(`/server/login?access_token=${access_token}`);
+        const loginRES = await fetch(`/server/auth/discord/callback?access_token=${access_token}`);
         const res = await loginRES.json();
 
         if(res.status == "new"){
@@ -47,7 +47,7 @@
             return;
         }
 
-        const res = await fetch(`/server/register`, {
+        const res = await fetch(`/server/auth/discord/register`, {
             method:"POST",
             headers:{
                 'Content-Type':'application/json'

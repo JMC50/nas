@@ -23,7 +23,7 @@
   }
 </script>
 
-<header class="flex items-center gap-2 px-4 h-12 border-b border-border-default bg-bg-surface">
+<header class="flex items-center gap-2 px-6 h-12 border-b border-border-default bg-bg-surface">
   <button
     type="button"
     class="inline-flex items-center justify-center w-8 h-8 rounded-md text-fg-muted hover:text-fg-primary hover:bg-bg-hover disabled:opacity-40 disabled:hover:bg-transparent transition-colors"

@@ -1,27 +1,17 @@
 <script lang="ts">
   import { onMount } from "svelte";
-  import { useAuth } from "$lib/store/store";
   import HardDrive from "lucide-svelte/icons/hard-drive";
   import LogIn from "lucide-svelte/icons/log-in";
   import UserPlus from "lucide-svelte/icons/user-plus";
   import TextField from "$lib/components/Auth/TextField.svelte";
   import PasswordRules from "$lib/components/Auth/PasswordRules.svelte";
   import SignInOptions from "$lib/components/Auth/SignInOptions.svelte";
-
-  const googleClientId = (typeof process !== "undefined" ? process.env.GOOGLE_CLIENT_ID : "") as string;
-  const googleRedirect = (typeof process !== "undefined" ? process.env.GOOGLE_REDIRECT_URI : "") as string;
-  const discordLoginURL = (typeof process !== "undefined" ? process.env.LOGIN_URL : "") as string;
-
-  function loginDiscord() {
-    if (discordLoginURL) location.href = discordLoginURL;
-  }
-
-  function loginGoogle() {
-    if (!googleClientId || !googleRedirect) return;
-    const scope = encodeURIComponent("openid email profile");
-    const redirect = encodeURIComponent(googleRedirect);
-    location.href = `https://accounts.google.com/o/oauth2/v2/auth?response_type=code&client_id=${googleClientId}&redirect_uri=${redirect}&scope=${scope}`;
-  }
+  import {
+    signInLocal,
+    signUpLocal,
+    discordUrl,
+    googleUrl,
+  } from "$lib/auth-actions";
 
   interface Rules {
     minLength: number;
@@ -58,7 +48,7 @@
     }
   });
 
-  function pwdError(value: string): string | null {
+  function validate(value: string): string | null {
     if (!authConfig) return null;
     const rules = authConfig.passwordRequirements;
     if (value.length < rules.minLength) return `Password must be at least ${rules.minLength} characters.`;
@@ -69,66 +59,24 @@
     return null;
   }
 
-  async function signIn() {
+  async function onSignIn() {
     error = "";
     loading = true;
-    try {
-      const response = await fetch("/server/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId, password }),
-      });
-      const data = await response.json();
-      if (data.success) {
-        useAuth.set({
-          userId: data.user.userId,
-          username: data.user.username,
-          krname: data.user.krname ?? "",
-          global_name: data.user.global_name,
-          token: data.token,
-        });
-        window.location.replace(`${location.protocol}//${location.host}/`);
-      } else {
-        error = data.message ?? "Login failed.";
-      }
-    } catch {
-      error = "Network error. Please try again.";
-    } finally {
-      loading = false;
-    }
+    const result = await signInLocal({ userId, password });
+    if (!result.success) error = result.message ?? "";
+    loading = false;
   }
 
-  async function register() {
+  async function onRegister() {
     error = "";
     if (!userId || !username || !password) { error = "Fill in all required fields."; return; }
     if (password !== confirmPassword) { error = "Passwords do not match."; return; }
-    const violation = pwdError(password);
+    const violation = validate(password);
     if (violation) { error = violation; return; }
     loading = true;
-    try {
-      const response = await fetch("/server/auth/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId, username, password, krname: koreanName }),
-      });
-      const data = await response.json();
-      if (data.success) {
-        useAuth.set({
-          userId: data.user.userId,
-          username: data.user.username,
-          krname: koreanName,
-          global_name: data.user.global_name,
-          token: data.token,
-        });
-        window.location.replace(`${location.protocol}//${location.host}/`);
-      } else {
-        error = data.message ?? "Registration failed.";
-      }
-    } catch {
-      error = "Network error. Please try again.";
-    } finally {
-      loading = false;
-    }
+    const result = await signUpLocal({ userId, username, password, krname: koreanName });
+    if (!result.success) error = result.message ?? "";
+    loading = false;
   }
 
   function switchMode() {
@@ -139,8 +87,18 @@
 
   function submit(event: SubmitEvent) {
     event.preventDefault();
-    if (mode === "login") signIn();
-    else register();
+    if (mode === "login") onSignIn();
+    else onRegister();
+  }
+
+  function goDiscord() {
+    const target = discordUrl();
+    if (target) location.href = target;
+  }
+
+  function goGoogle() {
+    const target = googleUrl();
+    if (target) location.href = target;
   }
 </script>
 
@@ -166,13 +124,7 @@
       </div>
     {:else}
       {#if authConfig.oauthEnabled}
-        <SignInOptions
-          oauthEnabled={true}
-          localEnabled={false}
-          onDiscord={loginDiscord}
-          onGoogle={loginGoogle}
-          onLocal={() => {}}
-        />
+        <SignInOptions oauthEnabled={true} localEnabled={false} onDiscord={goDiscord} onGoogle={goGoogle} onLocal={() => {}} />
         {#if authConfig.localAuthEnabled}
           <div class="flex items-center gap-3 my-4 text-xs text-fg-muted">
             <div class="flex-1 h-px bg-border-default"></div>
@@ -184,9 +136,7 @@
 
       {#if authConfig.localAuthEnabled}
         {#if error}
-          <div class="mb-4 p-3 rounded-md bg-fg-danger/10 border border-fg-danger/30 text-fg-danger text-xs">
-            {error}
-          </div>
+          <div class="mb-4 p-3 rounded-md bg-fg-danger/10 border border-fg-danger/30 text-fg-danger text-xs">{error}</div>
         {/if}
 
         <form class="space-y-3" onsubmit={submit}>
@@ -218,11 +168,7 @@
             {/if}
           </button>
 
-          <button
-            type="button"
-            class="w-full text-xs text-fg-muted hover:text-fg-link mt-2 transition-colors"
-            onclick={switchMode}
-          >
+          <button type="button" class="w-full text-xs text-fg-muted hover:text-fg-link mt-2 transition-colors" onclick={switchMode}>
             {mode === "login" ? "Need an account? Register" : "Already registered? Sign in"}
           </button>
         </form>

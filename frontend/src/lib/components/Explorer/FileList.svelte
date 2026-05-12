@@ -13,8 +13,8 @@
 <table class="w-full text-sm">
   <thead>
     <tr class="text-xs text-fg-muted border-b border-border-default">
-      <th class="text-left font-normal px-4 py-2">Name</th>
-      <th class="text-left font-normal px-4 py-2 w-24">Type</th>
+      <th class="text-left font-normal px-6 py-2">Name</th>
+      <th class="text-left font-normal px-6 py-2 w-24">Type</th>
     </tr>
   </thead>
   <tbody>
@@ -25,13 +25,13 @@
         ondblclick={() => onOpen(entry)}
         oncontextmenu={(event) => onMenu(event, entry)}
       >
-        <td class="px-4 py-1.5">
+        <td class="px-6 py-1.5">
           <div class="flex items-center gap-2 min-w-0">
             <Icon size="14" class={entry.isFolder ? "text-accent" : "text-fg-secondary"} />
             <span class="truncate text-fg-primary">{entry.name}</span>
           </div>
         </td>
-        <td class="px-4 py-1.5 text-xs text-fg-muted">
+        <td class="px-6 py-1.5 text-xs text-fg-muted">
           {entry.isFolder ? "Folder" : entry.extensions || "file"}
         </td>
       </tr>

@@ -11,7 +11,7 @@
   let { onGoto, onRoot }: Props = $props();
 </script>
 
-<nav class="flex items-center gap-1 h-8 px-4 text-xs text-fg-muted border-b border-border-default bg-bg-base">
+<nav class="flex items-center gap-1 h-8 px-6 text-xs text-fg-muted border-b border-border-default bg-bg-base">
   <button
     type="button"
     class="inline-flex items-center gap-1 px-1.5 h-6 rounded hover:bg-bg-hover hover:text-fg-primary transition-colors"

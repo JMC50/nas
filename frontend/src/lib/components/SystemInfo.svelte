@@ -53,20 +53,21 @@
   });
 </script>
 
-<section class="h-full overflow-auto p-6 bg-bg-base">
-  <header class="flex items-center gap-2 mb-6">
-    <Cpu size="20" class="text-accent" />
-    <h1 class="text-xl font-semibold text-fg-primary">System</h1>
+<section class="flex flex-col h-full bg-bg-base overflow-hidden">
+  <header class="flex items-center gap-2 px-6 h-12 border-b border-border-default bg-bg-surface">
+    <Cpu size="18" class="text-accent" />
+    <h1 class="text-sm font-semibold text-fg-primary">System</h1>
   </header>
 
-  {#if error}
-    <div class="p-3 rounded-md bg-fg-danger/10 border border-fg-danger/30 text-fg-danger text-sm">
-      Failed to load system info: {error}
-    </div>
-  {:else if !data}
-    <div class="text-sm text-fg-muted">Loading…</div>
-  {:else}
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+  <div class="flex-1 overflow-auto p-6">
+    {#if error}
+      <div class="p-3 rounded-md bg-fg-danger/10 border border-fg-danger/30 text-fg-danger text-sm">
+        Failed to load system info: {error}
+      </div>
+    {:else if !data}
+      <div class="text-sm text-fg-muted">Loading…</div>
+    {:else}
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
       <div class="p-4 rounded-lg bg-bg-surface border border-border-default">
         <div class="flex items-center gap-2 text-fg-muted text-xs uppercase tracking-wide mb-2">
           <Cpu size="14" />
@@ -108,7 +109,8 @@
             style="width: {diskPercent()}%;"
           ></div>
         </div>
+        </div>
       </div>
-    </div>
-  {/if}
+    {/if}
+  </div>
 </section>

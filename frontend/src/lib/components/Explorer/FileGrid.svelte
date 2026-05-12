@@ -17,7 +17,7 @@
   }
 </script>
 
-<div class="grid grid-cols-[repeat(auto-fill,minmax(120px,1fr))] gap-2 p-4">
+<div class="grid grid-cols-[repeat(auto-fill,minmax(120px,1fr))] gap-2 p-6">
   {#each entries as entry (entry.name)}
     {@const Icon = iconFor(entry)}
     <button

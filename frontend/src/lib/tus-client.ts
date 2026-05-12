@@ -28,7 +28,7 @@ function encodeBase64(value: string): string {
   return btoa(unescape(encodeURIComponent(value)));
 }
 
-function buildMetadata(loc: string, filename: string): string {
+function metaHeader(loc: string, filename: string): string {
   return [
     `loc ${encodeBase64(loc)}`,
     `name ${encodeBase64(filename)}`,
@@ -50,7 +50,7 @@ async function createUpload(options: TusUploadOptions): Promise<string> {
       headers: {
         "Tus-Resumable": TUS_VERSION,
         "Upload-Length": String(options.file.size),
-        "Upload-Metadata": buildMetadata(options.loc, options.filename),
+        "Upload-Metadata": metaHeader(options.loc, options.filename),
         "Content-Type": "application/offset+octet-stream",
       },
     },

@@ -45,12 +45,12 @@
       } else {
         error = data.message ?? "Google authentication failed.";
       }
-    } catch (err) {
-      error = (err as Error).message ?? "Network error.";
+    } catch (cause) {
+      error = (cause as Error).message ?? "Network error.";
     }
   });
 
-  async function completeRegistration() {
+  async function register() {
     if (!koreanName.trim()) {
       error = "Please enter your Korean name.";
       return;
@@ -81,8 +81,8 @@
       } else {
         error = data.message ?? "Registration failed.";
       }
-    } catch (err) {
-      error = (err as Error).message ?? "Network error.";
+    } catch (cause) {
+      error = (cause as Error).message ?? "Network error.";
     }
   }
 </script>
@@ -130,7 +130,7 @@
       <button
         type="button"
         class="w-full h-10 rounded-md bg-accent text-accent-fg font-semibold hover:bg-accent-hover transition-colors"
-        onclick={completeRegistration}
+        onclick={register}
       >
         Complete Registration
       </button>

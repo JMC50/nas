@@ -1,12 +1,12 @@
 <script lang="ts">
   import { onMount } from "svelte";
   import UserIcon from "lucide-svelte/icons/user";
-  import LogIn from "lucide-svelte/icons/log-in";
   import LogOut from "lucide-svelte/icons/log-out";
   import Shield from "lucide-svelte/icons/shield";
   import KeyRound from "lucide-svelte/icons/key-round";
   import { auth } from "$lib/store/auth.svelte";
   import { notifications } from "$lib/store/notifications.svelte";
+  import SignInOptions from "$lib/components/Auth/SignInOptions.svelte";
   import type { Intent } from "$lib/types";
 
   const ALL_INTENTS: Intent[] = [
@@ -34,7 +34,7 @@
   let intents: Intent[] = $state([]);
   let loadingIntents = $state(false);
 
-  async function loadAuthConfig() {
+  async function loadConfig() {
     try {
       const response = await fetch("/server/auth/config");
       authConfig = await response.json();
@@ -99,13 +99,13 @@
       } else {
         notifications.error("Wrong password.");
       }
-    } catch (err) {
-      notifications.error(`Request failed: ${(err as Error).message}`);
+    } catch (cause) {
+      notifications.error(`Request failed: ${(cause as Error).message}`);
     }
   }
 
   onMount(() => {
-    loadAuthConfig();
+    loadConfig();
     if (auth.isAuthenticated) loadIntents();
   });
 </script>
@@ -118,42 +118,17 @@
 
   <div class="flex-1 p-6">
     {#if !auth.isAuthenticated}
-      <div class="max-w-md mx-auto mt-12 p-6 rounded-lg bg-bg-surface border border-border-default">
-        <h2 class="text-base font-semibold text-fg-primary mb-1">Sign in</h2>
-        <p class="text-xs text-fg-muted mb-6">Choose a provider to continue.</p>
-
-        {#if authConfig?.oauthEnabled}
-          <button
-            type="button"
-            class="w-full flex items-center justify-center gap-2 h-10 rounded-md bg-bg-elevated text-fg-primary text-sm font-medium hover:bg-bg-hover border border-border-default mb-2 transition-colors"
-            onclick={loginDiscord}
-          >
-            <LogIn size="14" />
-            Continue with Discord
-          </button>
-          <button
-            type="button"
-            class="w-full flex items-center justify-center gap-2 h-10 rounded-md bg-bg-elevated text-fg-primary text-sm font-medium hover:bg-bg-hover border border-border-default mb-2 transition-colors"
-            onclick={loginGoogle}
-          >
-            <LogIn size="14" />
-            Continue with Google
-          </button>
-        {/if}
-        {#if authConfig?.localAuthEnabled}
-          <button
-            type="button"
-            class="w-full flex items-center justify-center gap-2 h-10 rounded-md bg-accent text-accent-fg text-sm font-semibold hover:bg-accent-hover transition-colors"
-            onclick={loginLocal}
-          >
-            <KeyRound size="14" />
-            ID / Password
-          </button>
-        {/if}
-        {#if !authConfig}
-          <div class="text-xs text-fg-muted">Loading auth options…</div>
-        {/if}
-      </div>
+      {#if !authConfig}
+        <div class="text-xs text-fg-muted">Loading auth options…</div>
+      {:else}
+        <SignInOptions
+          oauthEnabled={authConfig.oauthEnabled}
+          localEnabled={authConfig.localAuthEnabled}
+          onDiscord={loginDiscord}
+          onGoogle={loginGoogle}
+          onLocal={loginLocal}
+        />
+      {/if}
     {:else}
       <div class="max-w-2xl">
         <div class="p-5 rounded-lg bg-bg-surface border border-border-default mb-4">

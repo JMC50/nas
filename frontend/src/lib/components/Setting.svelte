@@ -49,8 +49,8 @@
       const usersResponse = await fetch("/server/getAllUsers");
       const usersData = await usersResponse.json();
       users = (usersData.users ?? []) as UserView[];
-    } catch (err) {
-      notifications.error(`Failed to load: ${(err as Error).message}`);
+    } catch (cause) {
+      notifications.error(`Failed to load: ${(cause as Error).message}`);
     } finally {
       loading = false;
     }

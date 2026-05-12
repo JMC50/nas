@@ -28,13 +28,13 @@ function handler(event: KeyboardEvent) {
   }
 }
 
-export function installShortcuts() {
+export function install() {
   if (installed || typeof window === "undefined") return;
   window.addEventListener("keydown", handler);
   installed = true;
 }
 
-export function uninstallShortcuts() {
+export function uninstall() {
   if (!installed || typeof window === "undefined") return;
   window.removeEventListener("keydown", handler);
   installed = false;

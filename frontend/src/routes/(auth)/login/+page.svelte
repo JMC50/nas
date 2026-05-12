@@ -46,12 +46,12 @@
       } else {
         error = data.message ?? "Discord authentication failed.";
       }
-    } catch (err) {
-      error = (err as Error).message;
+    } catch (cause) {
+      error = (cause as Error).message;
     }
   });
 
-  async function completeRegistration() {
+  async function register() {
     if (!koreanName.trim()) {
       error = "Please enter your Korean name.";
       return;
@@ -76,8 +76,8 @@
       } else {
         error = data.message ?? "Registration failed.";
       }
-    } catch (err) {
-      error = (err as Error).message;
+    } catch (cause) {
+      error = (cause as Error).message;
     }
   }
 </script>
@@ -130,7 +130,7 @@
       <button
         type="button"
         class="w-full h-10 rounded-md bg-accent text-accent-fg text-sm font-semibold hover:bg-accent-hover transition-colors"
-        onclick={completeRegistration}
+        onclick={register}
       >
         Complete registration
       </button>

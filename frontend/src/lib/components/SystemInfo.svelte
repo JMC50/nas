@@ -25,7 +25,7 @@
   let error: string | null = $state(null);
   let timer: ReturnType<typeof setInterval> | null = null;
 
-  async function fetchSystemData() {
+  async function fetchStats() {
     try {
       const response = await fetch("/server/getSystemInfo");
       if (!response.ok) {
@@ -33,8 +33,8 @@
       }
       data = await response.json();
       error = null;
-    } catch (err) {
-      error = (err as Error).message;
+    } catch (cause) {
+      error = (cause as Error).message;
     }
   }
 
@@ -44,8 +44,8 @@
   }
 
   onMount(() => {
-    fetchSystemData();
-    timer = setInterval(fetchSystemData, POLL_INTERVAL_MS);
+    fetchStats();
+    timer = setInterval(fetchStats, POLL_INTERVAL_MS);
   });
 
   onDestroy(() => {

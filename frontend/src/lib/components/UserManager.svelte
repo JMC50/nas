@@ -50,32 +50,35 @@
     user = users.find((entry) => entry.userId === id) ?? null;
   }
 
+  function setBusy(intent: Intent, value: boolean) {
+    const next = new Set(busy);
+    if (value) next.add(intent);
+    else next.delete(intent);
+    busy = next;
+  }
+
+  async function callToggle(target: UserView, intent: Intent, granted: boolean) {
+    const endpoint = granted ? "unauthorize" : "authorize";
+    const response = await fetch(
+      `/server/${endpoint}?userId=${encodeURIComponent(target.userId)}&intent=${intent}&token=${encodeURIComponent(auth.token)}`,
+    );
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    target.intents = granted
+      ? target.intents.filter((value) => value !== intent)
+      : [...target.intents, intent];
+  }
+
   async function toggleIntent(intent: Intent) {
     if (!user) return;
     const granted = user.intents.includes(intent);
-    const endpoint = granted ? "unauthorize" : "authorize";
-    const next = new Set(busy);
-    next.add(intent);
-    busy = next;
+    setBusy(intent, true);
     try {
-      const response = await fetch(
-        `/server/${endpoint}?userId=${encodeURIComponent(user.userId)}&intent=${intent}&token=${encodeURIComponent(auth.token)}`,
-      );
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`);
-      }
-      if (granted) {
-        user.intents = user.intents.filter((value) => value !== intent);
-      } else {
-        user.intents = [...user.intents, intent];
-      }
+      await callToggle(user, intent, granted);
       notifications.success(`${granted ? "Revoked" : "Granted"} ${intent}`);
-    } catch (err) {
-      notifications.error(`Toggle failed: ${(err as Error).message}`);
+    } catch (cause) {
+      notifications.error(`Toggle failed: ${(cause as Error).message}`);
     } finally {
-      const after = new Set(busy);
-      after.delete(intent);
-      busy = after;
+      setBusy(intent, false);
     }
   }
 

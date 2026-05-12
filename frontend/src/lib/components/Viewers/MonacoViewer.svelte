@@ -43,7 +43,7 @@
     makefile: "makefile",
   };
 
-  function detectLanguage(filename: string): string {
+  function pickLanguage(filename: string): string {
     const ext = filename.split(".").pop()?.toLowerCase() ?? "";
     return EXT_TO_LANGUAGE[ext] ?? "plaintext";
   }
@@ -54,6 +54,7 @@
   import { auth } from "$lib/store/auth.svelte";
   import { tabs } from "$lib/store/tabs.svelte";
   import { notifications } from "$lib/store/notifications.svelte";
+  import { GRUVBOX_DARK_THEME } from "$lib/components/Viewers/monaco-theme";
   import Save from "lucide-svelte/icons/save";
 
   interface Props {
@@ -70,29 +71,26 @@
   let loading = $state(true);
   let saving = $state(false);
 
-  const language = $derived(detectLanguage(name));
+  const language = $derived(pickLanguage(name));
 
-  async function loadEditor() {
-    const [{ default: loader }, fileResponse] = await Promise.all([
-      import("@monaco-editor/loader"),
-      fetch(
-        `/server/getTextFile?token=${encodeURIComponent(auth.token)}&loc=${encodeURIComponent(loc)}&name=${encodeURIComponent(name)}`,
-      ),
-    ]);
-
-    if (!fileResponse.ok) {
-      notifications.error(`Failed to load ${name}: ${fileResponse.status}`);
-      loading = false;
-      return;
+  async function fetchContent(): Promise<string | null> {
+    const response = await fetch(
+      `/server/getTextFile?token=${encodeURIComponent(auth.token)}&loc=${encodeURIComponent(loc)}&name=${encodeURIComponent(name)}`,
+    );
+    if (!response.ok) {
+      notifications.error(`Failed to load ${name}: ${response.status}`);
+      return null;
     }
+    return response.text();
+  }
 
-    initialContent = await fileResponse.text();
-
-    const monaco = await loader.init();
-    defineGruvboxTheme(monaco);
-
-    const instance = monaco.editor.create(container, {
-      value: initialContent,
+  function createInstance(
+    monaco: typeof import("monaco-editor"),
+    value: string,
+  ): import("monaco-editor").editor.IStandaloneCodeEditor {
+    monaco.editor.defineTheme("gruvbox-dark", GRUVBOX_DARK_THEME);
+    return monaco.editor.create(container, {
+      value,
       language,
       theme: "gruvbox-dark",
       automaticLayout: true,
@@ -102,42 +100,25 @@
       scrollBeyondLastLine: false,
       tabSize: 2,
     });
+  }
 
+  async function loadEditor() {
+    const [{ default: loader }, content] = await Promise.all([
+      import("@monaco-editor/loader"),
+      fetchContent(),
+    ]);
+    if (content === null) {
+      loading = false;
+      return;
+    }
+    initialContent = content;
+    const monaco = await loader.init();
+    const instance = createInstance(monaco, initialContent);
     instance.onDidChangeModelContent(() => {
       tabs.markDirty(tabId, instance.getValue() !== initialContent);
     });
-
     editor = instance;
-
     loading = false;
-  }
-
-  function defineGruvboxTheme(monaco: typeof import("monaco-editor")) {
-    monaco.editor.defineTheme("gruvbox-dark", {
-      base: "vs-dark",
-      inherit: true,
-      rules: [
-        { token: "comment", foreground: "928374", fontStyle: "italic" },
-        { token: "keyword", foreground: "fb4934" },
-        { token: "string", foreground: "b8bb26" },
-        { token: "number", foreground: "d3869b" },
-        { token: "type", foreground: "fabd2f" },
-        { token: "function", foreground: "8ec07c" },
-      ],
-      colors: {
-        "editor.background": "#1d2021",
-        "editor.foreground": "#ebdbb2",
-        "editor.lineHighlightBackground": "#282828",
-        "editorLineNumber.foreground": "#665c54",
-        "editorLineNumber.activeForeground": "#fabd2f",
-        "editorCursor.foreground": "#fabd2f",
-        "editor.selectionBackground": "#504945",
-        "editor.inactiveSelectionBackground": "#3c3836",
-        "editorIndentGuide.background": "#3c3836",
-        "editorIndentGuide.activeBackground": "#504945",
-        "editorGutter.background": "#1d2021",
-      },
-    });
   }
 
   async function save() {

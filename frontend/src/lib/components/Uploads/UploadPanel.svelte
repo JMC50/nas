@@ -32,7 +32,7 @@
     return `${(value / (1024 * 1024 * 1024)).toFixed(2)} GB`;
   }
 
-  function progressPercent(upload: Upload): number {
+  function percentOf(upload: Upload): number {
     if (upload.totalBytes === 0) return 0;
     return Math.round((upload.uploadedBytes / upload.totalBytes) * 100);
   }
@@ -74,7 +74,7 @@
             <span class="font-mono">
               {formatBytes(upload.uploadedBytes)} / {formatBytes(upload.totalBytes)}
             </span>
-            <span class="ml-auto font-mono tabular-nums">{progressPercent(upload)}%</span>
+            <span class="ml-auto font-mono tabular-nums">{percentOf(upload)}%</span>
           </div>
 
           <div class="h-1 rounded-full bg-bg-base overflow-hidden">
@@ -84,7 +84,7 @@
                 : upload.status === 'complete'
                   ? 'bg-fg-success'
                   : 'bg-accent'}"
-              style="width: {progressPercent(upload)}%;"
+              style="width: {percentOf(upload)}%;"
             ></div>
           </div>
 

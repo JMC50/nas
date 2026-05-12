@@ -61,7 +61,7 @@ function pump() {
 
 // Callers (DragDropOverlay, future Explorer toolbar) call this after
 // enqueueing one or more uploads to wake the worker.
-export function pumpUploadQueue() {
+export function pumpQueue() {
   pump();
 }
 

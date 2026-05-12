@@ -25,8 +25,8 @@
       const response = await fetch("/server/getActivityLog");
       const data = await response.json();
       entries = (data.logs ?? data ?? []) as ActivityEntry[];
-    } catch (err) {
-      notifications.error(`Failed: ${(err as Error).message}`);
+    } catch (cause) {
+      notifications.error(`Failed: ${(cause as Error).message}`);
     } finally {
       loading = false;
     }

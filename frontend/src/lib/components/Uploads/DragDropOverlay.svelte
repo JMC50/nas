@@ -2,7 +2,7 @@
   import Upload from "lucide-svelte/icons/upload";
   import { onMount, onDestroy } from "svelte";
   import { uploads } from "$lib/store/uploads.svelte";
-  import { pumpUploadQueue } from "$lib/upload-worker";
+  import { pumpQueue } from "$lib/upload-worker";
   import { files } from "$lib/store/files.svelte";
 
   let visible = $state(false);
@@ -46,7 +46,7 @@
         filename: droppedFile.name,
       });
     }
-    pumpUploadQueue();
+    pumpQueue();
   }
 
   onMount(() => {

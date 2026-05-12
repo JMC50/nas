@@ -27,6 +27,10 @@ func main() {
 	}
 	defer conn.Close()
 
+	if err := db.InitSchema(conn); err != nil {
+		slog.Error("schema init failed", "err", err)
+		os.Exit(1)
+	}
 	if err := db.VerifySchema(conn); err != nil {
 		slog.Error("schema verification failed", "err", err)
 		os.Exit(1)

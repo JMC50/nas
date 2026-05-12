@@ -3,6 +3,8 @@ module github.com/JMC50/nas
 go 1.26.3
 
 require (
+	github.com/go-chi/chi/v5 v5.2.5
+	github.com/go-chi/cors v1.2.2
 	github.com/stretchr/testify v1.11.1
 	modernc.org/sqlite v1.50.1
 )

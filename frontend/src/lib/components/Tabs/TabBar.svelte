@@ -28,6 +28,9 @@
     system: Cpu,
   };
 
+  let dragSourceId = $state<string | null>(null);
+  let dragOverId = $state<string | null>(null);
+
   function focus(tab: Tab) {
     tabs.setActive(tab.id);
   }
@@ -43,6 +46,37 @@
       tabs.setActive(tab.id);
     }
   }
+
+  function onDragStart(event: DragEvent, tab: Tab) {
+    if (!event.dataTransfer) return;
+    dragSourceId = tab.id;
+    event.dataTransfer.effectAllowed = "move";
+    event.dataTransfer.setData("text/plain", tab.id);
+  }
+
+  function onDragOver(event: DragEvent, tab: Tab) {
+    if (!dragSourceId || dragSourceId === tab.id) return;
+    event.preventDefault();
+    if (event.dataTransfer) event.dataTransfer.dropEffect = "move";
+    dragOverId = tab.id;
+  }
+
+  function onDragLeave(tab: Tab) {
+    if (dragOverId === tab.id) dragOverId = null;
+  }
+
+  function onDrop(event: DragEvent, tab: Tab) {
+    event.preventDefault();
+    if (!dragSourceId || dragSourceId === tab.id) return;
+    tabs.reorder(dragSourceId, tab.id);
+    dragSourceId = null;
+    dragOverId = null;
+  }
+
+  function onDragEnd() {
+    dragSourceId = null;
+    dragOverId = null;
+  }
 </script>
 
 <div
@@ -53,15 +87,24 @@
     {#each tabs.list as tab (tab.id)}
       {@const Icon = KIND_TO_ICON[tab.kind] ?? Folder}
       {@const isActive = tab.id === tabs.activeId}
+      {@const isDragOver = dragOverId === tab.id}
       <div
         role="tab"
         tabindex="0"
+        draggable="true"
         aria-selected={isActive}
         class="group relative flex items-center gap-2 h-full px-3 text-xs border-r border-border-default transition-colors min-w-[120px] max-w-[200px] cursor-pointer select-none {isActive
           ? 'bg-bg-base text-fg-primary'
-          : 'bg-bg-surface text-fg-muted hover:text-fg-primary hover:bg-bg-elevated'}"
+          : 'bg-bg-surface text-fg-muted hover:text-fg-primary hover:bg-bg-elevated'} {isDragOver
+          ? 'ring-1 ring-inset ring-accent'
+          : ''}"
         onclick={() => focus(tab)}
         onkeydown={(event) => onKey(event, tab)}
+        ondragstart={(event) => onDragStart(event, tab)}
+        ondragover={(event) => onDragOver(event, tab)}
+        ondragleave={() => onDragLeave(tab)}
+        ondrop={(event) => onDrop(event, tab)}
+        ondragend={onDragEnd}
       >
         {#if isActive}
           <span class="absolute top-0 left-0 right-0 h-0.5 bg-accent"></span>

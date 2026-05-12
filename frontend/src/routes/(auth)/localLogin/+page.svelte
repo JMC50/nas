@@ -1,421 +1,284 @@
 <script lang="ts">
-    import { onMount } from "svelte";
-    import { useAuth } from "$lib/store/store";
+  import { onMount } from "svelte";
+  import { useAuth } from "$lib/store/store";
+  import HardDrive from "lucide-svelte/icons/hard-drive";
+  import LogIn from "lucide-svelte/icons/log-in";
+  import UserPlus from "lucide-svelte/icons/user-plus";
 
-    interface AuthConfig {
-        authType: 'oauth' | 'local' | 'both';
-        localAuthEnabled: boolean;
-        oauthEnabled: boolean;
-        passwordRequirements: {
-            minLength: number;
-            requireUppercase: boolean;
-            requireLowercase: boolean;
-            requireNumber: boolean;
-            requireSpecial: boolean;
-        };
+  interface PasswordRequirements {
+    minLength: number;
+    requireUppercase: boolean;
+    requireLowercase: boolean;
+    requireNumber: boolean;
+    requireSpecial: boolean;
+  }
+
+  interface AuthConfig {
+    authType: "oauth" | "local" | "both";
+    localAuthEnabled: boolean;
+    oauthEnabled: boolean;
+    passwordRequirements: PasswordRequirements;
+  }
+
+  let authConfig: AuthConfig | null = $state(null);
+  let mode: "login" | "register" = $state("login");
+  let loading = $state(false);
+  let error = $state("");
+
+  let userId = $state("");
+  let username = $state("");
+  let password = $state("");
+  let confirmPassword = $state("");
+  let koreanName = $state("");
+
+  onMount(async () => {
+    try {
+      const response = await fetch("/server/auth/config");
+      authConfig = await response.json();
+    } catch (err) {
+      error = `Failed to load config: ${(err as Error).message}`;
     }
+  });
 
-    let authConfig: AuthConfig | null = null;
-    let mode: 'login' | 'register' = 'login';
-    let loading = false;
-    let error = "";
-
-    // Form fields
-    let userId = "";
-    let username = "";
-    let password = "";
-    let confirmPassword = "";
-    let koreanName = "";
-
-    onMount(async () => {
-        const res = await fetch('/server/auth/config');
-        authConfig = await res.json();
-    });
-
-    function validatePassword(pwd: string): string | null {
-        if (!authConfig) return null;
-
-        const reqs = authConfig.passwordRequirements;
-
-        if (pwd.length < reqs.minLength) {
-            return `Password must be at least ${reqs.minLength} characters`;
-        }
-        if (reqs.requireUppercase && !/[A-Z]/.test(pwd)) {
-            return "Password must contain at least one uppercase letter";
-        }
-        if (reqs.requireLowercase && !/[a-z]/.test(pwd)) {
-            return "Password must contain at least one lowercase letter";
-        }
-        if (reqs.requireNumber && !/[0-9]/.test(pwd)) {
-            return "Password must contain at least one number";
-        }
-        if (reqs.requireSpecial && !/[!@#$%^&*(),.?":{}|<>]/.test(pwd)) {
-            return "Password must contain at least one special character";
-        }
-
-        return null;
+  function validatePassword(pwd: string): string | null {
+    if (!authConfig) return null;
+    const reqs = authConfig.passwordRequirements;
+    if (pwd.length < reqs.minLength) {
+      return `Password must be at least ${reqs.minLength} characters.`;
     }
-
-    async function handleLogin() {
-        error = "";
-        loading = true;
-
-        try {
-            const res = await fetch('/server/auth/login', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    userId,
-                    password
-                })
-            });
-
-            const data = await res.json();
-
-            if (data.success) {
-                useAuth.set({
-                    userId: data.user.userId,
-                    username: data.user.username,
-                    krname: data.user.krname || '',
-                    global_name: data.user.global_name,
-                    token: data.token
-                });
-
-                const baseUrl = `${window.location.protocol}//${window.location.host}/`;
-                window.location.replace(baseUrl);
-            } else {
-                error = data.message || "Login failed";
-            }
-        } catch (err) {
-            error = "Network error. Please try again.";
-        } finally {
-            loading = false;
-        }
+    if (reqs.requireUppercase && !/[A-Z]/.test(pwd)) {
+      return "Password needs at least one uppercase letter.";
     }
-
-    async function handleRegister() {
-        error = "";
-
-        if (!userId || !username || !password) {
-            error = "Please fill in all required fields";
-            return;
-        }
-
-        if (password !== confirmPassword) {
-            error = "Passwords do not match";
-            return;
-        }
-
-        const passwordError = validatePassword(password);
-        if (passwordError) {
-            error = passwordError;
-            return;
-        }
-
-        loading = true;
-
-        try {
-            const res = await fetch('/server/auth/register', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    userId,
-                    username,
-                    password,
-                    krname: koreanName
-                })
-            });
-
-            const data = await res.json();
-
-            if (data.success) {
-                useAuth.set({
-                    userId: data.user.userId,
-                    username: data.user.username,
-                    krname: koreanName || '',
-                    global_name: data.user.global_name,
-                    token: data.token
-                });
-
-                const baseUrl = `${window.location.protocol}//${window.location.host}/`;
-                window.location.replace(baseUrl);
-            } else {
-                error = data.message || "Registration failed";
-            }
-        } catch (err) {
-            error = "Network error. Please try again.";
-        } finally {
-            loading = false;
-        }
+    if (reqs.requireLowercase && !/[a-z]/.test(pwd)) {
+      return "Password needs at least one lowercase letter.";
     }
-
-    function switchMode() {
-        mode = mode === 'login' ? 'register' : 'login';
-        error = "";
-        userId = "";
-        username = "";
-        password = "";
-        confirmPassword = "";
-        koreanName = "";
+    if (reqs.requireNumber && !/[0-9]/.test(pwd)) {
+      return "Password needs at least one number.";
     }
+    if (reqs.requireSpecial && !/[!@#$%^&*(),.?":{}|<>]/.test(pwd)) {
+      return "Password needs at least one special character.";
+    }
+    return null;
+  }
+
+  async function handleLogin() {
+    error = "";
+    loading = true;
+    try {
+      const response = await fetch("/server/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId, password }),
+      });
+      const data = await response.json();
+      if (data.success) {
+        useAuth.set({
+          userId: data.user.userId,
+          username: data.user.username,
+          krname: data.user.krname ?? "",
+          global_name: data.user.global_name,
+          token: data.token,
+        });
+        const baseUrl = `${window.location.protocol}//${window.location.host}/`;
+        window.location.replace(baseUrl);
+      } else {
+        error = data.message ?? "Login failed.";
+      }
+    } catch {
+      error = "Network error. Please try again.";
+    } finally {
+      loading = false;
+    }
+  }
+
+  async function handleRegister() {
+    error = "";
+    if (!userId || !username || !password) {
+      error = "Fill in all required fields.";
+      return;
+    }
+    if (password !== confirmPassword) {
+      error = "Passwords do not match.";
+      return;
+    }
+    const violation = validatePassword(password);
+    if (violation) {
+      error = violation;
+      return;
+    }
+    loading = true;
+    try {
+      const response = await fetch("/server/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId, username, password, krname: koreanName }),
+      });
+      const data = await response.json();
+      if (data.success) {
+        useAuth.set({
+          userId: data.user.userId,
+          username: data.user.username,
+          krname: koreanName,
+          global_name: data.user.global_name,
+          token: data.token,
+        });
+        const baseUrl = `${window.location.protocol}//${window.location.host}/`;
+        window.location.replace(baseUrl);
+      } else {
+        error = data.message ?? "Registration failed.";
+      }
+    } catch {
+      error = "Network error. Please try again.";
+    } finally {
+      loading = false;
+    }
+  }
+
+  function switchMode() {
+    mode = mode === "login" ? "register" : "login";
+    error = "";
+    userId = "";
+    username = "";
+    password = "";
+    confirmPassword = "";
+    koreanName = "";
+  }
+
+  function submit(event: SubmitEvent) {
+    event.preventDefault();
+    if (mode === "login") handleLogin();
+    else handleRegister();
+  }
 </script>
 
-<!-- svelte-ignore a11y_no_static_element_interactions -->
-<!-- svelte-ignore a11y_click_events_have_key_events -->
-<main>
-    <div class="title">🔐 {mode === 'login' ? 'Login' : 'Register'}</div>
+<main class="min-h-screen flex items-center justify-center bg-bg-base p-6">
+  <div class="w-full max-w-md bg-bg-surface border border-border-default rounded-lg p-6 shadow-[0_4px_12px_rgba(0,0,0,0.4)]">
+    <div class="flex items-center gap-2 mb-6">
+      <HardDrive size="20" class="text-accent" />
+      <span class="text-base font-semibold text-fg-primary tracking-tight">NAS</span>
+    </div>
 
-    {#if authConfig}
-        {#if authConfig.localAuthEnabled}
-            {#if error}
-                <div class="error">{error}</div>
-                <div class="margin"></div>
-            {/if}
+    <h1 class="text-base font-semibold text-fg-primary mb-1">
+      {mode === "login" ? "Sign in" : "Create account"}
+    </h1>
+    <p class="text-xs text-fg-muted mb-5">
+      {mode === "login"
+        ? "Use your ID and password to continue."
+        : "Pick an ID and password to register."}
+    </p>
 
-            <form on:submit|preventDefault={mode === 'login' ? handleLogin : handleRegister}>
-                <div class="inputCon">
-                    <div class="inputTitle">User ID</div>
-                    <input
-                        type="text"
-                        class="edit"
-                        bind:value={userId}
-                        placeholder="Enter your user ID"
-                        disabled={loading}
-                        required
-                    />
-                </div>
-
-                {#if mode === 'register'}
-                    <div class="inputCon">
-                        <div class="inputTitle">Username</div>
-                        <input
-                            type="text"
-                            class="edit"
-                            bind:value={username}
-                            placeholder="Enter your username"
-                            disabled={loading}
-                            required
-                        />
-                    </div>
-
-                    <div class="inputCon">
-                        <div class="inputTitle">Korean Name (Optional)</div>
-                        <input
-                            type="text"
-                            class="edit"
-                            bind:value={koreanName}
-                            placeholder="Enter your Korean name"
-                            disabled={loading}
-                        />
-                    </div>
-                {/if}
-
-                <div class="inputCon">
-                    <div class="inputTitle">Password</div>
-                    <input
-                        type="password"
-                        class="edit"
-                        bind:value={password}
-                        placeholder="Enter your password"
-                        disabled={loading}
-                        required
-                    />
-                </div>
-
-                {#if mode === 'register'}
-                    <div class="inputCon">
-                        <div class="inputTitle">Confirm Password</div>
-                        <input
-                            type="password"
-                            class="edit"
-                            bind:value={confirmPassword}
-                            placeholder="Confirm your password"
-                            disabled={loading}
-                            required
-                        />
-                    </div>
-
-                    {#if authConfig.passwordRequirements}
-                        <div class="passwordReqs">
-                            <div class="subtitle">Password Requirements:</div>
-                            <ul>
-                                <li>At least {authConfig.passwordRequirements.minLength} characters</li>
-                                {#if authConfig.passwordRequirements.requireUppercase}
-                                    <li>At least one uppercase letter</li>
-                                {/if}
-                                {#if authConfig.passwordRequirements.requireLowercase}
-                                    <li>At least one lowercase letter</li>
-                                {/if}
-                                {#if authConfig.passwordRequirements.requireNumber}
-                                    <li>At least one number</li>
-                                {/if}
-                                {#if authConfig.passwordRequirements.requireSpecial}
-                                    <li>At least one special character</li>
-                                {/if}
-                            </ul>
-                        </div>
-                        <div class="margin"></div>
-                    {/if}
-                {/if}
-
-                <div class="button" on:click={mode === 'login' ? handleLogin : handleRegister}>
-                    {#if loading}
-                        PROCESSING...
-                    {:else}
-                        {mode === 'login' ? 'LOGIN' : 'REGISTER'}
-                    {/if}
-                </div>
-
-                <div class="margin"></div>
-
-                <div class="switchMode" on:click={switchMode}>
-                    {mode === 'login' ? "Don't have an account? Register here" : "Already have an account? Login here"}
-                </div>
-            </form>
-        {:else}
-            <div class="subtitle">Local authentication is disabled. Please use OAuth.</div>
-        {/if}
+    {#if !authConfig}
+      <div class="text-xs text-fg-muted">Loading configuration…</div>
+    {:else if !authConfig.localAuthEnabled}
+      <div class="p-3 rounded-md bg-fg-warning/10 border border-fg-warning/30 text-fg-warning text-xs">
+        Local authentication is disabled. Use an OAuth provider instead.
+      </div>
     {:else}
-        <div class="subtitle">Loading configuration...</div>
+      {#if error}
+        <div class="mb-4 p-3 rounded-md bg-fg-danger/10 border border-fg-danger/30 text-fg-danger text-xs">
+          {error}
+        </div>
+      {/if}
+
+      <form class="space-y-3" onsubmit={submit}>
+        <div>
+          <label for="userId" class="block text-[11px] text-fg-muted mb-1">User ID</label>
+          <input
+            id="userId"
+            type="text"
+            bind:value={userId}
+            placeholder="your-id"
+            disabled={loading}
+            required
+            class="w-full px-3 h-9 rounded-md bg-bg-elevated border border-border-default text-fg-primary text-sm focus:border-border-focus outline-none disabled:opacity-60"
+          />
+        </div>
+
+        {#if mode === "register"}
+          <div>
+            <label for="username" class="block text-[11px] text-fg-muted mb-1">Username</label>
+            <input
+              id="username"
+              type="text"
+              bind:value={username}
+              placeholder="Display name"
+              disabled={loading}
+              required
+              class="w-full px-3 h-9 rounded-md bg-bg-elevated border border-border-default text-fg-primary text-sm focus:border-border-focus outline-none disabled:opacity-60"
+            />
+          </div>
+          <div>
+            <label for="krname-reg" class="block text-[11px] text-fg-muted mb-1">Korean name (optional)</label>
+            <input
+              id="krname-reg"
+              type="text"
+              bind:value={koreanName}
+              placeholder="홍길동"
+              disabled={loading}
+              class="w-full px-3 h-9 rounded-md bg-bg-elevated border border-border-default text-fg-primary text-sm focus:border-border-focus outline-none disabled:opacity-60"
+            />
+          </div>
+        {/if}
+
+        <div>
+          <label for="password" class="block text-[11px] text-fg-muted mb-1">Password</label>
+          <input
+            id="password"
+            type="password"
+            bind:value={password}
+            disabled={loading}
+            required
+            class="w-full px-3 h-9 rounded-md bg-bg-elevated border border-border-default text-fg-primary text-sm focus:border-border-focus outline-none disabled:opacity-60"
+          />
+        </div>
+
+        {#if mode === "register"}
+          <div>
+            <label for="confirmPassword" class="block text-[11px] text-fg-muted mb-1">Confirm password</label>
+            <input
+              id="confirmPassword"
+              type="password"
+              bind:value={confirmPassword}
+              disabled={loading}
+              required
+              class="w-full px-3 h-9 rounded-md bg-bg-elevated border border-border-default text-fg-primary text-sm focus:border-border-focus outline-none disabled:opacity-60"
+            />
+          </div>
+
+          <div class="p-3 rounded-md bg-bg-elevated border border-border-default">
+            <div class="text-[11px] text-fg-muted mb-1.5">Password requirements</div>
+            <ul class="text-xs text-fg-secondary space-y-0.5">
+              <li>• At least {authConfig.passwordRequirements.minLength} characters</li>
+              {#if authConfig.passwordRequirements.requireUppercase}<li>• Uppercase letter</li>{/if}
+              {#if authConfig.passwordRequirements.requireLowercase}<li>• Lowercase letter</li>{/if}
+              {#if authConfig.passwordRequirements.requireNumber}<li>• Number</li>{/if}
+              {#if authConfig.passwordRequirements.requireSpecial}<li>• Special character</li>{/if}
+            </ul>
+          </div>
+        {/if}
+
+        <button
+          type="submit"
+          class="w-full h-10 inline-flex items-center justify-center gap-2 rounded-md bg-accent text-accent-fg text-sm font-semibold hover:bg-accent-hover transition-colors disabled:opacity-60"
+          disabled={loading}
+        >
+          {#if mode === "login"}
+            <LogIn size="14" />
+            {loading ? "Signing in…" : "Sign in"}
+          {:else}
+            <UserPlus size="14" />
+            {loading ? "Creating…" : "Create account"}
+          {/if}
+        </button>
+
+        <button
+          type="button"
+          class="w-full text-xs text-fg-muted hover:text-fg-link mt-2 transition-colors"
+          onclick={switchMode}
+        >
+          {mode === "login" ? "Need an account? Register" : "Already registered? Sign in"}
+        </button>
+      </form>
     {/if}
+  </div>
 </main>
-
-<style lang="scss">
-    $black: #000000;
-    $white: #FFFFFF;
-    $semibold: 500;
-    $gray: rgba($black, 0.6);
-    $dark-gray: rgba($black, 0.8);
-    $light-gray: rgba($white, 0.8);
-
-    main {
-        padding-top: 40px;
-        padding-left: 40px;
-        padding-right: 40px;
-    }
-
-    .title {
-        font-size: xx-large;
-        color: white;
-        font-weight: bolder;
-        margin-bottom: 20px;
-    }
-
-    .subtitle {
-        font-size: x-large;
-        color: white;
-        font-weight: bolder;
-    }
-
-    .margin {
-        margin-top: 20px;
-    }
-
-    .inputCon {
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-        margin-bottom: 15px;
-        width: 100%;
-        max-width: 400px;
-    }
-
-    .inputTitle {
-        color: white;
-        font-weight: bolder;
-        font-size: large;
-    }
-
-    input {
-        outline: none;
-        display: block;
-        background: rgba($black, 0.1);
-        width: 100%;
-        border: 0;
-        border-radius: 10px;
-        box-sizing: border-box;
-        padding: 12px 20px;
-        color: $light-gray;
-        font-family: inherit;
-        font-size: inherit;
-        font-weight: $semibold;
-        line-height: inherit;
-        transition: 0.3s ease;
-    }
-
-    .edit {
-        &:focus {
-            color: $white;
-        }
-    }
-
-    .passwordReqs {
-        background: rgba($black, 0.3);
-        border-radius: 10px;
-        padding: 15px;
-        margin-bottom: 15px;
-        max-width: 400px;
-
-        .subtitle {
-            font-size: medium;
-            margin-bottom: 10px;
-        }
-
-        ul {
-            margin: 0;
-            padding-left: 20px;
-
-            li {
-                color: $light-gray;
-                font-size: small;
-                margin: 5px 0;
-            }
-        }
-    }
-
-    .error {
-        background: rgba(255, 0, 0, 0.3);
-        border: 1px solid rgba(255, 0, 0, 0.5);
-        color: #ff6b6b;
-        padding: 15px;
-        border-radius: 10px;
-        text-align: center;
-        max-width: 400px;
-        font-weight: bolder;
-    }
-
-    .button {
-        display: inline-block;
-        width: fit-content;
-        background-color: #383838;
-        box-shadow: 4px 4px 4px #000000;
-        color: white;
-        padding: 10px 20px 10px 20px;
-        border-radius: 5px;
-        font-weight: bolder;
-        font-size: large;
-        user-select: none;
-        cursor: pointer;
-    }
-
-    .button:hover {
-        background-color: rgb(92, 92, 92);
-    }
-
-    .switchMode {
-        color: #00DDEB;
-        text-decoration: underline;
-        cursor: pointer;
-        text-align: left;
-        font-size: medium;
-        font-weight: bolder;
-
-        &:hover {
-            color: #AF40FF;
-        }
-    }
-</style>

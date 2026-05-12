@@ -1,212 +1,220 @@
 <script lang="ts">
-    import { Logout, useAuth } from "$lib/store/store";
-    import { onMount } from "svelte";
+  import { onMount } from "svelte";
+  import UserIcon from "lucide-svelte/icons/user";
+  import LogIn from "lucide-svelte/icons/log-in";
+  import LogOut from "lucide-svelte/icons/log-out";
+  import Shield from "lucide-svelte/icons/shield";
+  import KeyRound from "lucide-svelte/icons/key-round";
+  import { auth } from "$lib/store/auth.svelte";
+  import { notifications } from "$lib/store/notifications.svelte";
+  import type { Intent } from "$lib/types";
 
-    type intentList = "ADMIN"|"VIEW"|"OPEN"|"DOWNLOAD"|"UPLOAD"|"COPY"|"DELETE"|"RENAME";
+  const ALL_INTENTS: Intent[] = [
+    "ADMIN",
+    "VIEW",
+    "OPEN",
+    "DOWNLOAD",
+    "UPLOAD",
+    "COPY",
+    "DELETE",
+    "RENAME",
+  ];
 
-    interface AuthConfig {
-        authType: 'oauth' | 'local' | 'both';
-        localAuthEnabled: boolean;
-        oauthEnabled: boolean;
+  interface AuthConfig {
+    authType: "oauth" | "local" | "both";
+    localAuthEnabled: boolean;
+    oauthEnabled: boolean;
+  }
+
+  const loginURL = (typeof process !== "undefined" ? process.env.LOGIN_URL : "") as string;
+  const googleClientId = (typeof process !== "undefined" ? process.env.GOOGLE_CLIENT_ID : "") as string;
+  const googleRedirectURI = (typeof process !== "undefined" ? process.env.GOOGLE_REDIRECT_URI : "") as string;
+
+  let authConfig: AuthConfig | null = $state(null);
+  let intents: Intent[] = $state([]);
+  let loadingIntents = $state(false);
+
+  async function loadAuthConfig() {
+    try {
+      const response = await fetch("/server/auth/config");
+      authConfig = await response.json();
+    } catch {
+      authConfig = null;
     }
+  }
 
-    const loginURL = process.env.LOGIN_URL as string;
-    const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID as string;
-    const GOOGLE_REDIRECT_URI = process.env.GOOGLE_REDIRECT_URI as string;
-
-    let loading = new Promise(res => {});
-    let intents:intentList[];
-    let unauthorized:intentList[] = ["ADMIN", "COPY", "DELETE", "DOWNLOAD", "OPEN", "RENAME", "UPLOAD", "VIEW"];
-    let authConfig: AuthConfig | null = null;
-
-    onMount(async () => {
-        // Get auth configuration
-        const res = await fetch('/server/auth/config');
-        authConfig = await res.json();
-    });
-
-    async function login() {
-        location.href = loginURL;
+  async function loadIntents() {
+    if (!auth.current.userId) return;
+    loadingIntents = true;
+    try {
+      const response = await fetch(`/server/getIntents?userId=${encodeURIComponent(auth.current.userId)}`);
+      const data = await response.json();
+      intents = data.intents ?? [];
+    } finally {
+      loadingIntents = false;
     }
+  }
 
-    async function loginWGoogle() {
-        const scope = encodeURIComponent("openid email profile");
-        const redirect = encodeURIComponent(GOOGLE_REDIRECT_URI);
-        location.href = `https://accounts.google.com/o/oauth2/v2/auth?response_type=code&client_id=${GOOGLE_CLIENT_ID}&redirect_uri=${redirect}&scope=${scope}`;
+  function loginDiscord() {
+    if (!loginURL) {
+      notifications.warning("Discord login URL not configured.");
+      return;
     }
+    location.href = loginURL;
+  }
 
-    async function loginLocal() {
-        location.href = "/localLogin";
+  function loginGoogle() {
+    if (!googleClientId || !googleRedirectURI) {
+      notifications.warning("Google OAuth not configured.");
+      return;
     }
+    const scope = encodeURIComponent("openid email profile");
+    const redirect = encodeURIComponent(googleRedirectURI);
+    location.href = `https://accounts.google.com/o/oauth2/v2/auth?response_type=code&client_id=${googleClientId}&redirect_uri=${redirect}&scope=${scope}`;
+  }
 
-    async function logout() {
-        Logout();
-        const baseUrl = `${window.location.protocol}//${window.location.host}/`;
-        window.location.replace(baseUrl);
+  function loginLocal() {
+    location.href = "/localLogin";
+  }
+
+  function logout() {
+    auth.clear();
+    const baseUrl = `${window.location.protocol}//${window.location.host}/`;
+    window.location.replace(baseUrl);
+  }
+
+  async function requestAdmin() {
+    const password = prompt("Admin password?");
+    if (!password) return;
+    try {
+      const response = await fetch(`/server/requestAdminIntent?token=${encodeURIComponent(auth.token)}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ pwd: password }),
+      });
+      const text = await response.text();
+      if (text === "complete") {
+        notifications.success("Admin granted.");
+        loadIntents();
+      } else {
+        notifications.error("Wrong password.");
+      }
+    } catch (err) {
+      notifications.error(`Request failed: ${(err as Error).message}`);
     }
+  }
 
-    async function getAdmin() {
-        const pwd = prompt("password?");
-
-        if(pwd){
-            const res = await fetch(`/server/requestAdminIntent?token=${$useAuth.token}`, {
-                method:"POST",
-                headers:{
-                    'Content-Type':'application/json'
-                },
-                body: JSON.stringify({
-                    pwd
-                })
-            });
-
-            const data = await res.text();
-
-            if(data == "complete"){
-                alert("관리자 권한이 지급되었습니다.");
-                loading = getintents();
-            }else{
-                alert("잘못된 비밀번호입니다.")
-            }
-        }
-    }
-
-    async function getintents() {
-        if($useAuth.userId == "") return;
-
-        const res = await fetch(`/server/getIntents?userId=${$useAuth.userId}`);
-        const data = await res.json();
-        intents = data.intents;
-
-        for(let intent of intents){
-            const index = unauthorized.indexOf(intent);
-            unauthorized.splice(index, 1);
-        }
-        return;
-    }
-
-    loading = getintents();
+  onMount(() => {
+    loadAuthConfig();
+    if (auth.isAuthenticated) loadIntents();
+  });
 </script>
 
-<!-- svelte-ignore a11y_no_static_element_interactions -->
-<!-- svelte-ignore a11y_click_events_have_key_events -->
-<main>
-    <div class="title">✏️ Account Manager</div>
-    {#if $useAuth.userId == ""}
-        <div class="subtitle">Please login to use all functions</div>
-        <div class="margin"></div>
-        {#if authConfig}
-            {#if authConfig.oauthEnabled}
-                <div class="button" on:click={login}>LOGIN WITH DISCORD</div>
-                <div class="margin"></div>
-                <div class="button" on:click={loginWGoogle}>LOGIN WITH GOOGLE</div>
-                <div class="margin"></div>
-            {/if}
-            {#if authConfig.localAuthEnabled}
-                <div class="button" on:click={loginLocal}>LOGIN WITH ID/PASSWORD</div>
-                <div class="margin"></div>
-            {/if}
-        {:else}
-            <div class="subtitle">Loading authentication options...</div>
+<section class="flex flex-col h-full bg-bg-base overflow-auto">
+  <header class="flex items-center gap-2 px-6 h-12 border-b border-border-default bg-bg-surface">
+    <UserIcon size="18" class="text-accent" />
+    <h1 class="text-sm font-semibold text-fg-primary">Account</h1>
+  </header>
+
+  <div class="flex-1 p-6">
+    {#if !auth.isAuthenticated}
+      <div class="max-w-md mx-auto mt-12 p-6 rounded-lg bg-bg-surface border border-border-default">
+        <h2 class="text-base font-semibold text-fg-primary mb-1">Sign in</h2>
+        <p class="text-xs text-fg-muted mb-6">Choose a provider to continue.</p>
+
+        {#if authConfig?.oauthEnabled}
+          <button
+            type="button"
+            class="w-full flex items-center justify-center gap-2 h-10 rounded-md bg-bg-elevated text-fg-primary text-sm font-medium hover:bg-bg-hover border border-border-default mb-2 transition-colors"
+            onclick={loginDiscord}
+          >
+            <LogIn size="14" />
+            Continue with Discord
+          </button>
+          <button
+            type="button"
+            class="w-full flex items-center justify-center gap-2 h-10 rounded-md bg-bg-elevated text-fg-primary text-sm font-medium hover:bg-bg-hover border border-border-default mb-2 transition-colors"
+            onclick={loginGoogle}
+          >
+            <LogIn size="14" />
+            Continue with Google
+          </button>
         {/if}
+        {#if authConfig?.localAuthEnabled}
+          <button
+            type="button"
+            class="w-full flex items-center justify-center gap-2 h-10 rounded-md bg-accent text-accent-fg text-sm font-semibold hover:bg-accent-hover transition-colors"
+            onclick={loginLocal}
+          >
+            <KeyRound size="14" />
+            ID / Password
+          </button>
+        {/if}
+        {#if !authConfig}
+          <div class="text-xs text-fg-muted">Loading auth options…</div>
+        {/if}
+      </div>
     {:else}
-        <div class="subtitle">You're logged in !</div>
-        <div class="subtitle">Hello {$useAuth.global_name} 👋</div>
-        <div class="margin"></div>
-
-        {#await loading}
-            <div class="subtitle">Checking permissions...</div>
-        {:then value} 
-            <div class="subtitle">Authorized intents</div>
-            <div class="margin"></div>
-            <div id="intentsCon">
-                {#each intents as intent}
-                    <div class="authorized">{intent}</div>
-                {/each}
+      <div class="max-w-2xl">
+        <div class="p-5 rounded-lg bg-bg-surface border border-border-default mb-4">
+          <div class="flex items-center gap-3 mb-4">
+            <div class="w-12 h-12 rounded-full bg-bg-elevated border border-border-default flex items-center justify-center">
+              <UserIcon size="20" class="text-fg-muted" />
             </div>
-            <div class="margin"></div>
-            <div class="subtitle">Unauthorized intents</div>
-            <div class="margin"></div>
-            <div id="intentsCon">
-                {#each unauthorized as intent}
-                    <div class="unauthorized">{intent}</div>
-                {/each}
+            <div class="min-w-0">
+              <div class="text-base font-semibold text-fg-primary truncate">
+                {auth.current.krname || auth.current.global_name || auth.current.username}
+              </div>
+              <div class="text-xs text-fg-muted truncate font-mono">{auth.current.userId}</div>
             </div>
-            <div class="margin"></div>
+          </div>
 
+          <button
+            type="button"
+            class="inline-flex items-center gap-2 h-9 px-3 rounded-md bg-bg-elevated text-fg-primary text-xs font-medium hover:bg-bg-hover border border-border-default transition-colors"
+            onclick={logout}
+          >
+            <LogOut size="13" />
+            Sign out
+          </button>
+        </div>
+
+        <div class="p-5 rounded-lg bg-bg-surface border border-border-default">
+          <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center gap-2">
+              <Shield size="14" class="text-fg-muted" />
+              <h2 class="text-sm font-semibold text-fg-primary">Permissions</h2>
+            </div>
             {#if !intents.includes("ADMIN")}
-                <div class="button" on:click={getAdmin}>REQUEST ADMIN INTENTS</div>
-                <div class="margin"></div>
+              <button
+                type="button"
+                class="inline-flex items-center gap-1.5 h-7 px-2.5 rounded text-xs text-fg-muted hover:text-fg-primary hover:bg-bg-hover transition-colors"
+                onclick={requestAdmin}
+              >
+                <KeyRound size="11" />
+                Request admin
+              </button>
             {/if}
-        {/await}
+          </div>
 
-
-        <div class="button" on:click={logout}>LOGOUT</div>
+          {#if loadingIntents}
+            <div class="text-xs text-fg-muted">Loading…</div>
+          {:else}
+            <div class="flex flex-wrap gap-1.5">
+              {#each ALL_INTENTS as intent}
+                {@const granted = intents.includes(intent)}
+                <span
+                  class="inline-flex items-center px-2 h-6 rounded-md text-xs font-mono {granted
+                    ? 'bg-accent/15 text-fg-accent border border-accent/30'
+                    : 'bg-bg-elevated text-fg-disabled border border-border-default'}"
+                >
+                  {intent}
+                </span>
+              {/each}
+            </div>
+          {/if}
+        </div>
+      </div>
     {/if}
-</main>
-
-<style lang="scss">
-    main{
-        padding-top: 40px;
-        padding-left: 40px;
-        padding-right: 40px;
-    }
-
-    .title{
-        font-size: xx-large;
-        color: white;
-        font-weight: bolder;
-        margin-bottom: 20px;
-    }
-
-    .subtitle{
-        font-size: x-large;
-        color: white;
-        font-weight: bolder;
-    }
-
-    .margin{
-        margin-top: 20px;
-    }
-
-    #intentsCon{
-        display: flex;
-        flex-direction: row;
-        gap: 10px;
-    }
-
-    .authorized{
-        color: white;
-        font-weight: bolder;
-        padding: 5px 10px 5px 10px;
-        border-radius: 10px;
-        border: 2px solid rgb(127, 255, 127);
-        background-color: rgba(110, 255, 110, 0.5);
-    }
-
-    .unauthorized{
-        color: white;
-        font-weight: bolder;
-        padding: 5px 10px 5px 10px;
-        border-radius: 10px;
-        border: 2px solid rgb(255, 127, 127);
-        background-color: rgba(255, 110, 110, 0.5);
-    }
-
-    .button{
-        display: inline-block;
-        width: fit-content;
-        background-color: #383838;
-        box-shadow: 4px 4px 4px #000000;
-        color: white;
-        padding: 10px 20px 10px 20px;
-        border-radius: 5px;
-        font-weight: bolder;
-        font-size: large;
-        user-select: none;
-    }
-
-    .button:hover{
-        cursor: pointer;
-        background-color: rgb(92, 92, 92);
-    }
-</style>
+  </div>
+</section>

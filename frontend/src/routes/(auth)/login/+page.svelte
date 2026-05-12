@@ -1,246 +1,139 @@
 <script lang="ts">
-    import { onMount } from "svelte";
-    import { useAuth } from "$lib/store/store";
+  import { onMount } from "svelte";
+  import { useAuth } from "$lib/store/store";
+  import HardDrive from "lucide-svelte/icons/hard-drive";
 
-    interface userdata{
-        userId: string;
-        username: string;
-        global_name: string;
+  interface DiscordUser {
+    userId: string;
+    username: string;
+    global_name: string;
+  }
+
+  let registering = $state(false);
+  let saveData = $state<DiscordUser>({ userId: "", username: "", global_name: "" });
+  let koreanName = $state("");
+  let accessToken = "";
+  let error = $state("");
+
+  onMount(async () => {
+    const fragment = location.hash.startsWith("#") ? location.hash.slice(1) : location.search.slice(1);
+    const params = new URLSearchParams(fragment);
+    accessToken = params.get("access_token") ?? "";
+    if (!accessToken) {
+      error = "Missing access token from Discord.";
+      return;
     }
-
-    let register:boolean = false;
-    let saveData:userdata = {
-        userId: '',
-        username: '',
-        global_name: ''
-    }
-    let koreanName:string = "";
-    let access_token:string;
-
-    onMount(async () => {
-        access_token = location.href.split("access_token=")[1].split("&expires_in=")[0];
-
-        const loginRES = await fetch(`/server/auth/discord/callback?access_token=${access_token}`);
-        const res = await loginRES.json();
-
-        if(res.status == "new"){
-            register = true;
-            saveData.userId = res.userId;
-            saveData.username = res.username;
-            saveData.global_name = res.global_name;
-        }else{
-            useAuth.set({
-                userId: res.userId,
-                username: res.username,
-                krname: res.krname,
-                global_name: res.global_name,
-                token: res.token
-            })
-            const baseUrl = `${window.location.protocol}//${window.location.host}/`;
-            window.location.replace(baseUrl);
-        }
-    })
-
-    async function goregister() {
-        if(koreanName == ""){
-            alert("한국 이름을 입력해주세요.");
-            return;
-        }
-
-        const res = await fetch(`/server/auth/discord/register`, {
-            method:"POST",
-            headers:{
-                'Content-Type':'application/json'
-            },
-            body: JSON.stringify({
-                access_token,
-                krname: koreanName
-            })
+    try {
+      const response = await fetch(`/server/auth/discord/callback?access_token=${encodeURIComponent(accessToken)}`);
+      const data = await response.json();
+      if (data.status === "new") {
+        saveData = {
+          userId: data.userId,
+          username: data.username,
+          global_name: data.global_name,
+        };
+        registering = true;
+      } else if (data.token) {
+        useAuth.set({
+          userId: data.userId,
+          username: data.username,
+          krname: data.krname ?? "",
+          global_name: data.global_name,
+          token: data.token,
         });
-
-        const data = await res.json();
-
-        if(data.status == "complete"){
-            useAuth.set({
-                userId: data.userId,
-                username: data.username,
-                global_name: data.global_name,
-                token: data.token,
-                krname: koreanName
-            })
-            const baseUrl = `${window.location.protocol}//${window.location.host}/`;
-            window.location.replace(baseUrl);
-        }else{
-            alert("회원가입을 하는 도중 문제가 발생했습니다.")
-            return;
-        }
+        const baseUrl = `${window.location.protocol}//${window.location.host}/`;
+        window.location.replace(baseUrl);
+      } else {
+        error = data.message ?? "Discord authentication failed.";
+      }
+    } catch (err) {
+      error = (err as Error).message;
     }
+  });
+
+  async function completeRegistration() {
+    if (!koreanName.trim()) {
+      error = "Please enter your Korean name.";
+      return;
+    }
+    try {
+      const response = await fetch("/server/auth/discord/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ access_token: accessToken, krname: koreanName }),
+      });
+      const data = await response.json();
+      if (data.status === "complete") {
+        useAuth.set({
+          userId: data.userId,
+          username: data.username,
+          krname: koreanName,
+          global_name: data.global_name,
+          token: data.token,
+        });
+        const baseUrl = `${window.location.protocol}//${window.location.host}/`;
+        window.location.replace(baseUrl);
+      } else {
+        error = data.message ?? "Registration failed.";
+      }
+    } catch (err) {
+      error = (err as Error).message;
+    }
+  }
 </script>
 
-<main>
-    {#if !register}
-        <div class="title">
-            Redirecting... please wait...
-        </div>
-    {:else}
-        <div id="registerCon">
-            <div class="title">👋 You're new here!</div>
-            <div class="subtitle">Before logging in, please let us know your Korean name</div>
-            <div class="inputCon">
-                <div class="inputTitle">Your discord id</div>
-                <input type="text" value="{saveData.userId}" readonly class="noEdit">
-            </div>
-            <div class="inputCon">
-                <div class="inputTitle">Your discord username</div>
-                <input type="text" value="{saveData.username}" readonly class="noEdit">
-            </div>
-            <div class="inputCon">
-                <div class="inputTitle">Your discord global name</div>
-                <input type="text" value="{saveData.global_name}" readonly class="noEdit">
-            </div>
-            <div class="inputCon">
-                <div class="inputTitle">Your Korean name</div>
-                <input type="text" class="edit" bind:value={koreanName} placeholder="type plz">
-            </div>
-            <div id="sort">
-                <button class="button" on:click={goregister}><span class="text">COMEPLETE</span></button>
-            </div>
-        </div>
+<main class="min-h-screen flex items-center justify-center bg-bg-base p-6">
+  <div class="w-full max-w-md bg-bg-surface border border-border-default rounded-lg p-6 shadow-[0_4px_12px_rgba(0,0,0,0.4)]">
+    <div class="flex items-center gap-2 mb-6">
+      <HardDrive size="20" class="text-accent" />
+      <span class="text-base font-semibold text-fg-primary tracking-tight">NAS</span>
+    </div>
+
+    {#if error}
+      <div class="mb-4 p-3 rounded-md bg-fg-danger/10 border border-fg-danger/30 text-fg-danger text-sm">
+        {error}
+      </div>
     {/if}
+
+    {#if !registering && !error}
+      <div class="text-sm font-semibold text-fg-primary mb-1">Signing you in…</div>
+      <div class="text-xs text-fg-muted">Verifying with Discord.</div>
+    {:else if registering}
+      <h1 class="text-base font-semibold text-fg-primary mb-1">One more step</h1>
+      <p class="text-xs text-fg-muted mb-4">Enter your Korean name to finish registration.</p>
+
+      <div class="space-y-3 mb-4">
+        <div>
+          <div class="text-[11px] text-fg-muted mb-1">Discord ID</div>
+          <input type="text" value={saveData.userId} readonly class="w-full px-3 h-9 rounded-md bg-bg-elevated border border-border-default text-fg-disabled text-sm font-mono" />
+        </div>
+        <div>
+          <div class="text-[11px] text-fg-muted mb-1">Username</div>
+          <input type="text" value={saveData.username} readonly class="w-full px-3 h-9 rounded-md bg-bg-elevated border border-border-default text-fg-disabled text-sm" />
+        </div>
+        <div>
+          <div class="text-[11px] text-fg-muted mb-1">Display name</div>
+          <input type="text" value={saveData.global_name} readonly class="w-full px-3 h-9 rounded-md bg-bg-elevated border border-border-default text-fg-disabled text-sm" />
+        </div>
+        <div>
+          <label for="krname" class="block text-[11px] text-fg-muted mb-1">Korean name</label>
+          <input
+            id="krname"
+            type="text"
+            bind:value={koreanName}
+            placeholder="홍길동"
+            class="w-full px-3 h-9 rounded-md bg-bg-elevated border border-border-default text-fg-primary text-sm focus:border-border-focus outline-none"
+          />
+        </div>
+      </div>
+
+      <button
+        type="button"
+        class="w-full h-10 rounded-md bg-accent text-accent-fg text-sm font-semibold hover:bg-accent-hover transition-colors"
+        onclick={completeRegistration}
+      >
+        Complete registration
+      </button>
+    {/if}
+  </div>
 </main>
-
-<style lang="scss">
-    $black: #000000;
-    $white: #FFFFFF;
-    $semibold: 500;
-    $gray: rgba($black, 0.6);
-    $dark-gray: rgba($black, 0.8);
-    $light-gray: rgba($white, 0.8);
-
-    main{
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        width: 100vw;
-        height: 100vh;
-        overflow: none;
-    }
-
-    #registerCon{
-        background-color: #383838;
-        box-shadow: 4px 4px 4px #000000;
-        padding: 20px;
-        border-radius: 20px;
-    }
-
-    .title{
-        font-size: xx-large;
-        color: white;
-        font-weight: bolder;
-        margin-bottom: 20px;
-    }
-
-    .subtitle{
-        font-size: x-large;
-        color: white;
-        font-weight: bolder;
-        margin-bottom: 20px;
-    }
-
-    .inputCon{
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-        margin-bottom: 10px;
-    }
-
-    .inputTitle{
-        color: white;
-        font-weight: bolder;
-        font-size: large;
-    }
-
-    input{
-        outline: none;
-        display: block;
-        background: rgba($black, 0.1);
-        width: 100%;
-        border: 0;
-        border-radius: 10px;
-        box-sizing: border-box;
-        padding: 12px 20px;
-        color: $light-gray;
-        font-family: inherit;
-        font-size: inherit;
-        font-weight: $semibold;
-        line-height: inherit;
-        transition: 0.3s ease;
-    }
-
-    .edit{
-        &:focus {
-            color: $white;
-        }
-    }
-
-    .noEdit:hover{
-        cursor: default;
-    }
-
-    #sort{
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        margin-top: 20px;
-    }
-
-    .button {
-        align-items: center;
-        background-image: linear-gradient(144deg,#AF40FF, #5B42F3 50%,#00DDEB);
-        border: 0;
-        border-radius: 8px;
-        box-shadow: rgba(151, 65, 252, 0.2) 0 15px 30px -5px;
-        box-sizing: border-box;
-        color: #FFFFFF;
-        display: flex;
-        font-size: 20px;
-        justify-content: center;
-        line-height: 1em;
-        max-width: 100%;
-        min-width: 140px;
-        padding: 3px;
-        text-decoration: none;
-        user-select: none;
-        -webkit-user-select: none;
-        touch-action: manipulation;
-        white-space: nowrap;
-        cursor: pointer;
-    }
-
-    .button:active,
-    .button:hover {
-        outline: 0;
-    }
-
-    .button span {
-        background-color: rgb(5, 6, 45);
-        padding: 16px 24px;
-        border-radius: 6px;
-        width: 100%;
-        height: 100%;
-        transition: 300ms;
-    }
-
-    .button:hover span {
-        background: none;
-    }
-
-    @media (min-width: 768px) {
-        .button {
-            font-size: 24px;
-            min-width: 196px;
-        }
-    }
-
-</style>

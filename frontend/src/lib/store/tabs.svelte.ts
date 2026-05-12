@@ -88,6 +88,18 @@ class TabStore {
     const prevTab = this.list[(index - 1 + this.list.length) % this.list.length];
     this.activeId = prevTab.id;
   }
+
+  reorder(sourceId: string, targetId: string) {
+    if (sourceId === targetId) return;
+    const source = this.list.find((tab) => tab.id === sourceId);
+    const target = this.list.find((tab) => tab.id === targetId);
+    if (!source || !target) return;
+    const filtered = this.list.filter((tab) => tab.id !== sourceId);
+    const targetIndex = filtered.findIndex((tab) => tab.id === targetId);
+    if (targetIndex === -1) return;
+    filtered.splice(targetIndex, 0, source);
+    this.list = filtered;
+  }
 }
 
 export const tabs = new TabStore();

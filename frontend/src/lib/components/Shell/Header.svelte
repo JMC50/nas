@@ -6,9 +6,21 @@
   import ThemeToggle from "$lib/components/ThemeToggle.svelte";
   import { auth } from "$lib/store/auth.svelte";
   import { ui } from "$lib/store/ui.svelte";
+  import { tabs } from "$lib/store/tabs.svelte";
 
   function openQuickFind() {
     ui.openQuickOpen();
+  }
+
+  function openAccount() {
+    tabs.open({
+      id: "system:account",
+      kind: "account",
+      title: "Account",
+      icon: "account",
+      payload: null,
+      closable: true,
+    });
   }
 
   function logout() {
@@ -44,12 +56,17 @@
   <div class="flex items-center gap-2">
     <ThemeToggle />
     {#if auth.isAuthenticated}
-      <div class="flex items-center gap-2 px-2 h-8 rounded-md bg-bg-elevated">
+      <button
+        type="button"
+        class="flex items-center gap-2 px-2 h-8 rounded-md bg-bg-elevated hover:bg-bg-hover transition-colors"
+        onclick={openAccount}
+        aria-label="Open account"
+      >
         <UserIcon size="14" class="text-fg-muted" />
         <span class="text-xs text-fg-secondary truncate max-w-[140px]">
           {displayName}
         </span>
-      </div>
+      </button>
       <button
         type="button"
         class="inline-flex items-center justify-center w-8 h-8 rounded-md text-fg-muted hover:text-fg-danger hover:bg-bg-hover transition-colors"

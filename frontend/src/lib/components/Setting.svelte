@@ -1,231 +1,141 @@
 <script lang="ts">
-    import { useAuth } from "$lib/store/store";
+  import { onMount } from "svelte";
+  import Settings from "lucide-svelte/icons/settings";
+  import UserIcon from "lucide-svelte/icons/user";
+  import Search from "lucide-svelte/icons/search";
+  import { auth } from "$lib/store/auth.svelte";
+  import { tabs } from "$lib/store/tabs.svelte";
+  import { notifications } from "$lib/store/notifications.svelte";
+  import type { Intent } from "$lib/types";
 
-    type intentList = "ADMIN"|"VIEW"|"OPEN"|"DOWNLOAD"|"UPLOAD"|"COPY"|"DELETE"|"RENAME";
+  interface UserView {
+    userId: string;
+    username: string;
+    global_name: string;
+    krname: string;
+    intents: Intent[];
+  }
 
-    interface user {
-        userId: string;
-        username: string;
-        krname: string;
-        global_name: string;
-        intents: intentList[];
+  let isAdmin = $state(false);
+  let users: UserView[] = $state([]);
+  let loading = $state(true);
+  let filterText = $state("");
+
+  const filteredUsers = $derived(
+    filterText
+      ? users.filter((user) => {
+          const value = filterText.toLowerCase();
+          return (
+            user.krname.toLowerCase().includes(value) ||
+            user.username.toLowerCase().includes(value) ||
+            user.global_name.toLowerCase().includes(value) ||
+            user.userId.toLowerCase().includes(value)
+          );
+        })
+      : users,
+  );
+
+  async function load() {
+    loading = true;
+    try {
+      if (!auth.token) {
+        isAdmin = false;
+        return;
+      }
+      const adminResponse = await fetch(`/server/checkAdmin?token=${encodeURIComponent(auth.token)}`);
+      const adminData = await adminResponse.json();
+      isAdmin = Boolean(adminData.isAdmin);
+      if (!isAdmin) return;
+      const usersResponse = await fetch("/server/getAllUsers");
+      const usersData = await usersResponse.json();
+      users = (usersData.users ?? []) as UserView[];
+    } catch (err) {
+      notifications.error(`Failed to load: ${(err as Error).message}`);
+    } finally {
+      loading = false;
     }
+  }
 
-    export let openUsers:string[];
-    export let opened_user:number;
-    export let userList:user[];
+  function openUser(user: UserView) {
+    tabs.open({
+      id: `user-manager:${user.userId}`,
+      kind: "user-manager",
+      title: user.krname || user.global_name || user.username,
+      icon: "user-manager",
+      payload: { userId: user.userId },
+      closable: true,
+    });
+  }
 
-    let loading = new Promise(res => {});
-    let userSort:string;
-    let users:user[];
-    let selected:number = -1;
-    let lastClicked:number;
-    let sorted:user[];
-
-    $: {
-        sorted = sorted;
-        users = users;
-    }
-
-    function click(index:number) {
-        if(selected == index){
-            if(Date.now() - lastClicked <= 1000){
-                if(openUsers.includes(sorted[index].userId)){
-                    opened_user = openUsers.indexOf(sorted[index].userId);
-                    opened_user = opened_user;
-                }else{
-                    openUsers.push(sorted[index].userId);
-                    openUsers = openUsers;
-                    opened_user = openUsers.indexOf(sorted[index].userId);
-                    opened_user = opened_user;
-                    userList.push(sorted[index]);
-                    userList = userList;
-                }
-                return;
-            }
-        }else{
-            selected = index;
-        }
-
-        lastClicked = Date.now();
-    }
-
-    function checkClick(e:MouseEvent) {
-        const element = e.target as HTMLElement;
-        if(!element.classList.contains("userC")){
-            selected = -1;
-        }
-    }
-
-    async function sort() {
-        selected = -1;
-        const arr = [];
-        for(let user of users){
-            if(user.krname.includes(userSort)){
-                arr.push(user);
-            }
-        }
-        sorted = arr;
-    }
-
-    async function checkAdmin() {
-        if($useAuth.token == "") return;
-
-        const res = await fetch(`/server/checkAdmin?token=${$useAuth.token}`);
-        const data = await res.json();
-
-        if(data.isAdmin){
-            const getAllUsersRES = await fetch(`/server/getAllUsers`);
-            const data = await getAllUsersRES.json();
-            users = data.users;
-            sorted = users;
-
-            return true;
-        }else{
-            return false;
-        }
-    }
-
-    loading = checkAdmin();
+  onMount(load);
 </script>
 
+<section class="flex flex-col h-full bg-bg-base overflow-hidden">
+  <header class="flex items-center gap-2 px-6 h-12 border-b border-border-default bg-bg-surface">
+    <Settings size="18" class="text-accent" />
+    <h1 class="text-sm font-semibold text-fg-primary">Settings</h1>
+  </header>
 
-<!-- svelte-ignore a11y_click_events_have_key_events -->
-<!-- svelte-ignore a11y_no_static_element_interactions -->
-<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
-<main id="main" on:click={checkClick}>
-    <main id="padding">
-        <div class="title">⚙️ Setting</div>
-        {#await loading}
-            <div class="subtitle">Checking ADMIN intent...</div>
-        {:then value} 
-            {#if !value}
-                <div class="subtitle">This page is only for admin.</div>
-                <div class="subtitle">Please return.</div>
-            {:else}
-                <div class="subtitle">✏️ User Management</div>
-                <div id="searchCon">
-                    <img src="/svg/search_black.svg" alt="">
-                    <input type="search" placeholder="Search user by korean name" id="searchInput" bind:value={userSort} on:input={sort} autocomplete="off">
+  <div class="flex-1 overflow-auto p-6">
+    {#if loading}
+      <div class="text-sm text-fg-muted">Loading…</div>
+    {:else if !isAdmin}
+      <div class="max-w-md p-5 rounded-lg bg-bg-surface border border-border-default">
+        <h2 class="text-sm font-semibold text-fg-primary mb-1">Admin only</h2>
+        <p class="text-xs text-fg-muted">
+          You need the ADMIN permission to manage users. Request it from the Account page.
+        </p>
+      </div>
+    {:else}
+      <div class="max-w-3xl">
+        <div class="flex items-center gap-3 mb-4">
+          <div class="flex items-center gap-1.5 px-2.5 h-8 rounded-md bg-bg-elevated flex-1 max-w-sm">
+            <Search size="13" class="text-fg-muted shrink-0" />
+            <input
+              type="text"
+              bind:value={filterText}
+              placeholder="Filter users…"
+              class="flex-1 bg-transparent text-xs text-fg-primary placeholder:text-fg-muted outline-none"
+            />
+          </div>
+          <span class="text-xs text-fg-muted font-mono">{filteredUsers.length} / {users.length}</span>
+        </div>
+
+        <div class="rounded-lg bg-bg-surface border border-border-default divide-y divide-border-default/60">
+          {#each filteredUsers as user (user.userId)}
+            <button
+              type="button"
+              class="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-bg-hover transition-colors"
+              onclick={() => openUser(user)}
+            >
+              <div class="w-9 h-9 rounded-full bg-bg-elevated border border-border-default flex items-center justify-center shrink-0">
+                <UserIcon size="14" class="text-fg-muted" />
+              </div>
+              <div class="min-w-0 flex-1">
+                <div class="text-sm text-fg-primary truncate">
+                  {user.krname || user.global_name || user.username}
                 </div>
-                <div id="userListCon">
-                    {#each sorted as user, index}
-                        <div class="user userC {selected == index ? "selected" : ""}" on:click={() => {click(index)}}>
-                            <div class="left userC">
-                                <div class="user_name userC">{user.krname}</div>
-                                <div class="user_name userC">{user.username}</div>
-                            </div>
-                            <div class="right userC">
-                                <div class="user_name userC">{user.userId}</div>
-                            </div>
-                        </div>
-                    {/each}
-                </div>
-            {/if}
-        {/await}
-    </main>
-</main>
-
-<style lang="scss">
-    #main{
-        padding-left: 40px;
-        padding-right: 40px;
-        overflow-y: scroll;
-        height: 100vh;
-        user-select: none;
-    }
-
-    #main::-webkit-scrollbar {
-        width: 5px;
-        position: absolute;
-        top: 0;
-        right: 0;
-    }
-
-    #main::-webkit-scrollbar-track {
-        background-color: #121212;
-        border-radius: 5px;
-    }
-
-    #main::-webkit-scrollbar-thumb { 
-        background-color: #565656;
-        border-radius: 5px;
-    }
-
-    #main::-webkit-scrollbar-button {
-        display: none;
-    }
-
-    #padding{
-        padding-top: 40px;
-    }
-
-    .title{
-        font-size: xx-large;
-        color: white;
-        font-weight: bolder;
-        margin-bottom: 20px;
-    }
-
-    .subtitle{
-        font-size: x-large;
-        color: white;
-        font-weight: bolder;
-    }
-
-    #searchCon{
-        background-color: white;
-        flex-grow: 1;
-        border-radius: 5px;
-        display: flex;
-        align-items: center;
-        padding: 10px 15px;
-        gap: 10px;
-        margin-top: 20px;
-    }
-
-    #searchInput{
-        background: none;
-        font-size: large;
-        border: 0;
-        height: auto;
-        width: 100%;
-    }
-
-    input:focus {outline:none;}
-
-    #userListCon{
-        display: flex;
-        flex-direction: column;
-        margin-top: 20px;
-        gap: 10px;
-    }
-
-    .user{
-        display: flex;
-        flex-direction: row;
-        justify-content: space-between;
-        padding: 12px 10px 12px 10px;
-        border: 1px solid #121212;
-    }
-
-    .user:hover{
-        cursor: default;
-        background-color: #383838;
-    }
-
-    .selected{
-        border: 1px solid #878787;
-    }
-
-    .left{
-        display: flex;
-        flex-direction: row;
-        gap: 20px;
-    }
-
-    .user_name{
-        color: white;
-        font-size: large;
-    }
-</style>
+                <div class="text-xs text-fg-muted truncate font-mono">{user.userId}</div>
+              </div>
+              <div class="flex flex-wrap gap-1 max-w-[260px] justify-end">
+                {#each user.intents.slice(0, 4) as intent}
+                  <span class="text-[10px] px-1.5 h-4 leading-4 rounded bg-bg-elevated border border-border-default font-mono text-fg-muted">
+                    {intent}
+                  </span>
+                {/each}
+                {#if user.intents.length > 4}
+                  <span class="text-[10px] px-1.5 h-4 leading-4 rounded text-fg-muted">
+                    +{user.intents.length - 4}
+                  </span>
+                {/if}
+              </div>
+            </button>
+          {/each}
+          {#if filteredUsers.length === 0}
+            <div class="p-6 text-xs text-fg-muted text-center">No users match.</div>
+          {/if}
+        </div>
+      </div>
+    {/if}
+  </div>
+</section>

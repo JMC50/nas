@@ -1,183 +1,164 @@
 <script lang="ts">
-    import { onDestroy, onMount } from "svelte";
-    import FileViewer from "./FileViewer.svelte";
-    import AccountViewer from "./AccountViewer.svelte";
+  import { onMount } from "svelte";
+  import Shield from "lucide-svelte/icons/shield";
+  import UserIcon from "lucide-svelte/icons/user";
+  import { auth } from "$lib/store/auth.svelte";
+  import { notifications } from "$lib/store/notifications.svelte";
+  import type { Intent } from "$lib/types";
 
-    type intentList = "ADMIN"|"VIEW"|"OPEN"|"DOWNLOAD"|"UPLOAD"|"COPY"|"DELETE"|"RENAME";
+  interface Props {
+    initialUserId?: string;
+  }
 
-    interface user {
-        userId: string;
-        username: string;
-        krname: string;
-        global_name: string;
-        intents: intentList[];
+  let { initialUserId = "" }: Props = $props();
+
+  interface UserView {
+    userId: string;
+    username: string;
+    global_name: string;
+    krname: string;
+    intents: Intent[];
+  }
+
+  const ALL_INTENTS: Intent[] = [
+    "VIEW",
+    "OPEN",
+    "DOWNLOAD",
+    "UPLOAD",
+    "COPY",
+    "DELETE",
+    "RENAME",
+    "ADMIN",
+  ];
+
+  let userId = $state(initialUserId);
+  let users: UserView[] = $state([]);
+  let user: UserView | null = $state(null);
+  let busy = $state<Set<Intent>>(new Set());
+
+  async function loadUsers() {
+    const response = await fetch("/server/getAllUsers");
+    const data = await response.json();
+    users = (data.users ?? []) as UserView[];
+    if (userId) {
+      user = users.find((entry) => entry.userId === userId) ?? null;
     }
+  }
 
-    export let openUsers:string[];
-    export let opened_user:number;
-    export let userList:user[];
+  function selectUser(id: string) {
+    userId = id;
+    user = users.find((entry) => entry.userId === id) ?? null;
+  }
 
-    let openedUser:user;
-    let fileListCon:HTMLDivElement;
-
-    $:{
-        openUsers = openUsers;
-        opened_user = opened_user;
-        openedUser = userList[opened_user];
+  async function toggleIntent(intent: Intent) {
+    if (!user) return;
+    const granted = user.intents.includes(intent);
+    const endpoint = granted ? "unauthorize" : "authorize";
+    const next = new Set(busy);
+    next.add(intent);
+    busy = next;
+    try {
+      const response = await fetch(
+        `/server/${endpoint}?userId=${encodeURIComponent(user.userId)}&intent=${intent}&token=${encodeURIComponent(auth.token)}`,
+      );
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+      if (granted) {
+        user.intents = user.intents.filter((value) => value !== intent);
+      } else {
+        user.intents = [...user.intents, intent];
+      }
+      notifications.success(`${granted ? "Revoked" : "Granted"} ${intent}`);
+    } catch (err) {
+      notifications.error(`Toggle failed: ${(err as Error).message}`);
+    } finally {
+      const after = new Set(busy);
+      after.delete(intent);
+      busy = after;
     }
+  }
 
-    onMount(() => {
-        function handleWheel(event: WheelEvent) {
-            event.preventDefault();
-            fileListCon.scrollLeft += event.deltaY;
-            fileListCon.scrollLeft += event.deltaX;
-        }
-
-        fileListCon.addEventListener("wheel", handleWheel, { passive: false });
-
-        onDestroy(() => {
-            fileListCon.removeEventListener("wheel", handleWheel);
-        });
-    })
-
-    function scrollToFile() {
-        if(!fileListCon) return;
-        setTimeout(() => {
-            const fileElements = fileListCon.querySelectorAll(".file");
-            const targetElement = fileElements[opened_user];
-    
-            if(targetElement){
-                targetElement.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
-            }
-        }, 10);
-    }
-
-    $: opened_user, scrollToFile();
-
-    function changeOpen(index:number, e:MouseEvent) {
-        const target = e.target as HTMLDivElement;
-        if(target.classList.contains("close")) return;
-        opened_user = index
-    }
-
-    function closeFile(index:number) {
-        if(opened_user >= index && userList.length != 1){
-            opened_user = opened_user - 1;
-        }
-        if(opened_user == -1){
-            opened_user = 0;
-        }
-        userList.splice(index, 1);
-        openUsers.splice(index, 1);
-        userList = userList;
-        openUsers = openUsers;
-    }
-
+  onMount(loadUsers);
 </script>
 
-<!-- svelte-ignore a11y_no_static_element_interactions -->
-<!-- svelte-ignore a11y_click_events_have_key_events -->
-<main>
-    <div id="fileListCon" bind:this={fileListCon}>
-        {#each userList as user, index}
-            <div class="file {opened_user == index ? "opened" : ""}" on:click={(e) => {changeOpen(index, e)}}>
-                <img src="/svg/account.svg" alt="" class="icon">
-                <div class="fileName">{user.krname}</div>
-                <div class="close" on:click={() => {closeFile(index)}}>X</div>
+<section class="flex flex-col h-full bg-bg-base overflow-hidden">
+  <header class="flex items-center gap-2 px-6 h-12 border-b border-border-default bg-bg-surface">
+    <Shield size="18" class="text-accent" />
+    <h1 class="text-sm font-semibold text-fg-primary">User permissions</h1>
+  </header>
+
+  <div class="flex-1 grid grid-cols-[280px_1fr] min-h-0">
+    <aside class="border-r border-border-default overflow-auto bg-bg-surface/30">
+      {#if users.length === 0}
+        <div class="p-4 text-xs text-fg-muted">Loading users…</div>
+      {/if}
+      {#each users as entry (entry.userId)}
+        <button
+          type="button"
+          class="w-full flex items-center gap-2 px-4 py-2.5 border-b border-border-default/40 text-left transition-colors {entry.userId === userId
+            ? 'bg-bg-hover text-fg-primary'
+            : 'text-fg-secondary hover:bg-bg-hover/60 hover:text-fg-primary'}"
+          onclick={() => selectUser(entry.userId)}
+        >
+          <UserIcon size="14" class="shrink-0 text-fg-muted" />
+          <div class="min-w-0 flex-1">
+            <div class="text-sm truncate">
+              {entry.krname || entry.global_name || entry.username}
             </div>
-        {/each}
-    </div>
-    <div id="viewerCon">
-        {#each userList as user, index (user.krname)}
-            <div class={opened_user == index ? "show" : "hide"}>
-                <AccountViewer bind:user={user} />
+            <div class="text-xs text-fg-muted truncate font-mono">{entry.userId}</div>
+          </div>
+          {#if entry.intents.includes("ADMIN")}
+            <span class="text-[10px] px-1.5 h-4 rounded bg-accent/15 text-fg-accent border border-accent/30 font-mono leading-4">
+              ADMIN
+            </span>
+          {/if}
+        </button>
+      {/each}
+    </aside>
+
+    <div class="overflow-auto p-6">
+      {#if !user}
+        <div class="text-sm text-fg-muted">Select a user from the list.</div>
+      {:else}
+        <div class="max-w-xl">
+          <div class="flex items-center gap-3 mb-5">
+            <div class="w-10 h-10 rounded-full bg-bg-elevated border border-border-default flex items-center justify-center">
+              <UserIcon size="18" class="text-fg-muted" />
             </div>
-        {/each}
+            <div class="min-w-0">
+              <div class="text-base font-semibold text-fg-primary truncate">
+                {user.krname || user.global_name || user.username}
+              </div>
+              <div class="text-xs text-fg-muted font-mono truncate">{user.userId}</div>
+            </div>
+          </div>
+
+          <div class="rounded-lg bg-bg-surface border border-border-default divide-y divide-border-default/60">
+            {#each ALL_INTENTS as intent}
+              {@const granted = user.intents.includes(intent)}
+              {@const pending = busy.has(intent)}
+              <div class="flex items-center justify-between px-4 h-11">
+                <div class="text-sm font-mono text-fg-primary">{intent}</div>
+                <button
+                  type="button"
+                  class="relative inline-flex items-center h-5 w-9 rounded-full transition-colors disabled:opacity-60 {granted
+                    ? 'bg-accent'
+                    : 'bg-bg-elevated border border-border-default'}"
+                  onclick={() => toggleIntent(intent)}
+                  disabled={pending}
+                  aria-label={granted ? `Revoke ${intent}` : `Grant ${intent}`}
+                  aria-pressed={granted}
+                >
+                  <span
+                    class="inline-block w-3.5 h-3.5 rounded-full bg-bg-base shadow transition-transform {granted ? 'translate-x-[18px]' : 'translate-x-0.5'}"
+                  ></span>
+                </button>
+              </div>
+            {/each}
+          </div>
+        </div>
+      {/if}
     </div>
-</main>
-
-<style lang="scss">
-    main{
-        display: flex;
-        flex-direction: column;
-        width: 47vw;
-    }
-
-    #fileListCon {
-        width: 100%;
-        height: 4vh;
-        // max-width: 40vw;
-        display: flex;
-        flex-direction: row;
-        overflow-x: auto;
-        user-select: none;
-        white-space: nowrap;
-        border-bottom: 1px solid #878787;
-    }
-
-    #fileListCon::-webkit-scrollbar {
-        height: 1px;
-        position: absolute;
-        top: 0;
-        right: 0;
-    }
-
-    #fileListCon::-webkit-scrollbar-track {
-        background-color: #878787;
-        border-radius: 5px;
-    }
-
-    #fileListCon::-webkit-scrollbar-thumb { 
-        background-color: #565656;
-        border-radius: 5px;
-    }
-
-    #fileListCon::-webkit-scrollbar-button {
-        display: none;
-    }
-
-    .file{
-        display: flex;
-        flex-direction: row;
-        background-color: #0f0f0f;
-        align-items: center;
-        color: #878787;
-        padding: 10px;
-        gap: 10px;
-        border-top: 3px solid #121212;
-        border-right: 1px solid #878787;
-        border-bottom: 1px solid #878787;
-    }
-
-    .file.opened{
-        color: white;
-        background-color: #121212;
-        border-top: 3px solid #2f5fff;
-        border-bottom: 1px solid #121212;
-    }
-
-    .file:hover{
-        cursor: pointer;
-    }
-
-    .close{
-        padding: 3px 5px 3px 5px;
-        border-radius: 5px;
-    }
-
-    .close:hover{
-        background-color: #565656;
-    }
-
-    .icon{
-        height: 20px;
-    }
-
-    .show{
-        display: block;
-    }
-
-    .hide{
-        display: none;
-    }
-</style>
+  </div>
+</section>

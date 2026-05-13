@@ -104,10 +104,6 @@
 
       <div class="space-y-3 mb-4">
         <div>
-          <div class="text-[11px] text-fg-muted mb-1">Discord ID</div>
-          <input type="text" value={saveData.userId} readonly class="w-full px-3 h-9 rounded-md bg-bg-elevated border border-border-default text-fg-disabled text-sm font-mono" />
-        </div>
-        <div>
           <div class="text-[11px] text-fg-muted mb-1">Username</div>
           <input type="text" value={saveData.username} readonly class="w-full px-3 h-9 rounded-md bg-bg-elevated border border-border-default text-fg-disabled text-sm" />
         </div>

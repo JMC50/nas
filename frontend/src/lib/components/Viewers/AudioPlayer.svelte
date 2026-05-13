@@ -6,7 +6,7 @@
   import Volume1 from "lucide-svelte/icons/volume-1";
   import VolumeX from "lucide-svelte/icons/volume-x";
   import { auth } from "$lib/store/auth.svelte";
-  import { formatTime, clampVolume } from "./media-utils";
+  import { formatTime, clampVolume, pickMediaKey } from "./media-utils";
 
   interface Props {
     loc: string;
@@ -84,6 +84,33 @@
     audio.volume = ratio;
     if (ratio > 0) audio.muted = false;
   }
+
+  const SEEK_STEP = 5;
+  const VOLUME_STEP = 0.1;
+
+  function onKeyDown(event: KeyboardEvent) {
+    if (!audio) return;
+    const target = event.target as HTMLElement;
+    if (target.matches("input, textarea, [contenteditable='true']")) return;
+
+    const key = pickMediaKey(event);
+    if (!key || key === "fullscreen") return;
+    event.preventDefault();
+
+    switch (key) {
+      case "toggle": toggle(); break;
+      case "mute": toggleMute(); break;
+      case "seekBack": audio.currentTime = Math.max(0, audio.currentTime - SEEK_STEP); break;
+      case "seekForward": audio.currentTime = Math.min(duration, audio.currentTime + SEEK_STEP); break;
+      case "volumeUp": audio.volume = clampVolume(audio.volume + VOLUME_STEP); audio.muted = false; break;
+      case "volumeDown": audio.volume = clampVolume(audio.volume - VOLUME_STEP); break;
+    }
+  }
+
+  $effect(() => {
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  });
 </script>
 
 <div class="flex flex-col h-full w-full bg-bg-base items-center justify-center p-8">

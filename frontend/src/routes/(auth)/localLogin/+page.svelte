@@ -1,6 +1,5 @@
 <script lang="ts">
   import { onMount } from "svelte";
-  import HardDrive from "lucide-svelte/icons/hard-drive";
   import LogIn from "lucide-svelte/icons/log-in";
   import UserPlus from "lucide-svelte/icons/user-plus";
   import TextField from "$lib/components/Auth/TextField.svelte";
@@ -94,7 +93,7 @@
 <main class="min-h-screen flex items-center justify-center bg-bg-base p-6">
   <div class="w-full max-w-md bg-bg-surface border border-border-default rounded-lg p-6 shadow-[0_4px_12px_rgba(0,0,0,0.4)]">
     <div class="flex items-center gap-2 mb-6">
-      <HardDrive size="20" class="text-accent" />
+      <img src="/logo.png" alt="" width="20" height="20" />
       <span class="text-base font-semibold text-fg-primary tracking-tight">NAS</span>
     </div>
 

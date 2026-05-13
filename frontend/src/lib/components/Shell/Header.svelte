@@ -1,5 +1,4 @@
 <script lang="ts">
-  import HardDrive from "lucide-svelte/icons/hard-drive";
   import Search from "lucide-svelte/icons/search";
   import LogOut from "lucide-svelte/icons/log-out";
   import UserIcon from "lucide-svelte/icons/user";
@@ -39,7 +38,7 @@
   class="row-start-1 col-span-2 h-12 flex items-center justify-between gap-4 px-4 border-b border-border-default bg-bg-surface"
 >
   <div class="flex items-center gap-2 min-w-0">
-    <HardDrive size="20" class="text-accent shrink-0" />
+    <img src="/logo.png" alt="" width="20" height="20" class="shrink-0" />
     <span class="text-fg-primary font-semibold text-sm tracking-tight">NAS</span>
   </div>
 

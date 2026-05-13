@@ -3,6 +3,7 @@
   import { goto } from "$app/navigation";
   import { auth } from "$lib/store/auth.svelte";
   import { ui } from "$lib/store/ui.svelte";
+  import { tabs } from "$lib/store/tabs.svelte";
   import Header from "$lib/components/Shell/Header.svelte";
   import VerticalNav from "$lib/components/Shell/VerticalNav.svelte";
   import StatusBar from "$lib/components/Shell/StatusBar.svelte";
@@ -18,6 +19,12 @@
       return;
     }
     auth.refreshAdmin();
+  });
+
+  $effect(() => {
+    if (typeof document === "undefined") return;
+    const active = tabs.active;
+    document.title = active ? `${active.title} · NAS` : "NAS";
   });
 </script>
 

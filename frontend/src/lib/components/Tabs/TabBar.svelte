@@ -1,5 +1,6 @@
 <script lang="ts">
   import X from "lucide-svelte/icons/x";
+  import Plus from "lucide-svelte/icons/plus";
   import Folder from "lucide-svelte/icons/folder";
   import FileText from "lucide-svelte/icons/file-text";
   import ImageIcon from "lucide-svelte/icons/image";
@@ -12,7 +13,7 @@
   import User from "lucide-svelte/icons/user";
   import Cpu from "lucide-svelte/icons/cpu";
   import { tabs } from "$lib/store/tabs.svelte";
-  import type { Tab, TabKind } from "$lib/types";
+  import type { ExplorerPayload, Tab, TabKind } from "$lib/types";
 
   const KIND_TO_ICON: Record<TabKind, typeof Folder> = {
     explorer: Folder,
@@ -38,6 +39,13 @@
 
   function close(event: MouseEvent, tab: Tab) {
     event.stopPropagation();
+    tabs.close(tab.id);
+  }
+
+  function onAuxClick(event: MouseEvent, tab: Tab) {
+    if (event.button !== 1) return;
+    if (!tab.closable) return;
+    event.preventDefault();
     tabs.close(tab.id);
   }
 
@@ -78,6 +86,15 @@
     dragSourceId = null;
     dragOverId = null;
   }
+
+  function openNewTab() {
+    const active = tabs.active;
+    const loc =
+      active?.kind === "explorer"
+        ? ((active.payload as ExplorerPayload | null)?.loc ?? [])
+        : [];
+    tabs.openExplorer(loc);
+  }
 </script>
 
 <div
@@ -100,6 +117,7 @@
           ? 'ring-1 ring-inset ring-accent'
           : ''}"
         onclick={() => focus(tab)}
+        onauxclick={(event) => onAuxClick(event, tab)}
         onkeydown={(event) => onKey(event, tab)}
         ondragstart={(event) => onDragStart(event, tab)}
         ondragover={(event) => onDragOver(event, tab)}
@@ -127,4 +145,13 @@
       </div>
     {/each}
   </div>
+  <button
+    type="button"
+    class="shrink-0 inline-flex items-center justify-center w-8 h-8 mb-0.5 ml-1 rounded text-fg-muted hover:text-fg-primary hover:bg-bg-elevated"
+    onclick={openNewTab}
+    aria-label="New explorer tab"
+    title="New explorer tab (clone current location)"
+  >
+    <Plus size="14" />
+  </button>
 </div>

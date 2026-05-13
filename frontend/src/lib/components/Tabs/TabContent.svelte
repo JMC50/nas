@@ -12,6 +12,7 @@
   import PdfViewer from "$lib/components/Viewers/PdfViewer.svelte";
   import OfficeViewer from "$lib/components/Viewers/OfficeViewer.svelte";
   import MonacoViewer from "$lib/components/Viewers/MonacoViewer.svelte";
+  import type { ExplorerPayload } from "$lib/types";
 
   interface FilePayload {
     loc: string;
@@ -28,7 +29,8 @@
     {@const isActive = tab.id === tabs.activeId}
     <div class="h-full w-full {isActive ? 'block' : 'hidden'}">
       {#if tab.kind === "explorer"}
-        <Explorer />
+        {@const payload = tab.payload as ExplorerPayload | null}
+        <Explorer loc={payload?.loc ?? []} tabId={tab.id} />
       {:else if tab.kind === "user-manager"}
         {@const payload = tab.payload as UserPayload | null}
         <UserManager initialUserId={payload?.userId ?? ""} />

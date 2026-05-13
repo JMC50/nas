@@ -1,8 +1,5 @@
 import { auth } from "$lib/store/auth.svelte";
-import { files } from "$lib/store/files.svelte";
-import { tabs } from "$lib/store/tabs.svelte";
 import { notifications } from "$lib/store/notifications.svelte";
-import { pickViewer } from "$lib/components/Viewers/registry";
 import type { FolderEntry } from "./icon-for";
 
 export class FetchError extends Error {
@@ -13,8 +10,8 @@ export class FetchError extends Error {
   }
 }
 
-export function locPath(): string {
-  return "/" + files.currentLoc.join("/");
+export function locPath(loc: string[]): string {
+  return "/" + loc.join("/");
 }
 
 function url(path: string, params: Record<string, string>): string {
@@ -22,46 +19,47 @@ function url(path: string, params: Record<string, string>): string {
   return `/server/${path}?${search.toString()}`;
 }
 
-export async function readEntries(): Promise<FolderEntry[]> {
-  const response = await fetch(url("readFolder", { loc: locPath() }));
+export async function readEntries(loc: string[]): Promise<FolderEntry[]> {
+  const response = await fetch(url("readFolder", { loc: locPath(loc) }));
   if (!response.ok) throw new FetchError(response.status, `HTTP ${response.status}`);
   const data = await response.json();
   return (data.files ?? data ?? []) as FolderEntry[];
 }
 
-export async function createFolder(name: string): Promise<void> {
-  const response = await fetch(url("makedir", { name, loc: locPath() }));
+export async function createFolder(loc: string[], name: string): Promise<void> {
+  const response = await fetch(url("makedir", { name, loc: locPath(loc) }));
   if (!response.ok) throw new FetchError(response.status, `HTTP ${response.status}`);
   notifications.success(`Created ${name}`);
 }
 
-export async function deleteEntry(entry: FolderEntry): Promise<void> {
-  const response = await fetch(url("forceDelete", { name: entry.name, loc: locPath() }));
+export async function deleteEntry(loc: string[], entry: FolderEntry): Promise<void> {
+  const response = await fetch(url("forceDelete", { name: entry.name, loc: locPath(loc) }));
   if (!response.ok) throw new FetchError(response.status, `HTTP ${response.status}`);
   notifications.success(`Deleted ${entry.name}`);
 }
 
-export async function renameEntry(entry: FolderEntry, next: string): Promise<void> {
-  const response = await fetch(url("rename", { loc: locPath(), name: entry.name, newName: next }));
+export async function renameEntry(loc: string[], entry: FolderEntry, next: string): Promise<void> {
+  const response = await fetch(url("rename", { loc: locPath(loc), name: entry.name, change: next }));
   if (!response.ok) throw new FetchError(response.status, `HTTP ${response.status}`);
   notifications.success(`Renamed to ${next}`);
 }
 
-export function downloadUrl(entry: FolderEntry): string {
-  return url("download", { loc: locPath(), name: entry.name });
+export async function moveEntry(
+  originLoc: string[],
+  targetLoc: string[],
+  name: string,
+): Promise<void> {
+  const response = await fetch(
+    url("move", {
+      originLoc: locPath(originLoc),
+      fileName: name,
+      targetLoc: locPath(targetLoc),
+    }),
+  );
+  if (!response.ok) throw new FetchError(response.status, `HTTP ${response.status}`);
+  notifications.success(`Moved ${name}`);
 }
 
-export function openEntry(entry: FolderEntry) {
-  if (entry.isFolder) {
-    files.navigateInto(entry.name);
-    return;
-  }
-  const kind = pickViewer(entry.extensions);
-  tabs.open({
-    kind,
-    title: entry.name,
-    icon: kind,
-    payload: { loc: locPath(), name: entry.name },
-    closable: true,
-  });
+export function downloadUrl(loc: string[], entry: FolderEntry): string {
+  return url("download", { loc: locPath(loc), name: entry.name });
 }

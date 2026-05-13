@@ -30,6 +30,10 @@ export interface FileEntry {
   modified: boolean;
 }
 
+export interface ExplorerPayload {
+  loc: string[];
+}
+
 export type TabKind =
   | "explorer"
   | "text"

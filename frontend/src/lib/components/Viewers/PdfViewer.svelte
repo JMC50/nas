@@ -22,7 +22,7 @@
   let document_: import("pdfjs-dist").PDFDocumentProxy | null = $state(null);
   let pageCount = $state(0);
   let loading = $state(true);
-  let canvases: HTMLCanvasElement[] = [];
+  let canvases = $state<HTMLCanvasElement[]>([]);
   let rendered = new Set<number>();
   let observer: IntersectionObserver | null = null;
   let currentPage = $state(1);

@@ -43,7 +43,7 @@ type userDTO struct {
 	Username   string   `json:"username"`
 	KrName     string   `json:"krname,omitempty"`
 	GlobalName string   `json:"global_name,omitempty"`
-	Intents    []string `json:"intents,omitempty"`
+	Intents    []string `json:"intents"`
 	AuthType   string   `json:"auth_type"`
 }
 
@@ -314,12 +314,16 @@ func (h *Handlers) GetAllUsers(w http.ResponseWriter, r *http.Request) {
 	}
 	dtos := make([]userDTO, 0, len(users))
 	for _, user := range users {
+		intents := user.Intents
+		if intents == nil {
+			intents = []string{}
+		}
 		dtos = append(dtos, userDTO{
 			UserID:     user.UserID,
 			Username:   user.Username,
 			KrName:     user.KrName,
 			GlobalName: user.GlobalName,
-			Intents:    user.Intents,
+			Intents:    intents,
 			AuthType:   user.AuthType,
 		})
 	}

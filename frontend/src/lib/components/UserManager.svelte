@@ -39,7 +39,14 @@
   async function loadUsers() {
     const response = await fetch("/server/getAllUsers");
     const data = await response.json();
-    users = (data.users ?? []) as UserView[];
+    const raw = (data.users ?? []) as Partial<UserView>[];
+    users = raw.map((entry) => ({
+      userId: entry.userId ?? "",
+      username: entry.username ?? "",
+      global_name: entry.global_name ?? "",
+      krname: entry.krname ?? "",
+      intents: entry.intents ?? [],
+    }));
     if (userId) {
       user = users.find((entry) => entry.userId === userId) ?? null;
     }

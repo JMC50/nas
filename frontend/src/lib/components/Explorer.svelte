@@ -111,6 +111,11 @@
       return;
     }
     const kind = pickViewer(entry.extensions);
+    if (kind === null) {
+      notifications.info(`No preview for .${entry.extensions} — downloading instead.`);
+      window.open(downloadUrl(loc, entry), "_blank");
+      return;
+    }
     tabs.open({
       kind,
       title: entry.name,

@@ -105,6 +105,16 @@
     navigateTo(loc.slice(0, -1));
   }
 
+  function triggerDownload(entry: FolderEntry) {
+    const anchor = document.createElement("a");
+    anchor.href = downloadUrl(loc, entry);
+    anchor.download = entry.name;
+    anchor.rel = "noopener";
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
+  }
+
   function openEntry(entry: FolderEntry, opts: { newTab?: boolean } = {}) {
     if (entry.isFolder) {
       navigateTo([...loc, entry.name], opts);
@@ -113,7 +123,7 @@
     const kind = pickViewer(entry.extensions);
     if (kind === null) {
       notifications.info(`No preview for .${entry.extensions} — downloading instead.`);
-      window.open(downloadUrl(loc, entry), "_blank");
+      triggerDownload(entry);
       return;
     }
     tabs.open({
@@ -186,7 +196,7 @@
       notifications.info("Folder download not implemented yet.");
       return;
     }
-    window.open(downloadUrl(loc, entry), "_blank");
+    triggerDownload(entry);
   }
 
   function dragPayload(entry: FolderEntry): string {

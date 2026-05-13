@@ -1,7 +1,10 @@
 <script lang="ts">
   import { onMount } from "svelte";
   import { useAuth } from "$lib/store/store";
+  import { auth } from "$lib/store/auth.svelte";
   import HardDrive from "lucide-svelte/icons/hard-drive";
+
+  const LINK_STATE_PREFIX = "link.";
 
   interface DiscordUser {
     userId: string;
@@ -15,23 +18,12 @@
   let accessToken = "";
   let error = $state("");
 
-  onMount(async () => {
-    const fragment = location.hash.startsWith("#") ? location.hash.slice(1) : location.search.slice(1);
-    const params = new URLSearchParams(fragment);
-    accessToken = params.get("access_token") ?? "";
-    if (!accessToken) {
-      error = "Missing access token from Discord.";
-      return;
-    }
+  async function signInFlow() {
     try {
       const response = await fetch(`/server/auth/discord/callback?access_token=${encodeURIComponent(accessToken)}`);
       const data = await response.json();
       if (data.status === "new") {
-        saveData = {
-          userId: data.userId,
-          username: data.username,
-          global_name: data.global_name,
-        };
+        saveData = { userId: data.userId, username: data.username, global_name: data.global_name };
         registering = true;
       } else if (data.token) {
         useAuth.set({
@@ -41,14 +33,46 @@
           global_name: data.global_name,
           token: data.token,
         });
-        const baseUrl = `${window.location.protocol}//${window.location.host}/`;
-        window.location.replace(baseUrl);
+        window.location.replace(`${window.location.protocol}//${window.location.host}/`);
       } else {
         error = data.message ?? "Discord authentication failed.";
       }
     } catch (cause) {
       error = (cause as Error).message;
     }
+  }
+
+  async function linkFlow(state: string) {
+    try {
+      const response = await fetch("/server/auth/link/discord/complete", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${auth.token}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ state, access_token: accessToken }),
+      });
+      if (!response.ok) {
+        error = `Link failed: ${await response.text()}`;
+        return;
+      }
+      window.location.replace(`${window.location.protocol}//${window.location.host}/`);
+    } catch (cause) {
+      error = (cause as Error).message;
+    }
+  }
+
+  onMount(async () => {
+    const fragment = location.hash.startsWith("#") ? location.hash.slice(1) : location.search.slice(1);
+    const params = new URLSearchParams(fragment);
+    accessToken = params.get("access_token") ?? "";
+    const state = params.get("state") ?? "";
+    if (!accessToken) {
+      error = "Missing access token from Discord.";
+      return;
+    }
+    if (state.startsWith(LINK_STATE_PREFIX)) {
+      await linkFlow(state);
+      return;
+    }
+    await signInFlow();
   });
 
   async function register() {

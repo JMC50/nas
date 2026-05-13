@@ -8,6 +8,7 @@
   import { notifications } from "$lib/store/notifications.svelte";
   import { claimAdmin } from "$lib/auth-actions";
   import SignInOptions from "$lib/components/Auth/SignInOptions.svelte";
+  import LinkedAccounts from "$lib/components/LinkedAccounts.svelte";
   import type { Intent } from "$lib/types";
 
   const ALL_INTENTS: Intent[] = [
@@ -131,6 +132,10 @@
             <LogOut size="13" />
             Sign out
           </button>
+        </div>
+
+        <div class="mb-4">
+          <LinkedAccounts />
         </div>
 
         <div class="p-5 rounded-lg bg-bg-surface border border-border-default">

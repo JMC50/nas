@@ -44,7 +44,7 @@ func NewRouter(cfg *config.Config, conn *sql.DB) http.Handler {
 		MaxAge:           300,
 	}))
 
-	authHandlers := &auth.Handlers{Config: cfg, DB: conn}
+	authHandlers := &auth.Handlers{Config: cfg, DB: conn, Links: auth.NewLinkStore()}
 	adminHandlers := &admin.Handlers{Config: cfg, DB: conn}
 	fileHandlers := &files.Handlers{Config: cfg, DB: conn}
 	streamHandlers := &stream.Handlers{Config: cfg, DB: conn}
@@ -98,6 +98,11 @@ func NewRouter(cfg *config.Config, conn *sql.DB) http.Handler {
 		r.Post("/requestAdminIntent", adminHandlers.RequestAdminIntent)
 		r.Get("/admin/oauth-config", adminHandlers.GetOAuthConfig)
 		r.Put("/admin/oauth-config", adminHandlers.UpdateOAuthConfig)
+		r.Post("/auth/link/start", authHandlers.LinkStart)
+		r.Post("/auth/link/discord/complete", authHandlers.LinkDiscord)
+		r.Post("/auth/link/google/complete", authHandlers.LinkGoogle)
+		r.Get("/auth/identities", authHandlers.Identities)
+		r.Delete("/auth/identities/{provider}", authHandlers.Unlink)
 		r.Get("/stat", fileHandlers.Stat)
 	})
 

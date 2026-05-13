@@ -21,6 +21,7 @@ var requiredSchema = []tableSchema{
 	{"user_intents", []string{"id", "user_id", "intent"}},
 	{"log", []string{"id", "activity", "description", "user_id", "time", "loc"}},
 	{"server_settings", []string{"key", "value"}},
+	{"user_identities", []string{"user_id", "provider", "external_id"}},
 }
 
 func VerifySchema(conn *sql.DB) error {

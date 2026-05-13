@@ -79,22 +79,28 @@ func googleOK(c OAuthCreds) bool {
 	return c.GoogleClientID != "" && c.GoogleClientSecret != "" && c.GoogleRedirectURI != ""
 }
 
-func discordURL(clientID, redirectURI string) string {
+func discordURL(clientID, redirectURI, state string) string {
 	q := url.Values{
 		"client_id":     {clientID},
 		"response_type": {"token"},
 		"redirect_uri":  {redirectURI},
 		"scope":         {"identify"},
 	}
+	if state != "" {
+		q.Set("state", state)
+	}
 	return "https://discord.com/oauth2/authorize?" + q.Encode()
 }
 
-func googleURL(clientID, redirectURI string) string {
+func googleURL(clientID, redirectURI, state string) string {
 	q := url.Values{
 		"response_type": {"code"},
 		"client_id":     {clientID},
 		"redirect_uri":  {redirectURI},
 		"scope":         {"openid email profile"},
+	}
+	if state != "" {
+		q.Set("state", state)
 	}
 	return "https://accounts.google.com/o/oauth2/v2/auth?" + q.Encode()
 }

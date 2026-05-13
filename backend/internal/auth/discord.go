@@ -52,7 +52,7 @@ func (h *Handlers) DiscordLogin(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "discord lookup failed", http.StatusBadGateway)
 		return
 	}
-	existing, err := db.GetUser(h.DB, user.ID)
+	existing, err := h.resolveOAuth("discord", user.ID)
 	if err != nil {
 		http.Error(w, "db error", http.StatusInternalServerError)
 		return
@@ -99,8 +99,13 @@ func (h *Handlers) DiscordRegister(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "discord lookup failed", http.StatusBadGateway)
 		return
 	}
-	if _, err := db.SaveOAuthUser(h.DB, user.ID, user.Username, user.GlobalName, req.KrName); err != nil {
+	newID, err := db.SaveOAuthUser(h.DB, user.ID, user.Username, user.GlobalName, req.KrName)
+	if err != nil {
 		http.Error(w, "save user failed", http.StatusInternalServerError)
+		return
+	}
+	if err := db.AddIdentity(h.DB, newID, "discord", user.ID); err != nil {
+		http.Error(w, "identity seed failed", http.StatusInternalServerError)
 		return
 	}
 	token, err := IssueToken(user.ID, h.Config.PrivateKey)

@@ -36,6 +36,12 @@ const fullSchema = `
 		key TEXT PRIMARY KEY,
 		value TEXT NOT NULL
 	);
+	CREATE TABLE user_identities (
+		user_id INTEGER NOT NULL,
+		provider TEXT NOT NULL,
+		external_id TEXT NOT NULL,
+		PRIMARY KEY (provider, external_id)
+	);
 `
 
 func TestVerifySchema_AcceptsCurrentSchema(t *testing.T) {

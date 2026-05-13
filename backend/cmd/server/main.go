@@ -35,6 +35,10 @@ func main() {
 		slog.Error("schema verification failed", "err", err)
 		os.Exit(1)
 	}
+	if err := db.Backfill(conn); err != nil {
+		slog.Error("identity backfill failed", "err", err)
+		os.Exit(1)
+	}
 
 	if err := server.Run(cfg, conn); err != nil {
 		slog.Error("server error", "err", err)

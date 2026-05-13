@@ -109,7 +109,7 @@ func (h *Handlers) GoogleLogin(w http.ResponseWriter, r *http.Request) {
 		})
 		return
 	}
-	existing, err := db.GetUser(h.DB, user.ID)
+	existing, err := h.resolveOAuth("google", user.ID)
 	if err != nil {
 		http.Error(w, "db error", http.StatusInternalServerError)
 		return
@@ -156,8 +156,13 @@ func (h *Handlers) GoogleRegister(w http.ResponseWriter, r *http.Request) {
 	if globalName == "" {
 		globalName = req.Username
 	}
-	if _, err := db.SaveOAuthUser(h.DB, req.UserID, req.Username, globalName, req.KrName); err != nil {
+	newID, err := db.SaveOAuthUser(h.DB, req.UserID, req.Username, globalName, req.KrName)
+	if err != nil {
 		http.Error(w, "save user failed", http.StatusInternalServerError)
+		return
+	}
+	if err := db.AddIdentity(h.DB, newID, "google", req.UserID); err != nil {
+		http.Error(w, "identity seed failed", http.StatusInternalServerError)
 		return
 	}
 	token, err := IssueToken(req.UserID, h.Config.PrivateKey)

@@ -12,6 +12,7 @@ import (
 type Handlers struct {
 	Config *config.Config
 	DB     *sql.DB
+	Links  *LinkStore
 }
 
 type registerRequest struct {
@@ -94,10 +95,10 @@ func (h *Handlers) authBody() authConfigBody {
 
 func fillURLs(body *authConfigBody, creds OAuthCreds, discord, google bool) {
 	if discord {
-		body.DiscordLoginURL = discordURL(creds.DiscordClientID, creds.DiscordRedirectURI)
+		body.DiscordLoginURL = discordURL(creds.DiscordClientID, creds.DiscordRedirectURI, "")
 	}
 	if google {
-		body.GoogleLoginURL = googleURL(creds.GoogleClientID, creds.GoogleRedirectURI)
+		body.GoogleLoginURL = googleURL(creds.GoogleClientID, creds.GoogleRedirectURI, "")
 	}
 }
 
@@ -136,8 +137,13 @@ func (h *Handlers) RegisterLocal(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, http.StatusInternalServerError, authResponse{Message: "hash failed"})
 		return
 	}
-	if _, err := db.SaveLocalUser(h.DB, req.UserID, req.Username, hash, req.KrName); err != nil {
+	newID, err := db.SaveLocalUser(h.DB, req.UserID, req.Username, hash, req.KrName)
+	if err != nil {
 		writeJSON(w, http.StatusInternalServerError, authResponse{Message: "Failed to create user"})
+		return
+	}
+	if err := db.AddIdentity(h.DB, newID, "local", req.UserID); err != nil {
+		writeJSON(w, http.StatusInternalServerError, authResponse{Message: "Failed to seed identity"})
 		return
 	}
 	token, err := IssueToken(req.UserID, h.Config.PrivateKey)
@@ -173,12 +179,12 @@ func (h *Handlers) LoginLocal(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := db.GetUser(h.DB, req.UserID)
+	user, err := h.resolveLocal(req.UserID)
 	if err != nil {
 		writeJSON(w, http.StatusInternalServerError, authResponse{Message: "lookup failed"})
 		return
 	}
-	if user == nil || user.AuthType != "local" || !VerifyPassword(req.Password, user.Password) {
+	if user == nil || !VerifyPassword(req.Password, user.Password) {
 		writeJSON(w, http.StatusUnauthorized, authResponse{Message: "Invalid user ID or password"})
 		return
 	}
@@ -342,3 +348,4 @@ func orString(s, fallback string) string {
 	}
 	return s
 }
+

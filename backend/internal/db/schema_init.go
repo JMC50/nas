@@ -38,6 +38,14 @@ CREATE TABLE IF NOT EXISTS server_settings (
 	key TEXT PRIMARY KEY,
 	value TEXT NOT NULL
 );
+CREATE TABLE IF NOT EXISTS user_identities (
+	user_id INTEGER NOT NULL,
+	provider TEXT NOT NULL,
+	external_id TEXT NOT NULL,
+	PRIMARY KEY (provider, external_id),
+	FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+CREATE INDEX IF NOT EXISTS idx_user_identities_user ON user_identities(user_id);
 `
 
 // InitSchema runs CREATE TABLE IF NOT EXISTS for the required tables.

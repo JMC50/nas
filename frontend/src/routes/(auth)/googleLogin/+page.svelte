@@ -1,6 +1,9 @@
 <script lang="ts">
   import { onMount } from "svelte";
   import { useAuth } from "$lib/store/store";
+  import { auth } from "$lib/store/auth.svelte";
+
+  const LINK_STATE_PREFIX = "link.";
 
   interface UserData {
     userId: string;
@@ -14,13 +17,7 @@
   let koreanName = $state("");
   let error = $state("");
 
-  onMount(async () => {
-    const params = new URLSearchParams(location.search);
-    const code = params.get("code");
-    if (!code) {
-      error = "Missing authorization code from Google.";
-      return;
-    }
+  async function signInFlow(code: string) {
     try {
       const response = await fetch(`/server/auth/google/callback?code=${encodeURIComponent(code)}`);
       const data = await response.json();
@@ -40,14 +37,45 @@
           global_name: data.global_name ?? data.username ?? "",
           token: data.token,
         });
-        const baseUrl = `${window.location.protocol}//${window.location.host}/`;
-        window.location.replace(baseUrl);
+        window.location.replace(`${window.location.protocol}//${window.location.host}/`);
       } else {
         error = data.message ?? "Google authentication failed.";
       }
     } catch (cause) {
       error = (cause as Error).message ?? "Network error.";
     }
+  }
+
+  async function linkFlow(state: string, code: string) {
+    try {
+      const response = await fetch("/server/auth/link/google/complete", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${auth.token}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ state, code }),
+      });
+      if (!response.ok) {
+        error = `Link failed: ${await response.text()}`;
+        return;
+      }
+      window.location.replace(`${window.location.protocol}//${window.location.host}/`);
+    } catch (cause) {
+      error = (cause as Error).message ?? "Network error.";
+    }
+  }
+
+  onMount(async () => {
+    const params = new URLSearchParams(location.search);
+    const code = params.get("code");
+    const state = params.get("state") ?? "";
+    if (!code) {
+      error = "Missing authorization code from Google.";
+      return;
+    }
+    if (state.startsWith(LINK_STATE_PREFIX)) {
+      await linkFlow(state, code);
+      return;
+    }
+    await signInFlow(code);
   });
 
   async function register() {

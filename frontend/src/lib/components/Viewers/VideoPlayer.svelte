@@ -7,6 +7,9 @@
   import Volume2 from "lucide-svelte/icons/volume-2";
   import Volume1 from "lucide-svelte/icons/volume-1";
   import VolumeX from "lucide-svelte/icons/volume-x";
+  import Maximize from "lucide-svelte/icons/maximize";
+  import Minimize from "lucide-svelte/icons/minimize";
+  import PictureInPicture2 from "lucide-svelte/icons/picture-in-picture-2";
 
   interface Props {
     loc: string;
@@ -86,9 +89,47 @@
   const VolumeIcon = $derived(
     muted || volume === 0 ? VolumeX : volume < 0.5 ? Volume1 : Volume2,
   );
+
+  let container: HTMLDivElement | null = $state(null);
+  let isFullscreen = $state(false);
+
+  function toggleFullscreen() {
+    if (!container) return;
+    if (document.fullscreenElement === container) {
+      document.exitFullscreen().catch(() => {});
+    } else {
+      container.requestFullscreen().catch(() => {});
+    }
+  }
+
+  function onFullscreenChange() {
+    isFullscreen = document.fullscreenElement === container;
+  }
+
+  async function togglePip() {
+    if (!video) return;
+    try {
+      if (document.pictureInPictureElement === video) {
+        await document.exitPictureInPicture();
+      } else {
+        await video.requestPictureInPicture();
+      }
+    } catch {
+      /* user dismissed or browser blocked — no-op */
+    }
+  }
+
+  const pipSupported = $derived(
+    typeof document !== "undefined" && document.pictureInPictureEnabled,
+  );
+
+  $effect(() => {
+    document.addEventListener("fullscreenchange", onFullscreenChange);
+    return () => document.removeEventListener("fullscreenchange", onFullscreenChange);
+  });
 </script>
 
-<div class="relative h-full w-full bg-black overflow-hidden group">
+<div bind:this={container} class="relative h-full w-full bg-black overflow-hidden group">
   <!-- top bar (filename) -->
   <div
     class="absolute top-0 left-0 right-0 h-9 px-4 flex items-center
@@ -211,6 +252,31 @@
 
       <!-- spacer; later tasks fill the right side -->
       <div class="ml-auto"></div>
+
+      {#if pipSupported}
+        <button
+          type="button"
+          onclick={togglePip}
+          aria-label="Picture in Picture"
+          class="inline-flex items-center justify-center w-9 h-9 rounded
+                 hover:bg-bg-hover hover:text-fg-accent transition-colors"
+        >
+          <PictureInPicture2 size="18" />
+        </button>
+      {/if}
+      <button
+        type="button"
+        onclick={toggleFullscreen}
+        aria-label={isFullscreen ? "Exit fullscreen" : "Fullscreen"}
+        class="inline-flex items-center justify-center w-9 h-9 rounded
+               hover:bg-bg-hover hover:text-fg-accent transition-colors"
+      >
+        {#if isFullscreen}
+          <Minimize size="18" />
+        {:else}
+          <Maximize size="18" />
+        {/if}
+      </button>
     </div>
   </div>
 </div>

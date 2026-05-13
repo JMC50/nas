@@ -70,7 +70,33 @@ const OFFICE_EXTENSIONS = new Set([
   "hwp",
 ]);
 
-export function pickViewer(extension: string): TabKind {
+const ARCHIVE_EXTENSIONS = new Set([
+  "zip",
+  "rar",
+  "7z",
+  "tar",
+  "gz",
+  "tgz",
+  "bz2",
+  "tbz",
+  "tbz2",
+  "xz",
+  "txz",
+  "zst",
+  "lz",
+  "lzma",
+  "jar",
+  "war",
+  "ear",
+  "apk",
+  "deb",
+  "rpm",
+  "dmg",
+  "iso",
+  "cab",
+]);
+
+export function pickViewer(extension: string): TabKind | null {
   const ext = extension.toLowerCase().replace(/^\./, "");
   if (TEXT_EXTENSIONS.has(ext)) return "text";
   if (IMAGE_EXTENSIONS.has(ext)) return "image";
@@ -78,6 +104,7 @@ export function pickViewer(extension: string): TabKind {
   if (AUDIO_EXTENSIONS.has(ext)) return "audio";
   if (PDF_EXTENSIONS.has(ext)) return "pdf";
   if (OFFICE_EXTENSIONS.has(ext)) return "office";
+  if (ARCHIVE_EXTENSIONS.has(ext)) return null;
   return "text";
 }
 

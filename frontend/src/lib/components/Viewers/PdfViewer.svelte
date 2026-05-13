@@ -17,6 +17,8 @@
   let pageCount = $state(0);
   let loading = $state(true);
   let canvases: HTMLCanvasElement[] = [];
+  let rendered = new Set<number>();
+  let observer: IntersectionObserver | null = null;
   // Track in-flight render tasks per page so zoom/rerender can cancel them
   // before starting a new render (PDF.js logs warnings otherwise).
   const renderTasks = new Map<number, import("pdfjs-dist").RenderTask>();
@@ -37,7 +39,6 @@
       loading = false;
       // tick() lets the {#each} below mount canvases before we touch them.
       await tick();
-      await renderPage(1);
     } catch (error) {
       notifications.error(`Failed to load PDF: ${(error as Error).message}`);
       loading = false;
@@ -78,9 +79,50 @@
     }
   }
 
+  async function sizeAllPages() {
+    if (!document_) return;
+    for (let i = 1; i <= pageCount; i++) {
+      const page = await document_.getPage(i);
+      const viewport = page.getViewport({ scale: 1 });
+      const canvas = canvases[i - 1];
+      if (!canvas) continue;
+      const outputScale = window.devicePixelRatio || 1;
+      canvas.width = Math.floor(viewport.width * outputScale);
+      canvas.height = Math.floor(viewport.height * outputScale);
+      canvas.style.width = `${Math.floor(viewport.width)}px`;
+      canvas.style.height = `${Math.floor(viewport.height)}px`;
+    }
+  }
+
+  function setupObs() {
+    observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (!entry.isIntersecting) continue;
+          const pageNumber = Number((entry.target as HTMLElement).dataset.page);
+          if (rendered.has(pageNumber)) continue;
+          rendered.add(pageNumber);
+          renderPage(pageNumber);
+        }
+      },
+      { rootMargin: "200px" },
+    );
+    for (const canvas of canvases) {
+      if (canvas) observer.observe(canvas);
+    }
+  }
+
+  $effect(() => {
+    if (pageCount > 0 && canvases.length === pageCount) {
+      sizeAllPages().then(setupObs);
+    }
+  });
+
   onMount(loadDocument);
 
   onDestroy(() => {
+    observer?.disconnect();
+    observer = null;
     for (const task of renderTasks.values()) task.cancel();
     renderTasks.clear();
     document_?.destroy();
@@ -99,6 +141,7 @@
     {#each Array(pageCount) as _, i (i)}
       <canvas
         bind:this={canvases[i]}
+        data-page={i + 1}
         class="bg-bg-elevated shadow-lg"
       ></canvas>
     {/each}

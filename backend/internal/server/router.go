@@ -3,6 +3,7 @@ package server
 import (
 	"database/sql"
 	"encoding/json"
+	"log"
 	"net/http"
 	"path/filepath"
 	"strings"
@@ -19,6 +20,7 @@ import (
 	"github.com/JMC50/nas/internal/config"
 	"github.com/JMC50/nas/internal/db"
 	"github.com/JMC50/nas/internal/files"
+	"github.com/JMC50/nas/internal/office"
 	"github.com/JMC50/nas/internal/stream"
 	"github.com/JMC50/nas/internal/system"
 	"github.com/JMC50/nas/internal/upload"
@@ -51,6 +53,10 @@ func NewRouter(cfg *config.Config, conn *sql.DB) http.Handler {
 	uploadHandlers := &upload.Handlers{Config: cfg, DB: conn}
 	archiveTracker := archive.NewTracker(1 * time.Hour)
 	archiveHandlers := &archive.Handlers{Config: cfg, DB: conn, Tracker: archiveTracker}
+	officeHandlers, err := office.NewHandlers(cfg, conn)
+	if err != nil {
+		log.Fatalf("office handlers init: %v", err)
+	}
 	requireToken := auth.RequireToken(cfg.PrivateKey)
 
 	// Public root + health.
@@ -122,6 +128,7 @@ func NewRouter(cfg *config.Config, conn *sql.DB) http.Handler {
 	addFileRoute(r, "GET", "/getAudioData", auth.IntentOpen, requireToken, conn, streamHandlers.Audio)
 	addFileRoute(r, "GET", "/getImageData", auth.IntentOpen, requireToken, conn, streamHandlers.Image)
 	addFileRoute(r, "GET", "/download", auth.IntentDownload, requireToken, conn, streamHandlers.Download)
+	addFileRoute(r, "GET", "/getOfficePdf", auth.IntentOpen, requireToken, conn, officeHandlers.GetOfficePdf)
 	r.Get("/img", streamHandlers.Img) // bundled icons — no auth (matches legacy)
 
 	// Legacy upload wrappers (raw body stream)

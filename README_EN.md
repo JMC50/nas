@@ -1,225 +1,176 @@
-# 🚀 Open Source NAS System
+# NAS
 
-Fully automated Docker-based NAS file management system
+A self-hosted, browser-based file server. Go backend, SvelteKit frontend, shipped as a single Docker image.
 
-## ⚡ Key Features
+> 한국어: [README.md](README.md)
 
-- **🔥 One-Click Installation**: Complete setup with `docker-compose up -d`
-- **🔄 Auto-Updates**: Automatic deployment on new releases
-- **🐋 Lightweight Alpine**: Ultra-lightweight image under 250MB
-- **🔒 Enhanced Security**: JWT authentication + non-root execution
-- **📱 Responsive Web UI**: Accessible from all devices
+![File explorer](Docs/screenshots/02-explorer.png)
 
-## 🚨 Important: Fork Required!
+## What it does
 
-To use this project, you **must Fork it to your own account**.
+- **File operations** — browse, upload, download, copy, move, rename, delete, zip/unzip
+- **Resumable uploads** — [tus protocol](https://tus.io) via `tusd/v2`; per-file cap is `MAX_FILE_SIZE` (50 GB by default)
+- **In-browser editor** — Monaco with a Gruvbox theme for inline editing of text and code files
+- **Authentication** — local accounts (bcrypt) plus Discord and Google OAuth, backend is the single source of truth
+- **Permission model** — eight per-user intents (VIEW, OPEN, DOWNLOAD, UPLOAD, COPY, DELETE, RENAME, ADMIN) toggled by admins
+- **Ops surface** — system metrics dashboard (CPU/memory/disk/uptime), activity log, admin UI for OAuth credentials
 
-### Why is Fork necessary?
+## Stack
 
-- 🔧 **Your Own Image**: Use your individual GitHub Container Registry
-- 💰 **Cost Savings**: Prevents bandwidth costs on original repository
-- 🎛️ **Free Customization**: Modify according to your personal requirements
-- 🔄 **Independent Updates**: Manage updates on your own schedule
+| Area | Technology |
+|------|-----------|
+| Backend | Go 1.25 · chi v5 · modernc/sqlite (pure Go) · tusd v2 · gopsutil v3 · golang-jwt v5 |
+| Frontend | SvelteKit (adapter-static) · Svelte 5 runes · Tailwind 4 · Monaco editor · Vite 6 |
+| Design | Gruvbox dark/light · `mode-watcher` · `lucide-svelte` icons |
+| Deployment | Multi-stage Alpine Docker, optional Watchtower auto-update |
+| Storage | Single-file SQLite, schema auto-created and verified on startup |
 
-## 📋 Installation Guide
+Ships as one binary plus a built SPA inside an Alpine image. The pure-Go SQLite driver removes the need for CGO and keeps cross-compilation trivial.
 
-### Step 1: Fork Repository
+## Quick start
+
+### Run with Docker
+
 ```bash
-# Fork this repository to your GitHub account
-# https://github.com/original-author/nas → Click Fork button
-```
-
-### Step 2: Clone Forked Repository
-```bash
-git clone https://github.com/YOUR-USERNAME/nas.git
+git clone https://github.com/<owner>/nas.git
 cd nas
-```
-
-### Step 3: Environment Setup
-```bash
-# Create .env file
 cp .env.example .env
-
-# Edit required settings
-vim .env
+# Edit PRIVATE_KEY and ADMIN_PASSWORD; the rest has sensible defaults.
+docker compose up -d
 ```
 
-**Required modifications:**
-```bash
-# Change to your GitHub repository (important!)
-GITHUB_REPOSITORY=YOUR-USERNAME/nas
+Open `http://localhost:7777`, register, then claim admin from the account menu (top-right) → **Request admin**. The request is gated by `ADMIN_PASSWORD`, so any user that knows it is promoted on the spot. The same panel is offered inline from the friendly 403 view when a non-admin lands on an admin-only screen.
 
-# Change secret key (security essential!)
-JWT_SECRET=your-random-64-character-string
-
-# Change admin password
-ADMIN_PASSWORD=your-secure-password
-
-# Data storage path
-DATA_PATH=./data
-```
-
-### Step 4: One-Click Installation
-```bash
-# Run automated setup script
-chmod +x scripts/setup.sh
-./scripts/setup.sh
-
-# Or run directly
-docker-compose up -d
-```
-
-### Step 5: Access Verification
-```bash
-# Access web interface
-http://localhost:7777
-
-# Check status
-docker-compose ps
-```
-
-## 🔄 Auto-Update System
-
-### How It Works
-1. **Push code** to your forked repository
-2. **GitHub Actions** automatically builds image
-3. **Your GHCR** stores the image
-4. **Watchtower** checks every 5 minutes for auto-updates
-
-### Update Flow
-```bash
-# Developer (you)
-git add . && git commit -m "feat: add new feature"
-git push origin main
-
-# After 5 minutes automatically...
-# 1. GitHub Actions starts building
-# 2. New image pushed to ghcr.io/YOUR-USERNAME/nas:latest
-# 3. Watchtower detects on all running servers
-# 4. Zero-downtime update completes automatically ✨
-```
-
-## 🛠️ Management Commands
+### Local development
 
 ```bash
-# View logs
-docker-compose logs -f
+# Backend
+cd backend
+go run ./cmd/server
 
-# Restart service
-docker-compose restart
-
-# Manual update
-docker-compose pull && docker-compose up -d
-
-# Stop service
-docker-compose down
-
-# Full upgrade (using script)
-./scripts/setup.sh --upgrade
+# Frontend (separate terminal)
+cd frontend
+npm install
+npm run dev    # Vite proxies /server/* to the Go server on :7777
 ```
 
-## 📊 System Requirements
+## Screenshots
 
-- **OS**: Linux, macOS, Windows (Docker-supported environment)
-- **RAM**: Minimum 512MB, recommended 1GB
-- **Storage**: Minimum 1GB (data separate)
-- **Docker**: 20.10+
-- **Docker Compose**: 2.0+
+### File explorer
 
-## 🔧 Advanced Settings
+VSCode-style layout: left rail, top tab bar, status bar at the bottom.
 
-### Change Port
+| Root | Inside a folder |
+|------|----------------|
+| ![Root](Docs/screenshots/02-explorer.png) | ![Folder](Docs/screenshots/03-explorer-folder.png) |
+
+### System dashboard
+
+`gopsutil`-backed metrics, polled every five seconds, plotted as a sparkline over a sixty-sample (~5 min) sliding window.
+
+![System metrics](Docs/screenshots/04-system.png)
+
+### User and permission management
+
+An admin toggles each of the eight intents per user. Holding the ADMIN intent is itself the gate for the admin views.
+
+![User permissions](Docs/screenshots/05-users.png)
+
+### OAuth configuration (admin)
+
+Discord and Google credentials are stored in the database at runtime. The frontend has no build-time environment dependencies for OAuth.
+
+![Settings — Server](Docs/screenshots/06-settings-server.png)
+
+### Quick Open (`Ctrl+P`)
+
+Fuzzy-search across open tabs and registered views.
+
+![Quick Open](Docs/screenshots/07-quickopen.png)
+
+### Sign-in
+
+If OAuth providers are configured, their buttons appear above the local sign-in form.
+
+![Sign-in](Docs/screenshots/01-login.png)
+
+## Environment variables
+
+| Variable | Default | Purpose |
+|----------|---------|---------|
+| `PORT` | `7777` | HTTP listen port |
+| `DATA_PATH` | `./data` | Host-side data root used by the Compose volume mounts |
+| `PRIVATE_KEY` / `JWT_SECRET` | (required) | JWT signing key; ≥ 32 bytes recommended |
+| `ADMIN_PASSWORD` | (required) | Gates the `Request admin` endpoint |
+| `AUTH_TYPE` | `both` | `local`, `oauth`, or `both` |
+| `CORS_ORIGIN` | `*` | Allowed CORS origin |
+| `MAX_FILE_SIZE` | `50gb` | Per-upload cap |
+| `DISCORD_CLIENT_ID/SECRET/REDIRECT_URI` | — | Bootstrap values; admin UI can overwrite them at runtime |
+| `GOOGLE_CLIENT_ID/SECRET/REDIRECT_URI` | — | Same |
+| `TZ` | `UTC` | Container timezone |
+
+See [`.env.example`](.env.example) for the full list.
+
+## Architecture
+
+```
+┌──────────────────────────────────────────────────────┐
+│                     Browser (SPA)                     │
+│  SvelteKit static · Tailwind · Monaco · Svelte 5      │
+└──────────────────────────────────────────────────────┘
+                          │  HTTP/JSON, tus
+                          ▼
+┌──────────────────────────────────────────────────────┐
+│                Go server (single binary)              │
+│  chi router · JWT middleware · intent middleware      │
+│  ├─ /auth/*        local & OAuth                      │
+│  ├─ /files, /readFolder, /saveTextFile …  file ops    │
+│  ├─ /files/*       tus resumable uploads              │
+│  ├─ /getVideoData, /getAudioData, /download  streams  │
+│  ├─ /admin/oauth-config, /authorize  admin            │
+│  ├─ /getSystemInfo  gopsutil metrics                  │
+│  └─ /  SPA (adapter-static) static fallback           │
+└──────────────────────────────────────────────────────┘
+        │                                       │
+        ▼                                       ▼
+┌────────────────────┐                ┌────────────────────┐
+│  SQLite (modernc)  │                │  Filesystem        │
+│  users, intents,   │                │  /data/nas         │
+│  activity_log,     │                │  /data/nas-admin   │
+│  oauth_config      │                │  /tmp/nas (tus staging) │
+└────────────────────┘                └────────────────────┘
+```
+
+The complete route table lives in one file: [`backend/internal/server/router.go`](backend/internal/server/router.go).
+
+## Development
+
 ```bash
-# In .env file
-PORT=8080
+# Backend tests (includes integration)
+cd backend
+go test ./...
+
+# Frontend type-check
+cd frontend
+npm run check
+
+# Production build of both
+cd backend && go build -o bin/server ./cmd/server
+cd frontend && npm run build
 ```
 
-### Change Data Path
+Further docs: [`Docs/`](Docs/README.md).
+
+## Auto-update (optional)
+
+Watchtower polls GHCR every five minutes and performs a rolling restart on image change. Disabled by default — opt in explicitly:
+
 ```bash
-# In .env file
-DATA_PATH=/mnt/nas-storage
+docker compose --profile autoupdate up -d
 ```
 
-### Change Update Frequency
-```bash
-# In .env file (in seconds)
-WATCHTOWER_POLL_INTERVAL=1800  # Every 30 minutes
-```
+`.github/workflows/build-and-deploy.yml` builds the image on every push to `main` and pushes it to `ghcr.io/<owner>/nas:latest`. To run this from your own fork, set `GITHUB_REPOSITORY` and flip the GHCR package visibility to public.
 
-### Disable Watchtower
-```bash
-# Comment out watchtower service in docker-compose.yml
-# watchtower:
-#   image: containrrr/watchtower:latest
-#   ...
-```
+## License
 
-## 🐛 Troubleshooting
-
-### Image Not Found
-```bash
-# Check GITHUB_REPOSITORY in .env
-GITHUB_REPOSITORY=YOUR-USERNAME/nas  # Correct repository name
-
-# Verify GitHub Container Registry is public
-# GitHub → Your Repository → Packages → nas → Package settings → Change visibility
-```
-
-### Auto-Updates Not Working
-```bash
-# Check Watchtower logs
-docker-compose logs watchtower
-
-# Test manual update
-docker-compose pull
-```
-
-### Port Conflicts
-```bash
-# Use different port in .env
-PORT=8080
-
-# Restart
-docker-compose down && docker-compose up -d
-```
-
-## 🤝 Contributing Guide
-
-1. Register issue or request feature
-2. Create development branch in your Fork
-3. Develop and test features
-4. Create Pull Request to original repository
-
-## 📄 License
-
-MIT License - See [LICENSE](LICENSE) for details
-
-## ⚠️ Important Notes
-
-- **Security**: Always change JWT_SECRET and ADMIN_PASSWORD
-- **Backup**: Perform regular data backups
-- **Monitoring**: Periodically check system resource usage
-- **Updates**: Data backup recommended before major updates
-
----
-
-## 📚 Advanced Features & Developer Documentation
-
-Beyond this simple installation guide, advanced features are available:
-
-- **🔐 OAuth Authentication**: Social login integration with Discord, Kakao
-- **👥 User Management**: Permission-based access control system
-- **🎨 Frontend Development**: Svelte 5 + TypeScript architecture
-- **🛠️ Backend API**: Complete REST API with Express.js + SQLite
-- **🚀 Multiple Deployment Options**: PM2, systemd, manual installation options
-
-For detailed information, see **[📖 Complete Documentation](Docs/README.md)**.
-
-## 💡 Need Help?
-
-- 📚 **Complete Documentation**: [Docs Folder](Docs/README.md) - All features and configuration guides
-- 🐛 **Bug Reports**: Register [Issues](../../issues)
-- 💬 **Questions**: Use [Discussions](../../discussions)
-- 🇰🇷 **Korean Version**: [README.md](README.md)
-
-**Happy NAS Life! 🎉**
+MIT.

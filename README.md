@@ -1,225 +1,176 @@
-# 🚀 오픈소스 NAS 시스템
+# NAS
 
-완전 자동화된 Docker 기반 NAS 파일 관리 시스템
+브라우저로 접속하는 셀프호스트 파일 서버. Go 백엔드와 SvelteKit 프론트엔드, Docker 이미지 한 개로 배포합니다.
 
-## ⚡ 주요 특징
+> English version: [README_EN.md](README_EN.md)
 
-- **🔥 원클릭 설치**: `docker-compose up -d` 한 번으로 완료
-- **🔄 자동 업데이트**: 새 버전 릴리스 시 자동 배포
-- **🐋 경량 Alpine**: 250MB 이하 초경량 이미지
-- **🔒 보안 강화**: JWT 인증 + non-root 실행
-- **📱 반응형 웹UI**: 모든 디바이스에서 접근 가능
+![File explorer](Docs/screenshots/02-explorer.png)
 
-## 🚨 중요: Fork 필수!
+## 무엇을 할 수 있나
 
-이 프로젝트를 사용하려면 **반드시 본인 계정으로 Fork**해야 합니다.
+- **파일 관리** — 폴더 탐색, 업/다운로드, 복사·이동·이름변경·삭제, ZIP 압축/해제
+- **재개 가능한 업로드** — [tus 프로토콜](https://tus.io) (`tusd/v2`) 기반, 단일 파일 상한은 `MAX_FILE_SIZE`(기본 50GB)
+- **에디터 내장** — Monaco 에디터(Gruvbox 테마)로 텍스트/코드 파일 인라인 편집
+- **인증** — 로컬 계정(bcrypt) + Discord OAuth + Google OAuth, 백엔드가 단일 출처
+- **권한 모델** — VIEW · OPEN · DOWNLOAD · UPLOAD · COPY · DELETE · RENAME · ADMIN 8종을 사용자별로 토글
+- **운영 도구** — 시스템 지표 대시보드(CPU/메모리/디스크/업타임), 활동 로그, 관리자용 OAuth 자격증명 UI
 
-### 왜 Fork가 필요한가요?
+## 기술 스택
 
-- 🔧 **본인만의 이미지**: 각자의 GitHub Container Registry 사용
-- 💰 **비용 절약**: 원본 저장소 대역폭 비용 방지
-- 🎛️ **자유로운 커스터마이징**: 개인 요구사항에 맞게 수정 가능
-- 🔄 **독립적인 업데이트**: 본인 일정에 맞춰 업데이트 관리
+| 영역 | 사용 기술 |
+|------|----------|
+| 백엔드 | Go 1.25 · chi v5 · modernc/sqlite(순수 Go) · tusd v2 · gopsutil v3 · golang-jwt v5 |
+| 프론트엔드 | SvelteKit (adapter-static) · Svelte 5 runes · Tailwind 4 · Monaco editor · Vite 6 |
+| 디자인 | Gruvbox dark/light · `mode-watcher` · `lucide-svelte` 아이콘 |
+| 배포 | 멀티스테이지 Docker(Alpine), Watchtower 옵셔널 자동 업데이트 |
+| 저장소 | SQLite 단일 파일, 시작 시 스키마 자동 생성·검증 |
 
-## 📋 설치 가이드
+단일 바이너리 + 빌드된 프론트엔드를 Alpine 이미지 하나에 담아 배포합니다. CGO 없이 빌드되므로 크로스 컴파일이 단순합니다.
 
-### 1단계: Repository Fork
+## 빠른 시작
+
+### Docker로 실행 (권장)
+
 ```bash
-# GitHub에서 이 저장소를 본인 계정으로 Fork
-# https://github.com/original-author/nas → Fork 버튼 클릭
-```
-
-### 2단계: Fork된 저장소 클론
-```bash
-git clone https://github.com/YOUR-USERNAME/nas.git
+git clone https://github.com/<owner>/nas.git
 cd nas
-```
-
-### 3단계: 환경 설정
-```bash
-# .env 파일 생성
 cp .env.example .env
-
-# 필수 설정 수정
-vim .env
+# .env 에서 PRIVATE_KEY, ADMIN_PASSWORD 만 수정해도 동작
+docker compose up -d
 ```
 
-**수정 필요한 항목들:**
-```bash
-# 본인의 GitHub 저장소로 변경 (중요!)
-GITHUB_REPOSITORY=YOUR-USERNAME/nas
+`http://localhost:7777` 에서 회원가입 후 사용. 헤더 우측의 계정 아이콘 → **Request admin** 으로 관리자 권한을 신청할 수 있습니다(`ADMIN_PASSWORD` 와 일치하는 비밀번호 입력 시 즉시 부여). 관리자 화면에 직접 접근하는 경우에도 동일한 신청 패널이 403 화면에서 노출됩니다.
 
-# 시크릿 키 변경 (보안 필수!)
-JWT_SECRET=your-random-64-character-string
-
-# 관리자 비밀번호 변경
-ADMIN_PASSWORD=your-secure-password
-
-# 데이터 저장 경로
-DATA_PATH=./data
-```
-
-### 4단계: 원클릭 설치
-```bash
-# 자동 설치 스크립트 실행
-chmod +x scripts/setup.sh
-./scripts/setup.sh
-
-# 또는 직접 실행
-docker-compose up -d
-```
-
-### 5단계: 접속 확인
-```bash
-# 웹 인터페이스 접속
-http://localhost:7777
-
-# 상태 확인
-docker-compose ps
-```
-
-## 🔄 자동 업데이트 시스템
-
-### 작동 원리
-1. **본인이 Fork한 저장소**에 코드 push
-2. **GitHub Actions**가 자동으로 이미지 빌드
-3. **본인의 GHCR**에 이미지 저장
-4. **Watchtower**가 5분마다 체크하여 자동 업데이트
-
-### 업데이트 흐름
-```bash
-# 개발자 (본인)
-git add . && git commit -m "feature: 새 기능 추가"
-git push origin main
-
-# 5분 후 자동으로...
-# 1. GitHub Actions 빌드 시작
-# 2. 새 이미지가 ghcr.io/YOUR-USERNAME/nas:latest로 푸시
-# 3. 운영 중인 모든 서버에서 Watchtower가 감지
-# 4. 자동으로 무중단 업데이트 완료 ✨
-```
-
-## 🛠️ 관리 명령어
+### 로컬 개발
 
 ```bash
-# 로그 확인
-docker-compose logs -f
+# 백엔드
+cd backend
+go run ./cmd/server
 
-# 서비스 재시작
-docker-compose restart
-
-# 수동 업데이트
-docker-compose pull && docker-compose up -d
-
-# 서비스 중지
-docker-compose down
-
-# 전체 업그레이드 (스크립트 사용)
-./scripts/setup.sh --upgrade
+# 프론트엔드 (다른 터미널)
+cd frontend
+npm install
+npm run dev    # Vite 가 백엔드 7777 로 /server/* 프록시
 ```
 
-## 📊 시스템 요구사항
+## 스크린샷
 
-- **OS**: Linux, macOS, Windows (Docker 지원 환경)
-- **RAM**: 최소 512MB, 권장 1GB
-- **Storage**: 최소 1GB (데이터 별도)
-- **Docker**: 20.10+ 
-- **Docker Compose**: 2.0+
+### 파일 탐색기
 
-## 🔧 고급 설정
+루트 그리드 뷰와 하위 폴더 진입 모습. VSCode 패턴의 좌측 네비게이션, 상단 탭, 하단 상태바로 구성됩니다.
 
-### 포트 변경
+| 루트 | 하위 폴더 |
+|------|----------|
+| ![Root](Docs/screenshots/02-explorer.png) | ![Folder](Docs/screenshots/03-explorer-folder.png) |
+
+### 시스템 대시보드
+
+`gopsutil` 기반 실시간 지표. 5초마다 폴링하여 60샘플(=5분) 슬라이딩 윈도우를 스파크라인으로 보여줍니다.
+
+![System metrics](Docs/screenshots/04-system.png)
+
+### 사용자/권한 관리
+
+관리자가 사용자별로 8개 인텐트를 토글합니다. ADMIN 인텐트는 그 자체로 관리자 화면 접근 권한입니다.
+
+![User permissions](Docs/screenshots/05-users.png)
+
+### OAuth 설정 (관리자)
+
+Discord/Google 자격증명을 런타임에 DB에 저장합니다. 프론트엔드는 빌드 시점 환경 변수에 의존하지 않습니다.
+
+![Settings — Server](Docs/screenshots/06-settings-server.png)
+
+### Quick Open (`Ctrl+P`)
+
+열린 탭과 등록된 화면을 한 번에 검색합니다.
+
+![Quick Open](Docs/screenshots/07-quickopen.png)
+
+### 로그인
+
+OAuth 제공자가 설정된 경우 로컬 로그인 위에 함께 노출됩니다.
+
+![Sign-in](Docs/screenshots/01-login.png)
+
+## 환경 변수
+
+| 변수 | 기본값 | 설명 |
+|------|--------|------|
+| `PORT` | `7777` | HTTP 리스닝 포트 |
+| `DATA_PATH` | `./data` | 호스트 측 데이터 루트 (Docker 마운트 기준) |
+| `PRIVATE_KEY` / `JWT_SECRET` | (필수) | JWT 서명 키. 32바이트 이상 권장 |
+| `ADMIN_PASSWORD` | (필수) | `Request admin` 호출 시 검증되는 비밀번호 |
+| `AUTH_TYPE` | `both` | `local`, `oauth`, `both` 중 선택 |
+| `CORS_ORIGIN` | `*` | CORS 허용 오리진 |
+| `MAX_FILE_SIZE` | `50gb` | 단일 업로드 상한 |
+| `DISCORD_CLIENT_ID/SECRET/REDIRECT_URI` | — | OAuth 부트스트랩용. 이후 관리자 UI 로 덮어쓰기 가능 |
+| `GOOGLE_CLIENT_ID/SECRET/REDIRECT_URI` | — | 동일 |
+| `TZ` | `UTC` | 컨테이너 타임존 |
+
+전체 목록은 [`.env.example`](.env.example) 을 참고하세요.
+
+## 아키텍처
+
+```
+┌──────────────────────────────────────────────────────┐
+│                     Browser (SPA)                     │
+│  SvelteKit static · Tailwind · Monaco · Svelte 5      │
+└──────────────────────────────────────────────────────┘
+                          │  HTTP/JSON, tus
+                          ▼
+┌──────────────────────────────────────────────────────┐
+│                Go server (single binary)              │
+│  chi router · JWT middleware · intent middleware      │
+│  ├─ /auth/*        local & OAuth                      │
+│  ├─ /files, /readFolder, /saveTextFile …  파일 조작    │
+│  ├─ /files/*       tus 재개 업로드                     │
+│  ├─ /getVideoData, /getAudioData, /download  스트리밍 │
+│  ├─ /admin/oauth-config, /authorize  관리자           │
+│  ├─ /getSystemInfo  gopsutil 메트릭                   │
+│  └─ /  SPA(adapter-static) 정적 서빙                  │
+└──────────────────────────────────────────────────────┘
+        │                                       │
+        ▼                                       ▼
+┌────────────────────┐                ┌────────────────────┐
+│  SQLite (modernc)  │                │  filesystem        │
+│  users, intents,   │                │  /data/nas         │
+│  activity_log,     │                │  /data/nas-admin   │
+│  oauth_config      │                │  /tmp/nas (tus 스테이징) │
+└────────────────────┘                └────────────────────┘
+```
+
+라우터 전체 정의는 [`backend/internal/server/router.go`](backend/internal/server/router.go) 한 파일에 모여 있습니다.
+
+## 개발
+
 ```bash
-# .env 파일에서
-PORT=8080
+# 백엔드 테스트 (integration 포함)
+cd backend
+go test ./...
+
+# 프론트엔드 타입 체크
+cd frontend
+npm run check
+
+# 전체 프로덕션 빌드
+cd backend && go build -o bin/server ./cmd/server
+cd frontend && npm run build
 ```
 
-### 데이터 경로 변경
+자세한 문서: [`Docs/`](Docs/README.md).
+
+## 자동 업데이트 (옵션)
+
+Watchtower 가 5분마다 GHCR 이미지 변경을 감지해 무중단 롤링 재시작을 수행합니다. 기본은 비활성화이며 명시적으로 켭니다.
+
 ```bash
-# .env 파일에서
-DATA_PATH=/mnt/nas-storage
+docker compose --profile autoupdate up -d
 ```
 
-### 업데이트 주기 변경
-```bash
-# .env 파일에서 (초 단위)
-WATCHTOWER_POLL_INTERVAL=1800  # 30분마다
-```
+GitHub Actions(`.github/workflows/build-and-deploy.yml`)가 main 브랜치 push 마다 이미지를 빌드해 `ghcr.io/<owner>/nas:latest` 로 푸시합니다. 본인 계정에서 사용하려면 저장소를 fork 한 뒤 `GITHUB_REPOSITORY` 환경 변수와 GHCR 패키지 가시성을 본인 것으로 맞춰 주세요.
 
-### Watchtower 비활성화
-```bash
-# docker-compose.yml에서 watchtower 서비스 주석 처리
-# watchtower:
-#   image: containrrr/watchtower:latest
-#   ...
-```
+## 라이선스
 
-## 🐛 문제 해결
-
-### 이미지를 찾을 수 없음
-```bash
-# .env에서 GITHUB_REPOSITORY 확인
-GITHUB_REPOSITORY=YOUR-USERNAME/nas  # 정확한 저장소명
-
-# GitHub Container Registry가 public인지 확인
-# GitHub → 본인 저장소 → Packages → nas → Package settings → Change visibility
-```
-
-### 자동 업데이트 안됨
-```bash
-# Watchtower 로그 확인
-docker-compose logs watchtower
-
-# 수동으로 업데이트 테스트
-docker-compose pull
-```
-
-### 포트 충돌
-```bash
-# .env에서 다른 포트 사용
-PORT=8080
-
-# 재시작
-docker-compose down && docker-compose up -d
-```
-
-## 🤝 기여 가이드
-
-1. 이슈 등록 또는 기능 요청
-2. 본인 Fork에서 개발 브랜치 생성
-3. 기능 개발 및 테스트
-4. 원본 저장소에 Pull Request
-
-## 📄 라이선스
-
-MIT License - 자세한 내용은 [LICENSE](LICENSE) 참조
-
-## ⚠️ 주의사항
-
-- **보안**: JWT_SECRET과 ADMIN_PASSWORD를 반드시 변경하세요
-- **백업**: 정기적으로 데이터 백업을 수행하세요
-- **모니터링**: 시스템 리소스 사용량을 주기적으로 확인하세요
-- **업데이트**: 주요 업데이트 전에는 데이터 백업을 권장합니다
-
----
-
-## 📚 고급 기능 및 개발자 문서
-
-이 간단한 설치 가이드 외에도 다음과 같은 고급 기능들이 제공됩니다:
-
-- **🔐 OAuth 인증**: Discord, Kakao 등 소셜 로그인 연동
-- **👥 사용자 관리**: 권한 기반 접근 제어 시스템  
-- **🎨 프론트엔드 개발**: Svelte 5 + TypeScript 아키텍처
-- **🛠️ 백엔드 API**: Express.js + SQLite 완전한 REST API
-- **🚀 다양한 배포 방식**: PM2, systemd, 수동 설치 옵션
-
-자세한 내용은 **[📖 완전한 문서](Docs/README.md)**를 참조하세요.
-
-## 💡 도움이 필요하신가요?
-
-- 📚 **완전한 문서**: [Docs 폴더](Docs/README.md) - 모든 기능과 설정 가이드
-- 🐛 **버그 리포트**: [Issues](../../issues) 등록
-- 💬 **질문**: [Discussions](../../discussions) 활용
-- 🌐 **English Version**: [README_EN.md](README_EN.md)
-
-**즐거운 NAS 라이프 되세요! 🎉**
+MIT.

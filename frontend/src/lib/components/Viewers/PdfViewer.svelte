@@ -15,9 +15,10 @@
   interface Props {
     loc: string;
     name: string;
+    urlOverride?: string;
   }
 
-  let { loc, name }: Props = $props();
+  let { loc, name, urlOverride }: Props = $props();
 
   let document_: import("pdfjs-dist").PDFDocumentProxy | null = $state(null);
   let pageCount = $state(0);
@@ -32,7 +33,8 @@
   const renderTasks = new Map<number, import("pdfjs-dist").RenderTask>();
 
   const pdfUrl = $derived(
-    `/server/download?token=${encodeURIComponent(auth.token)}&loc=${encodeURIComponent(loc)}&name=${encodeURIComponent(name)}`,
+    urlOverride ??
+      `/server/download?token=${encodeURIComponent(auth.token)}&loc=${encodeURIComponent(loc)}&name=${encodeURIComponent(name)}`,
   );
 
   async function loadDocument() {

@@ -190,6 +190,7 @@
   const IDLE_HIDE_MS = 2500;
 
   let controlsVisible = $state(true);
+  // plain let — not reactive, holds setTimeout handle only
   let idleTimer: number | null = null;
 
   function showControls() {

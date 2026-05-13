@@ -47,7 +47,7 @@
     if (!audio) return;
     currentTime = audio.currentTime;
   }
-  function onMeta() {
+  function onLoadedMetadata() {
     if (!audio) return;
     duration = audio.duration;
   }
@@ -56,7 +56,7 @@
     const ranges = audio.buffered;
     buffered = ranges.length > 0 ? ranges.end(ranges.length - 1) : 0;
   }
-  function onVolume() {
+  function onVolumeChange() {
     if (!audio) return;
     volume = audio.volume;
     muted = audio.muted;
@@ -203,9 +203,9 @@
     onplay={onPlay}
     onpause={onPause}
     ontimeupdate={onTimeUpdate}
-    onloadedmetadata={onMeta}
+    onloadedmetadata={onLoadedMetadata}
     onprogress={onProgress}
-    onvolumechange={onVolume}
+    onvolumechange={onVolumeChange}
     class="hidden"
   ></audio>
 </div>

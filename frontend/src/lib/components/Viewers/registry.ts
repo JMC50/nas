@@ -107,22 +107,3 @@ export function pickViewer(extension: string): TabKind | null {
   if (ARCHIVE_EXTENSIONS.has(ext)) return null;
   return "text";
 }
-
-export function viewerIconName(kind: TabKind): string {
-  switch (kind) {
-    case "text":
-      return "file-text";
-    case "image":
-      return "image";
-    case "video":
-      return "film";
-    case "audio":
-      return "music";
-    case "pdf":
-      return "file-type";
-    case "office":
-      return "file-text";
-    default:
-      return "file";
-  }
-}

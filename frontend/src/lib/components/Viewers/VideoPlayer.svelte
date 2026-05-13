@@ -1,7 +1,7 @@
 <!-- frontend/src/lib/components/Viewers/VideoPlayer.svelte -->
 <script lang="ts">
   import { auth } from "$lib/store/auth.svelte";
-  import { formatTime, clampVolume } from "./media-utils";
+  import { formatTime, clampVolume, pickMediaKey } from "./media-utils";
   import Play from "lucide-svelte/icons/play";
   import Pause from "lucide-svelte/icons/pause";
   import Volume2 from "lucide-svelte/icons/volume-2";
@@ -155,6 +155,34 @@
       document.addEventListener("click", closeMenu);
       return () => document.removeEventListener("click", closeMenu);
     }
+  });
+
+  const SEEK_STEP = 5;
+  const VOLUME_STEP = 0.1;
+
+  function onKeyDown(event: KeyboardEvent) {
+    if (!video) return;
+    const target = event.target as HTMLElement;
+    if (target.matches("input, textarea, [contenteditable='true']")) return;
+
+    const key = pickMediaKey(event);
+    if (!key) return;
+    event.preventDefault();
+
+    switch (key) {
+      case "toggle": toggle(); break;
+      case "mute": toggleMute(); break;
+      case "fullscreen": toggleFullscreen(); break;
+      case "seekBack": video.currentTime = Math.max(0, video.currentTime - SEEK_STEP); break;
+      case "seekForward": video.currentTime = Math.min(duration, video.currentTime + SEEK_STEP); break;
+      case "volumeUp": video.volume = clampVolume(video.volume + VOLUME_STEP); video.muted = false; break;
+      case "volumeDown": video.volume = clampVolume(video.volume - VOLUME_STEP); break;
+    }
+  }
+
+  $effect(() => {
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
   });
 </script>
 

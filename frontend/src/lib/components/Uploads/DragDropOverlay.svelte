@@ -10,7 +10,7 @@
   let visible = $state(false);
   let dragDepth = 0;
 
-  const currentLocStr = $derived.by(() => {
+  const currentPath = $derived.by(() => {
     const a = tabs.active;
     if (a?.kind !== "explorer") return null;
     const p = a.payload as ExplorerPayload | null;
@@ -23,14 +23,14 @@
   }
 
   function onDragEnter(event: DragEvent) {
-    if (!hasFiles(event) || currentLocStr === null) return;
+    if (!hasFiles(event) || currentPath === null) return;
     event.preventDefault();
     dragDepth++;
     visible = true;
   }
 
   function onDragOver(event: DragEvent) {
-    if (!hasFiles(event) || currentLocStr === null) return;
+    if (!hasFiles(event) || currentPath === null) return;
     event.preventDefault();
   }
 
@@ -80,12 +80,12 @@
   }
 
   async function onDrop(event: DragEvent) {
-    if (!hasFiles(event) || currentLocStr === null) return;
+    if (!hasFiles(event) || currentPath === null) return;
     event.preventDefault();
     visible = false;
     dragDepth = 0;
 
-    const here = currentLocStr;
+    const here = currentPath;
     const collected: CollectedFile[] = [];
 
     const items = event.dataTransfer?.items;
@@ -135,7 +135,7 @@
   });
 </script>
 
-{#if visible && currentLocStr !== null}
+{#if visible && currentPath !== null}
   <div
     class="fixed inset-0 z-50 flex items-center justify-center bg-bg-base/80 backdrop-blur-sm pointer-events-none"
   >
@@ -144,7 +144,7 @@
     >
       <Upload size="48" class="text-accent" />
       <div class="text-lg text-fg-primary font-semibold">Drop files or folders to upload</div>
-      <div class="text-sm text-fg-muted font-mono">{currentLocStr}</div>
+      <div class="text-sm text-fg-muted font-mono">{currentPath}</div>
     </div>
   </div>
 {/if}

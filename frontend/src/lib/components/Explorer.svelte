@@ -3,9 +3,7 @@
   import Folder from "lucide-svelte/icons/folder";
   import { files } from "$lib/store/files.svelte";
   import { tabs } from "$lib/store/tabs.svelte";
-  import { uploads } from "$lib/store/uploads.svelte";
   import { notifications } from "$lib/store/notifications.svelte";
-  import { pumpQueue } from "$lib/upload-worker";
   import { pickViewer } from "$lib/components/Viewers/registry";
   import Toolbar from "$lib/components/Explorer/Toolbar.svelte";
   import Breadcrumb from "$lib/components/Explorer/Breadcrumb.svelte";
@@ -28,6 +26,8 @@
     performMove,
     locsEqual,
   } from "$lib/components/Explorer/drag-drop";
+  import { enqueueFiles, enqueueFolder } from "$lib/components/Explorer/uploads";
+  import { useBackButton } from "$lib/components/Explorer/back-button";
   import type { FolderEntry } from "$lib/components/Explorer/icon-for";
   import type { ExplorerPayload } from "$lib/types";
 
@@ -58,7 +58,7 @@
     }),
   );
 
-  const currentFolderName = $derived(loc.length === 0 ? "Home" : loc[loc.length - 1]);
+  const folderName = $derived(loc.length === 0 ? "Home" : loc[loc.length - 1]);
 
   async function refresh() {
     loading = true;
@@ -105,7 +105,11 @@
     navigateTo(loc.slice(0, -1));
   }
 
-  function triggerDownload(entry: FolderEntry) {
+  function download(entry: FolderEntry) {
+    if (entry.isFolder) {
+      notifications.info("Folder download not implemented yet.");
+      return;
+    }
     const anchor = document.createElement("a");
     anchor.href = downloadUrl(loc, entry);
     anchor.download = entry.name;
@@ -123,7 +127,7 @@
     const kind = pickViewer(entry.extensions);
     if (kind === null) {
       notifications.info(`No preview for .${entry.extensions} — downloading instead.`);
-      triggerDownload(entry);
+      download(entry);
       return;
     }
     tabs.open({
@@ -136,33 +140,11 @@
   }
 
   function onPick(event: Event) {
-    const input = event.target as HTMLInputElement;
-    if (!input.files || input.files.length === 0) return;
-    const here = locPath(loc);
-    for (const file of input.files) {
-      uploads.enqueue({ file, loc: here, filename: file.name });
-    }
-    pumpQueue();
-    input.value = "";
+    enqueueFiles(loc, event.target as HTMLInputElement);
   }
 
   function onPickFolder(event: Event) {
-    const input = event.target as HTMLInputElement;
-    if (!input.files || input.files.length === 0) return;
-    const hereStr = locPath(loc);
-    for (const file of input.files) {
-      const rel = (file as File & { webkitRelativePath?: string }).webkitRelativePath ?? file.name;
-      const parts = rel.split("/").slice(0, -1);
-      const fileLoc =
-        parts.length > 0
-          ? hereStr === "/"
-            ? "/" + parts.join("/")
-            : hereStr + "/" + parts.join("/")
-          : hereStr;
-      uploads.enqueue({ file, loc: fileLoc, filename: file.name });
-    }
-    pumpQueue();
-    input.value = "";
+    enqueueFolder(loc, event.target as HTMLInputElement);
   }
 
   async function runMutation(action: () => Promise<void>, errorLabel: string) {
@@ -191,37 +173,29 @@
     runMutation(() => renameEntry(loc, entry, next), "Rename failed");
   }
 
-  function download(entry: FolderEntry) {
-    if (entry.isFolder) {
-      notifications.info("Folder download not implemented yet.");
-      return;
-    }
-    triggerDownload(entry);
-  }
-
   function dragPayload(entry: FolderEntry): string {
     return buildPayload(loc, entry);
   }
 
-  async function handleMove(targetLoc: string[], src: ReturnType<typeof readPayload>) {
-    if (!src) return;
-    const moved = await performMove(src.sourceLoc, src.name, src.isFolder, targetLoc);
-    if (moved && (locsEqual(loc, src.sourceLoc) || locsEqual(loc, targetLoc))) refresh();
+  async function handleMove(targetLoc: string[], payload: ReturnType<typeof readPayload>) {
+    if (!payload) return;
+    const moved = await performMove(payload.sourceLoc, payload.name, payload.isFolder, targetLoc);
+    if (moved && (locsEqual(loc, payload.sourceLoc) || locsEqual(loc, targetLoc))) refresh();
   }
 
   function onDropOnFolder(event: DragEvent, target: FolderEntry) {
     if (!target.isFolder) return;
-    const src = readPayload(event);
-    if (!src) return;
+    const payload = readPayload(event);
+    if (!payload) return;
     event.preventDefault();
-    handleMove([...loc, target.name], src);
+    handleMove([...loc, target.name], payload);
   }
 
   function onDropOnLoc(event: DragEvent, targetLoc: string[]) {
-    const src = readPayload(event);
-    if (!src) return;
+    const payload = readPayload(event);
+    if (!payload) return;
     event.preventDefault();
-    handleMove(targetLoc, src);
+    handleMove(targetLoc, payload);
   }
 
   // ---------- Context menu ----------
@@ -243,27 +217,10 @@
     menuTarget = null;
   }
 
-  // ---------- Mouse back button (X1) ----------
-  function onMouseUp(event: MouseEvent) {
-    if (event.button !== 3) return;
-    if (tabs.activeId !== tabId) return;
-    const target = event.target as HTMLElement | null;
-    if (target?.matches?.("input, textarea, [contenteditable='true']")) return;
-    event.preventDefault();
-    navigateUp();
-  }
+  useBackButton(tabId, navigateUp);
 
-  onMount(() => {
-    window.addEventListener("click", hideMenu);
-    window.addEventListener("mouseup", onMouseUp);
-    window.addEventListener("auxclick", onMouseUp);
-  });
-
-  onDestroy(() => {
-    window.removeEventListener("click", hideMenu);
-    window.removeEventListener("mouseup", onMouseUp);
-    window.removeEventListener("auxclick", onMouseUp);
-  });
+  onMount(() => window.addEventListener("click", hideMenu));
+  onDestroy(() => window.removeEventListener("click", hideMenu));
 </script>
 
 <section class="flex flex-col h-full bg-bg-base">
@@ -288,7 +245,7 @@
 
   <div class="h-8 flex items-center gap-2 px-6 border-b border-border-default bg-bg-base">
     <Folder size="14" class="text-accent shrink-0" />
-    <span class="text-xs font-medium text-fg-primary truncate">{currentFolderName}</span>
+    <span class="text-xs font-medium text-fg-primary truncate">{folderName}</span>
     <span class="ml-auto text-xs text-fg-muted font-mono shrink-0">
       {sorted.length} {sorted.length === 1 ? "item" : "items"}
     </span>

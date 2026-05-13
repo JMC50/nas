@@ -66,6 +66,10 @@ class TabStore {
       if (options.focus !== false) this.activeId = existing.id;
       return existing;
     }
+    return this.cloneExplorer(loc);
+  }
+
+  cloneExplorer(loc: string[]): Tab {
     return this.open({
       kind: "explorer",
       title: locToTitle(loc),

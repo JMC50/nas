@@ -30,7 +30,7 @@
     system: Cpu,
   };
 
-  let dragSourceId = $state<string | null>(null);
+  let sourceId = $state<string | null>(null);
   let dragOverId = $state<string | null>(null);
 
   function focus(tab: Tab) {
@@ -58,13 +58,13 @@
 
   function onDragStart(event: DragEvent, tab: Tab) {
     if (!event.dataTransfer) return;
-    dragSourceId = tab.id;
+    sourceId = tab.id;
     event.dataTransfer.effectAllowed = "move";
     event.dataTransfer.setData("text/plain", tab.id);
   }
 
   function onDragOver(event: DragEvent, tab: Tab) {
-    if (!dragSourceId || dragSourceId === tab.id) return;
+    if (!sourceId || sourceId === tab.id) return;
     event.preventDefault();
     if (event.dataTransfer) event.dataTransfer.dropEffect = "move";
     dragOverId = tab.id;
@@ -76,14 +76,14 @@
 
   function onDrop(event: DragEvent, tab: Tab) {
     event.preventDefault();
-    if (!dragSourceId || dragSourceId === tab.id) return;
-    tabs.reorder(dragSourceId, tab.id);
-    dragSourceId = null;
+    if (!sourceId || sourceId === tab.id) return;
+    tabs.reorder(sourceId, tab.id);
+    sourceId = null;
     dragOverId = null;
   }
 
   function onDragEnd() {
-    dragSourceId = null;
+    sourceId = null;
     dragOverId = null;
   }
 
@@ -93,7 +93,7 @@
       active?.kind === "explorer"
         ? ((active.payload as ExplorerPayload | null)?.loc ?? [])
         : [];
-    tabs.openExplorer(loc);
+    tabs.cloneExplorer(loc);
   }
 </script>
 

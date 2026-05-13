@@ -41,18 +41,18 @@ export function hasPayload(event: DragEvent): boolean {
 }
 
 export async function performMove(
-  srcLoc: string[],
+  sourceLoc: string[],
   name: string,
   isFolder: boolean,
   targetLoc: string[],
 ): Promise<boolean> {
-  if (locsEqual(srcLoc, targetLoc)) return false;
-  if (isFolder && isDescendant([...srcLoc, name], targetLoc)) {
+  if (locsEqual(sourceLoc, targetLoc)) return false;
+  if (isFolder && isDescendant([...sourceLoc, name], targetLoc)) {
     notifications.error("Cannot move a folder into itself or its descendant");
     return false;
   }
   try {
-    await moveEntry(srcLoc, targetLoc, name);
+    await moveEntry(sourceLoc, targetLoc, name);
     return true;
   } catch (cause) {
     notifications.error(`Move failed: ${(cause as Error).message}`);

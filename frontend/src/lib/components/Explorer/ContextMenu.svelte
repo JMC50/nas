@@ -1,5 +1,7 @@
 <script lang="ts">
   import FileText from "lucide-svelte/icons/file-text";
+  import FolderOpen from "lucide-svelte/icons/folder-open";
+  import ExternalLink from "lucide-svelte/icons/external-link";
   import DownloadIcon from "lucide-svelte/icons/download";
   import Pencil from "lucide-svelte/icons/pencil";
   import Copy from "lucide-svelte/icons/copy";
@@ -16,13 +18,24 @@
     x: number;
     y: number;
     onOpen: () => void;
+    onOpenNewTab: () => void;
     onDownload: () => void;
     onRename: () => void;
     onCopy: () => void;
     onDelete: () => void;
   }
 
-  let { target, x, y, onOpen, onDownload, onRename, onCopy, onDelete }: Props = $props();
+  let {
+    target,
+    x,
+    y,
+    onOpen,
+    onOpenNewTab,
+    onDownload,
+    onRename,
+    onCopy,
+    onDelete,
+  }: Props = $props();
 </script>
 
 <div
@@ -30,15 +43,28 @@
   style="left: {x}px; top: {y}px;"
   role="menu"
 >
-  {#if !target.isFolder}
+  <button
+    type="button"
+    class="w-full flex items-center gap-2 px-3 h-8 text-xs text-fg-primary hover:bg-bg-hover text-left"
+    onclick={onOpen}
+    role="menuitem"
+  >
+    {#if target.isFolder}
+      <FolderOpen size="12" />
+    {:else}
+      <FileText size="12" />
+    {/if}
+    Open
+  </button>
+  {#if target.isFolder}
     <button
       type="button"
       class="w-full flex items-center gap-2 px-3 h-8 text-xs text-fg-primary hover:bg-bg-hover text-left"
-      onclick={onOpen}
+      onclick={onOpenNewTab}
       role="menuitem"
     >
-      <FileText size="12" />
-      Open
+      <ExternalLink size="12" />
+      Open in new tab
     </button>
   {/if}
   <button

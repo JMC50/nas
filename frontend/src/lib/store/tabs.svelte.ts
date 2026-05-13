@@ -1,4 +1,4 @@
-import type { Tab } from "$lib/types";
+import type { ExplorerPayload, Tab } from "$lib/types";
 
 const EXPLORER_TAB_ID = "explorer";
 
@@ -6,19 +6,29 @@ function randomId() {
   return crypto.randomUUID();
 }
 
-function explorerTab(): Tab {
+function locToTitle(loc: string[]): string {
+  return loc.length === 0 ? "Files" : loc[loc.length - 1];
+}
+
+function locsEqual(a: string[], b: string[]): boolean {
+  if (a.length !== b.length) return false;
+  for (let i = 0; i < a.length; i++) if (a[i] !== b[i]) return false;
+  return true;
+}
+
+function rootTab(): Tab {
   return {
     id: EXPLORER_TAB_ID,
     kind: "explorer",
     title: "Files",
     icon: "folder",
-    payload: null,
+    payload: { loc: [] } as ExplorerPayload,
     closable: false,
   };
 }
 
 class TabStore {
-  list = $state<Tab[]>([explorerTab()]);
+  list = $state<Tab[]>([rootTab()]);
   activeId = $state<string>(EXPLORER_TAB_ID);
 
   active = $derived<Tab>(
@@ -44,6 +54,30 @@ class TabStore {
     this.list = [...this.list, tab];
     this.activeId = id;
     return tab;
+  }
+
+  openExplorer(loc: string[], options: { focus?: boolean } = {}): Tab {
+    const existing = this.list.find((tab) => {
+      if (tab.kind !== "explorer") return false;
+      const payloadLoc = (tab.payload as ExplorerPayload | null)?.loc ?? [];
+      return locsEqual(payloadLoc, loc);
+    });
+    if (existing) {
+      if (options.focus !== false) this.activeId = existing.id;
+      return existing;
+    }
+    return this.open({
+      kind: "explorer",
+      title: locToTitle(loc),
+      icon: "folder",
+      payload: { loc } as ExplorerPayload,
+    });
+  }
+
+  update(id: string, partial: Partial<Pick<Tab, "title" | "payload" | "dirty">>) {
+    this.list = this.list.map((tab) =>
+      tab.id === id ? { ...tab, ...partial } : tab,
+    );
   }
 
   close(id: string) {

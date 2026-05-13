@@ -1,9 +1,12 @@
 <script lang="ts">
   import { onMount, onDestroy } from "svelte";
+  import Folder from "lucide-svelte/icons/folder";
   import { files } from "$lib/store/files.svelte";
+  import { tabs } from "$lib/store/tabs.svelte";
   import { uploads } from "$lib/store/uploads.svelte";
   import { notifications } from "$lib/store/notifications.svelte";
   import { pumpQueue } from "$lib/upload-worker";
+  import { pickViewer } from "$lib/components/Viewers/registry";
   import Toolbar from "$lib/components/Explorer/Toolbar.svelte";
   import Breadcrumb from "$lib/components/Explorer/Breadcrumb.svelte";
   import FileGrid from "$lib/components/Explorer/FileGrid.svelte";
@@ -17,10 +20,22 @@
     deleteEntry,
     renameEntry,
     downloadUrl,
-    openEntry,
     FetchError,
   } from "$lib/components/Explorer/actions";
+  import {
+    buildPayload,
+    readPayload,
+    performMove,
+    locsEqual,
+  } from "$lib/components/Explorer/drag-drop";
   import type { FolderEntry } from "$lib/components/Explorer/icon-for";
+  import type { ExplorerPayload } from "$lib/types";
+
+  interface Props {
+    loc: string[];
+    tabId: string;
+  }
+  let { loc, tabId }: Props = $props();
 
   let entries: FolderEntry[] = $state([]);
   let loading = $state(false);
@@ -28,6 +43,7 @@
   let errorMessage: string | null = $state(null);
   let searchQuery = $state("");
   let fileInputEl: HTMLInputElement;
+  let folderInputEl: HTMLInputElement;
 
   const filtered = $derived(
     searchQuery
@@ -42,12 +58,14 @@
     }),
   );
 
+  const currentFolderName = $derived(loc.length === 0 ? "Home" : loc[loc.length - 1]);
+
   async function refresh() {
     loading = true;
     errorMessage = null;
     forbidden = false;
     try {
-      entries = await readEntries();
+      entries = await readEntries(loc);
     } catch (cause) {
       if (cause instanceof FetchError && cause.status === 403) {
         forbidden = true;
@@ -61,16 +79,72 @@
   }
 
   $effect(() => {
-    void files.currentLoc;
+    void loc;
     refresh();
   });
+
+  $effect(() => {
+    const desired = loc.length === 0 ? "Files" : loc[loc.length - 1];
+    const current = tabs.list.find((t) => t.id === tabId)?.title;
+    if (current !== desired) tabs.update(tabId, { title: desired });
+  });
+
+  function navigateTo(target: string[], opts: { newTab?: boolean } = {}) {
+    if (opts.newTab) {
+      tabs.openExplorer(target);
+      return;
+    }
+    tabs.update(tabId, {
+      payload: { loc: target } as ExplorerPayload,
+      title: target.length === 0 ? "Files" : target[target.length - 1],
+    });
+  }
+
+  function navigateUp() {
+    if (loc.length === 0) return;
+    navigateTo(loc.slice(0, -1));
+  }
+
+  function openEntry(entry: FolderEntry, opts: { newTab?: boolean } = {}) {
+    if (entry.isFolder) {
+      navigateTo([...loc, entry.name], opts);
+      return;
+    }
+    const kind = pickViewer(entry.extensions);
+    tabs.open({
+      kind,
+      title: entry.name,
+      icon: kind,
+      payload: { loc: locPath(loc), name: entry.name },
+      closable: true,
+    });
+  }
 
   function onPick(event: Event) {
     const input = event.target as HTMLInputElement;
     if (!input.files || input.files.length === 0) return;
-    const loc = locPath();
+    const here = locPath(loc);
     for (const file of input.files) {
-      uploads.enqueue({ file, loc, filename: file.name });
+      uploads.enqueue({ file, loc: here, filename: file.name });
+    }
+    pumpQueue();
+    input.value = "";
+  }
+
+  function onPickFolder(event: Event) {
+    const input = event.target as HTMLInputElement;
+    if (!input.files || input.files.length === 0) return;
+    const hereStr = locPath(loc);
+    for (const file of input.files) {
+      const rel = (file as File & { webkitRelativePath?: string }).webkitRelativePath ?? file.name;
+      const parts = rel.split("/").slice(0, -1);
+      const fileLoc =
+        parts.length > 0
+          ? hereStr === "/"
+            ? "/" + parts.join("/")
+            : hereStr + "/" + parts.join("/")
+          : hereStr;
+      uploads.enqueue({ file, loc: fileLoc, filename: file.name });
     }
     pumpQueue();
     input.value = "";
@@ -88,18 +162,18 @@
   function newFolder() {
     const name = prompt("Folder name?");
     if (!name) return;
-    runMutation(() => createFolder(name), "Create failed");
+    runMutation(() => createFolder(loc, name), "Create failed");
   }
 
   function remove(entry: FolderEntry) {
     if (!confirm(`Delete ${entry.name}?`)) return;
-    runMutation(() => deleteEntry(entry), "Delete failed");
+    runMutation(() => deleteEntry(loc, entry), "Delete failed");
   }
 
   function rename(entry: FolderEntry) {
     const next = prompt(`Rename "${entry.name}" to:`, entry.name);
     if (!next || next === entry.name) return;
-    runMutation(() => renameEntry(entry, next), "Rename failed");
+    runMutation(() => renameEntry(loc, entry, next), "Rename failed");
   }
 
   function download(entry: FolderEntry) {
@@ -107,9 +181,35 @@
       notifications.info("Folder download not implemented yet.");
       return;
     }
-    window.open(downloadUrl(entry), "_blank");
+    window.open(downloadUrl(loc, entry), "_blank");
   }
 
+  function dragPayload(entry: FolderEntry): string {
+    return buildPayload(loc, entry);
+  }
+
+  async function handleMove(targetLoc: string[], src: ReturnType<typeof readPayload>) {
+    if (!src) return;
+    const moved = await performMove(src.sourceLoc, src.name, src.isFolder, targetLoc);
+    if (moved && (locsEqual(loc, src.sourceLoc) || locsEqual(loc, targetLoc))) refresh();
+  }
+
+  function onDropOnFolder(event: DragEvent, target: FolderEntry) {
+    if (!target.isFolder) return;
+    const src = readPayload(event);
+    if (!src) return;
+    event.preventDefault();
+    handleMove([...loc, target.name], src);
+  }
+
+  function onDropOnLoc(event: DragEvent, targetLoc: string[]) {
+    const src = readPayload(event);
+    if (!src) return;
+    event.preventDefault();
+    handleMove(targetLoc, src);
+  }
+
+  // ---------- Context menu ----------
   let menuOpen = $state(false);
   let menuX = $state(0);
   let menuY = $state(0);
@@ -128,30 +228,65 @@
     menuTarget = null;
   }
 
+  // ---------- Mouse back button (X1) ----------
+  function onMouseUp(event: MouseEvent) {
+    if (event.button !== 3) return;
+    if (tabs.activeId !== tabId) return;
+    const target = event.target as HTMLElement | null;
+    if (target?.matches?.("input, textarea, [contenteditable='true']")) return;
+    event.preventDefault();
+    navigateUp();
+  }
+
   onMount(() => {
     window.addEventListener("click", hideMenu);
+    window.addEventListener("mouseup", onMouseUp);
+    window.addEventListener("auxclick", onMouseUp);
   });
 
   onDestroy(() => {
     window.removeEventListener("click", hideMenu);
+    window.removeEventListener("mouseup", onMouseUp);
+    window.removeEventListener("auxclick", onMouseUp);
   });
 </script>
 
 <section class="flex flex-col h-full bg-bg-base">
   <Toolbar
+    {loc}
     {searchQuery}
     onSearch={(value) => (searchQuery = value)}
-    onUp={() => files.navigateUp()}
+    onUp={navigateUp}
     onUpload={() => fileInputEl?.click()}
+    onUploadFolder={() => folderInputEl?.click()}
     onNewFolder={newFolder}
+    onDropToUp={(event) => onDropOnLoc(event, loc.slice(0, -1))}
   />
 
   <Breadcrumb
-    onGoto={(index) => files.setLoc(files.currentLoc.slice(0, index + 1))}
-    onRoot={() => files.setLoc([])}
+    {loc}
+    onGoto={(index) => navigateTo(loc.slice(0, index + 1))}
+    onRoot={() => navigateTo([])}
+    onDropToRoot={(event) => onDropOnLoc(event, [])}
+    onDropToSegment={(event, index) => onDropOnLoc(event, loc.slice(0, index + 1))}
   />
 
+  <div class="h-8 flex items-center gap-2 px-6 border-b border-border-default bg-bg-base">
+    <Folder size="14" class="text-accent shrink-0" />
+    <span class="text-xs font-medium text-fg-primary truncate">{currentFolderName}</span>
+    <span class="ml-auto text-xs text-fg-muted font-mono shrink-0">
+      {sorted.length} {sorted.length === 1 ? "item" : "items"}
+    </span>
+  </div>
+
   <input type="file" multiple bind:this={fileInputEl} onchange={onPick} class="hidden" />
+  <input
+    type="file"
+    bind:this={folderInputEl}
+    onchange={onPickFolder}
+    class="hidden"
+    webkitdirectory
+  />
 
   <div class="flex-1 overflow-auto">
     {#if forbidden}
@@ -168,10 +303,22 @@
       <div class="p-12 text-center text-sm text-fg-muted">
         {searchQuery ? "No matches in this folder." : "Folder is empty."}
       </div>
-    {:else if files.viewMode === 'grid'}
-      <FileGrid entries={sorted} onOpen={openEntry} onMenu={showMenu} />
+    {:else if files.viewMode === "grid"}
+      <FileGrid
+        entries={sorted}
+        {dragPayload}
+        onOpen={openEntry}
+        onMenu={showMenu}
+        {onDropOnFolder}
+      />
     {:else}
-      <FileList entries={sorted} onOpen={openEntry} onMenu={showMenu} />
+      <FileList
+        entries={sorted}
+        {dragPayload}
+        onOpen={openEntry}
+        onMenu={showMenu}
+        {onDropOnFolder}
+      />
     {/if}
   </div>
 </section>
@@ -182,10 +329,29 @@
     {target}
     x={menuX}
     y={menuY}
-    onOpen={() => { openEntry(target); hideMenu(); }}
-    onDownload={() => { download(target); hideMenu(); }}
-    onRename={() => { rename(target); hideMenu(); }}
-    onCopy={() => { notifications.info("Copy not wired yet."); hideMenu(); }}
-    onDelete={() => { remove(target); hideMenu(); }}
+    onOpen={() => {
+      openEntry(target);
+      hideMenu();
+    }}
+    onOpenNewTab={() => {
+      openEntry(target, { newTab: true });
+      hideMenu();
+    }}
+    onDownload={() => {
+      download(target);
+      hideMenu();
+    }}
+    onRename={() => {
+      rename(target);
+      hideMenu();
+    }}
+    onCopy={() => {
+      notifications.info("Copy not wired yet.");
+      hideMenu();
+    }}
+    onDelete={() => {
+      remove(target);
+      hideMenu();
+    }}
   />
 {/if}

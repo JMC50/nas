@@ -1,9 +1,12 @@
 <!-- frontend/src/lib/components/Viewers/VideoPlayer.svelte -->
 <script lang="ts">
   import { auth } from "$lib/store/auth.svelte";
-  import { formatTime } from "./media-utils";
+  import { formatTime, clampVolume } from "./media-utils";
   import Play from "lucide-svelte/icons/play";
   import Pause from "lucide-svelte/icons/pause";
+  import Volume2 from "lucide-svelte/icons/volume-2";
+  import Volume1 from "lucide-svelte/icons/volume-1";
+  import VolumeX from "lucide-svelte/icons/volume-x";
 
   interface Props {
     loc: string;
@@ -56,6 +59,33 @@
 
   function onPlay() { playing = true; }
   function onPause() { playing = false; }
+
+  let volume = $state(1);
+  let muted = $state(false);
+
+  function onVolumeChange() {
+    if (!video) return;
+    volume = video.volume;
+    muted = video.muted;
+  }
+
+  function toggleMute() {
+    if (!video) return;
+    video.muted = !video.muted;
+  }
+
+  function setVolume(event: MouseEvent) {
+    if (!video) return;
+    const bar = event.currentTarget as HTMLElement;
+    const rect = bar.getBoundingClientRect();
+    const ratio = clampVolume((event.clientX - rect.left) / rect.width);
+    video.volume = ratio;
+    if (ratio > 0) video.muted = false;
+  }
+
+  const VolumeIcon = $derived(
+    muted || volume === 0 ? VolumeX : volume < 0.5 ? Volume1 : Volume2,
+  );
 </script>
 
 <div class="relative h-full w-full bg-black overflow-hidden group">
@@ -83,6 +113,7 @@
     ontimeupdate={onTimeUpdate}
     onloadedmetadata={onLoadedMetadata}
     onprogress={onProgress}
+    onvolumechange={onVolumeChange}
   ></video>
 
   <!-- center overlay (visible when paused) -->
@@ -151,6 +182,32 @@
       <span class="font-mono text-xs text-fg-secondary tabular-nums">
         {formatTime(currentTime)} / {formatTime(duration)}
       </span>
+
+      <!-- volume control (button + slide-out slider) -->
+      <div class="group/vol flex items-center">
+        <button
+          type="button"
+          onclick={toggleMute}
+          aria-label={muted ? "Unmute" : "Mute"}
+          class="inline-flex items-center justify-center w-9 h-9 rounded
+                 hover:bg-bg-hover hover:text-fg-accent transition-colors"
+        >
+          <VolumeIcon size="18" />
+        </button>
+        <!-- svelte-ignore a11y_click_events_have_key_events -->
+        <!-- svelte-ignore a11y_no_static_element_interactions -->
+        <div
+          onclick={setVolume}
+          class="relative h-1.5 rounded-full bg-bg-hover cursor-pointer
+                 w-0 group-hover/vol:w-20 ml-0 group-hover/vol:ml-2
+                 transition-all overflow-hidden"
+        >
+          <div
+            class="absolute top-0 left-0 h-full rounded-full bg-fg-secondary"
+            style="width: {muted ? 0 : volume * 100}%"
+          ></div>
+        </div>
+      </div>
 
       <!-- spacer; later tasks fill the right side -->
       <div class="ml-auto"></div>

@@ -40,7 +40,9 @@ func (h *Handlers) LegacyInput(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer out.Close()
-	if _, err := io.Copy(out, r.Body); err != nil {
+	body := http.MaxBytesReader(w, r.Body, h.Config.MaxFileSizeBytes)
+	if _, err := io.Copy(out, body); err != nil {
+		_ = os.Remove(target)
 		http.Error(w, "write failed", http.StatusInternalServerError)
 		return
 	}
@@ -71,8 +73,10 @@ func (h *Handlers) LegacyInputZip(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "create failed", http.StatusInternalServerError)
 		return
 	}
-	if _, err := io.Copy(out, r.Body); err != nil {
+	body := http.MaxBytesReader(w, r.Body, h.Config.MaxFileSizeBytes)
+	if _, err := io.Copy(out, body); err != nil {
 		out.Close()
+		_ = os.Remove(target)
 		http.Error(w, "write failed", http.StatusInternalServerError)
 		return
 	}

@@ -33,6 +33,10 @@ type linkGoogleBody struct {
 // state param marks this flow as "link to current user" instead of sign-in.
 func (h *Handlers) LinkStart(w http.ResponseWriter, r *http.Request) {
 	claims := ClaimsFromContext(r.Context())
+	if claims == nil {
+		http.Error(w, "unauthorized", http.StatusUnauthorized)
+		return
+	}
 	user, err := db.GetUser(h.DB, claims.UserID)
 	if err != nil || user == nil {
 		http.Error(w, "not found", http.StatusNotFound)

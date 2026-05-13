@@ -40,7 +40,8 @@ export async function signInLocal(payload: LoginPayload): Promise<AuthResult> {
     });
     redirectHome();
     return { success: true };
-  } catch {
+  } catch (cause) {
+    console.warn("signInLocal failed", cause);
     return { success: false, message: "Network error. Please try again." };
   }
 }
@@ -84,7 +85,8 @@ export async function signUpLocal(payload: RegisterPayload): Promise<AuthResult>
     });
     redirectHome();
     return { success: true };
-  } catch {
+  } catch (cause) {
+    console.warn("signUpLocal failed", cause);
     return { success: false, message: "Network error. Please try again." };
   }
 }

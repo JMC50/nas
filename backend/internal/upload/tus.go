@@ -98,8 +98,8 @@ func (h *Handlers) watchCompletions(handler *tusd.Handler) {
 }
 
 func (h *Handlers) finalizeUpload(event tusd.HookEvent) error {
-	filename := event.Upload.MetaData["filename"]
-	if filename == "" {
+	filename := filepath.Base(event.Upload.MetaData["filename"])
+	if filename == "" || filename == "." || filename == string(filepath.Separator) {
 		return errors.New("upload missing filename metadata")
 	}
 	loc := event.Upload.MetaData["loc"]

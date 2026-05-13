@@ -11,6 +11,10 @@ import (
 // Identities lists the current user's connected providers (no secrets).
 func (h *Handlers) Identities(w http.ResponseWriter, r *http.Request) {
 	claims := ClaimsFromContext(r.Context())
+	if claims == nil {
+		http.Error(w, "unauthorized", http.StatusUnauthorized)
+		return
+	}
 	user, err := db.GetUser(h.DB, claims.UserID)
 	if err != nil || user == nil {
 		http.Error(w, "not found", http.StatusNotFound)
@@ -35,6 +39,10 @@ func (h *Handlers) Identities(w http.ResponseWriter, r *http.Request) {
 // the user with zero sign-in methods.
 func (h *Handlers) Unlink(w http.ResponseWriter, r *http.Request) {
 	claims := ClaimsFromContext(r.Context())
+	if claims == nil {
+		http.Error(w, "unauthorized", http.StatusUnauthorized)
+		return
+	}
 	user, err := db.GetUser(h.DB, claims.UserID)
 	if err != nil || user == nil {
 		http.Error(w, "not found", http.StatusNotFound)

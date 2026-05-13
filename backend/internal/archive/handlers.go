@@ -195,7 +195,7 @@ func (h *Handlers) DownloadZip(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "config error", http.StatusInternalServerError)
 		return
 	}
-	if !strings.HasPrefix(abs, baseAbs+string(filepath.Separator)) && abs != baseAbs {
+	if !strings.HasPrefix(abs, baseAbs+string(filepath.Separator)) {
 		http.Error(w, "invalid path", http.StatusBadRequest)
 		return
 	}
@@ -210,8 +210,9 @@ func (h *Handlers) DownloadZip(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "stat failed", http.StatusInternalServerError)
 		return
 	}
-	w.Header().Set("Content-Disposition", `attachment; filename="`+filepath.Base(abs)+`"`)
-	http.ServeContent(w, r, filepath.Base(abs), info.ModTime(), file)
+	base := filepath.Base(abs)
+	w.Header().Set("Content-Disposition", files.ContentDispositionAttachment(base))
+	http.ServeContent(w, r, base, info.ModTime(), file)
 }
 
 func (h *Handlers) DeleteTempZip(w http.ResponseWriter, r *http.Request) {

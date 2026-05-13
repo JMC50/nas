@@ -8,6 +8,7 @@ function randomId() {
 
 class NotificationStore {
   queue = $state<Notification[]>([]);
+  private timers = new Map<string, ReturnType<typeof setTimeout>>();
 
   notify(input: {
     kind: NotificationKind;
@@ -23,7 +24,8 @@ class NotificationStore {
     };
     this.queue = [...this.queue, item];
     if (item.durationMs > 0) {
-      setTimeout(() => this.dismiss(item.id), item.durationMs);
+      const handle = setTimeout(() => this.dismiss(item.id), item.durationMs);
+      this.timers.set(item.id, handle);
     }
     return item.id;
   }
@@ -45,10 +47,17 @@ class NotificationStore {
   }
 
   dismiss(id: string) {
+    const handle = this.timers.get(id);
+    if (handle !== undefined) {
+      clearTimeout(handle);
+      this.timers.delete(id);
+    }
     this.queue = this.queue.filter((item) => item.id !== id);
   }
 
   clear() {
+    for (const handle of this.timers.values()) clearTimeout(handle);
+    this.timers.clear();
     this.queue = [];
   }
 }

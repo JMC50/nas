@@ -63,7 +63,7 @@ func (h *Handlers) Image(w http.ResponseWriter, r *http.Request) {
 // triggers a save dialog. Range requests still work via http.ServeContent.
 func (h *Handlers) Download(w http.ResponseWriter, r *http.Request) {
 	name := r.URL.Query().Get("name")
-	w.Header().Set("Content-Disposition", `attachment; filename="`+name+`"`)
+	w.Header().Set("Content-Disposition", files.ContentDispositionAttachment(name))
 	h.serveFile(w, r, "")
 }
 

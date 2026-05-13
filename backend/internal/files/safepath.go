@@ -2,6 +2,8 @@ package files
 
 import (
 	"errors"
+	"fmt"
+	"net/url"
 	"path/filepath"
 	"strings"
 )
@@ -42,4 +44,17 @@ func SafeJoin(base string, segments ...string) (string, error) {
 // Used before SafeJoin so segments are treated as relative.
 func TrimLeadingSlash(s string) string {
 	return strings.TrimLeft(s, "/\\")
+}
+
+// ContentDispositionAttachment builds a safe Content-Disposition: attachment
+// header per RFC 6266. It sanitizes the ASCII filename (stripping quote/CR/LF/backslash
+// to block header injection) and provides the canonical UTF-8 encoded filename*.
+func ContentDispositionAttachment(filename string) string {
+	safe := strings.Map(func(r rune) rune {
+		if r == '"' || r == '\\' || r == '\r' || r == '\n' {
+			return '_'
+		}
+		return r
+	}, filename)
+	return fmt.Sprintf(`attachment; filename="%s"; filename*=UTF-8''%s`, safe, url.PathEscape(filename))
 }

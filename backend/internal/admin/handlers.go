@@ -1,6 +1,7 @@
 package admin
 
 import (
+	"crypto/subtle"
 	"database/sql"
 	"encoding/json"
 	"net/http"
@@ -61,7 +62,8 @@ func (h *Handlers) RequestAdminIntent(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "invalid body", http.StatusBadRequest)
 		return
 	}
-	if req.Password != h.Config.AdminPassword {
+	expected := []byte(h.Config.AdminPassword)
+	if len(expected) == 0 || subtle.ConstantTimeCompare([]byte(req.Password), expected) != 1 {
 		http.Error(w, "error", http.StatusInternalServerError)
 		return
 	}

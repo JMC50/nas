@@ -1,0 +1,4 @@
+Q1 - Phase 1 Go migration
+Q2 - tus uploads
+Q3 - OAuth + admin
+Q4 - polish

@@ -8,6 +8,7 @@ function randomId() {
 
 class UploadsStore {
   list = $state<Upload[]>([]);
+  private retentionTimers = new Map<string, ReturnType<typeof setTimeout>>();
 
   active = $derived<Upload[]>(
     this.list.filter(
@@ -68,7 +69,8 @@ class UploadsStore {
     if (status === "complete") {
       const completedAt = Date.now();
       this.update(id, { completedAt });
-      setTimeout(() => this.remove(id), COMPLETED_RETENTION_MS);
+      const handle = setTimeout(() => this.remove(id), COMPLETED_RETENTION_MS);
+      this.retentionTimers.set(id, handle);
     }
   }
 
@@ -89,10 +91,24 @@ class UploadsStore {
   }
 
   remove(id: string) {
+    const handle = this.retentionTimers.get(id);
+    if (handle !== undefined) {
+      clearTimeout(handle);
+      this.retentionTimers.delete(id);
+    }
     this.list = this.list.filter((upload) => upload.id !== id);
   }
 
   clearCompleted() {
+    for (const upload of this.list) {
+      if (upload.status === "complete") {
+        const handle = this.retentionTimers.get(upload.id);
+        if (handle !== undefined) {
+          clearTimeout(handle);
+          this.retentionTimers.delete(upload.id);
+        }
+      }
+    }
     this.list = this.list.filter((upload) => upload.status !== "complete");
   }
 }

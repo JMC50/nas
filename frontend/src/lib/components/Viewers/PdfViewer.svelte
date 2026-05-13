@@ -7,6 +7,9 @@
   import workerUrl from "pdfjs-dist/build/pdf.worker.mjs?url";
   import ChevronLeft from "lucide-svelte/icons/chevron-left";
   import ChevronRight from "lucide-svelte/icons/chevron-right";
+  import ZoomIn from "lucide-svelte/icons/zoom-in";
+  import ZoomOut from "lucide-svelte/icons/zoom-out";
+  import Maximize2 from "lucide-svelte/icons/maximize-2";
 
   interface Props {
     loc: string;
@@ -22,6 +25,7 @@
   let rendered = new Set<number>();
   let observer: IntersectionObserver | null = null;
   let currentPage = $state(1);
+  let scale = $state(1);
   // Track in-flight render tasks per page so zoom/rerender can cancel them
   // before starting a new render (PDF.js logs warnings otherwise).
   const renderTasks = new Map<number, import("pdfjs-dist").RenderTask>();
@@ -59,7 +63,7 @@
     renderTasks.get(pageNumber)?.cancel();
 
     const page = await document_.getPage(pageNumber);
-    const viewport = page.getViewport({ scale: 1 });
+    const viewport = page.getViewport({ scale });
 
     // HiDPI: render at devicePixelRatio so retina screens stay crisp.
     const outputScale = window.devicePixelRatio || 1;
@@ -86,7 +90,7 @@
     if (!document_) return;
     for (let i = 1; i <= pageCount; i++) {
       const page = await document_.getPage(i);
-      const viewport = page.getViewport({ scale: 1 });
+      const viewport = page.getViewport({ scale });
       const canvas = canvases[i - 1];
       if (!canvas) continue;
       const outputScale = window.devicePixelRatio || 1;
@@ -129,10 +133,53 @@
     if (Number.isFinite(value)) scrollToPage(value);
   }
 
+  function zoomIn() {
+    scale = Math.min(4, scale + 0.25);
+  }
+
+  function zoomOut() {
+    scale = Math.max(0.25, scale - 0.25);
+  }
+
+  async function fitWidth() {
+    if (!document_) return;
+    const firstPage = await document_.getPage(1);
+    const baseViewport = firstPage.getViewport({ scale: 1 });
+    const container = canvases[0]?.parentElement;
+    if (!container) return;
+    const available = container.clientWidth - 32;
+    scale = available / baseViewport.width;
+  }
+
+  async function applyScale() {
+    if (!document_) return;
+    for (const pageNumber of [...rendered]) {
+      await renderPage(pageNumber);
+    }
+    for (let i = 1; i <= pageCount; i++) {
+      if (rendered.has(i)) continue;
+      const page = await document_.getPage(i);
+      const viewport = page.getViewport({ scale });
+      const canvas = canvases[i - 1];
+      if (!canvas) continue;
+      const outputScale = window.devicePixelRatio || 1;
+      canvas.width = Math.floor(viewport.width * outputScale);
+      canvas.height = Math.floor(viewport.height * outputScale);
+      canvas.style.width = `${Math.floor(viewport.width)}px`;
+      canvas.style.height = `${Math.floor(viewport.height)}px`;
+    }
+  }
+
   $effect(() => {
     if (pageCount > 0 && canvases.length === pageCount) {
       sizeAllPages().then(setupObs);
     }
+  });
+
+  $effect(() => {
+    void scale;
+    if (!document_ || rendered.size === 0) return;
+    applyScale();
   });
 
   onMount(loadDocument);
@@ -185,6 +232,37 @@
              hover:bg-bg-hover hover:text-fg-accent disabled:opacity-50 disabled:hover:bg-transparent transition-colors"
     >
       <ChevronRight size="16" />
+    </button>
+
+    <span class="text-fg-muted">|</span>
+
+    <button
+      type="button"
+      onclick={zoomOut}
+      aria-label="Zoom out"
+      class="inline-flex items-center justify-center w-8 h-8 rounded
+             hover:bg-bg-hover hover:text-fg-accent transition-colors"
+    >
+      <ZoomOut size="16" />
+    </button>
+    <span class="font-mono tabular-nums w-12 text-center">{Math.round(scale * 100)}%</span>
+    <button
+      type="button"
+      onclick={zoomIn}
+      aria-label="Zoom in"
+      class="inline-flex items-center justify-center w-8 h-8 rounded
+             hover:bg-bg-hover hover:text-fg-accent transition-colors"
+    >
+      <ZoomIn size="16" />
+    </button>
+    <button
+      type="button"
+      onclick={fitWidth}
+      aria-label="Fit width"
+      class="inline-flex items-center justify-center w-8 h-8 rounded
+             hover:bg-bg-hover hover:text-fg-accent transition-colors"
+    >
+      <Maximize2 size="16" />
     </button>
 
     <span class="ml-auto text-fg-muted">{loading ? "Loading…" : ""}</span>

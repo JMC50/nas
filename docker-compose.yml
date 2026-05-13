@@ -7,7 +7,7 @@ services:
     container_name: nas-app
     restart: unless-stopped
     ports:
-      - "${PORT:-7777}:7777"
+      - "${PORT:-7777}:${PORT:-7777}"
     volumes:
       - ${DATA_PATH:-./data}/nas:/data/nas
       - ${DATA_PATH:-./data}/nas-admin:/data/nas-admin

@@ -5,6 +5,8 @@
   // Static URL import — Vite resolves to an asset path string. The worker code
   // itself stays out of the main bundle (it's loaded via the URL at runtime).
   import workerUrl from "pdfjs-dist/build/pdf.worker.mjs?url";
+  import ChevronLeft from "lucide-svelte/icons/chevron-left";
+  import ChevronRight from "lucide-svelte/icons/chevron-right";
 
   interface Props {
     loc: string;
@@ -19,6 +21,7 @@
   let canvases: HTMLCanvasElement[] = [];
   let rendered = new Set<number>();
   let observer: IntersectionObserver | null = null;
+  let currentPage = $state(1);
   // Track in-flight render tasks per page so zoom/rerender can cancel them
   // before starting a new render (PDF.js logs warnings otherwise).
   const renderTasks = new Map<number, import("pdfjs-dist").RenderTask>();
@@ -100,16 +103,30 @@
         for (const entry of entries) {
           if (!entry.isIntersecting) continue;
           const pageNumber = Number((entry.target as HTMLElement).dataset.page);
-          if (rendered.has(pageNumber)) continue;
-          rendered.add(pageNumber);
-          renderPage(pageNumber);
+          if (!rendered.has(pageNumber)) {
+            rendered.add(pageNumber);
+            renderPage(pageNumber);
+          }
+          if (entry.intersectionRatio > 0.5) currentPage = pageNumber;
         }
       },
-      { rootMargin: "200px" },
+      { rootMargin: "200px", threshold: [0, 0.5, 1] },
     );
     for (const canvas of canvases) {
       if (canvas) observer.observe(canvas);
     }
+  }
+
+  function scrollToPage(page: number) {
+    const target = Math.max(1, Math.min(pageCount, page));
+    canvases[target - 1]?.scrollIntoView({ behavior: "smooth", block: "start" });
+    currentPage = target;
+  }
+
+  function onPageInput(event: KeyboardEvent) {
+    if (event.key !== "Enter") return;
+    const value = parseInt((event.currentTarget as HTMLInputElement).value, 10);
+    if (Number.isFinite(value)) scrollToPage(value);
   }
 
   $effect(() => {
@@ -131,11 +148,46 @@
 </script>
 
 <div class="flex flex-col h-full w-full bg-bg-base">
-  <div class="flex items-center px-3 h-10 border-b border-border-default bg-bg-overlay text-xs text-fg-secondary">
-    <span class="truncate">{name}</span>
-    <span class="ml-auto text-fg-muted">
-      {#if loading}Loading…{:else}{pageCount} pages{/if}
-    </span>
+  <div class="flex items-center gap-2 px-3 h-10 border-b border-border-default bg-bg-overlay text-xs text-fg-secondary">
+    <span class="truncate max-w-[40%]">{name}</span>
+
+    <span class="text-fg-muted">|</span>
+
+    <button
+      type="button"
+      onclick={() => scrollToPage(currentPage - 1)}
+      disabled={currentPage <= 1}
+      aria-label="Previous page"
+      class="inline-flex items-center justify-center w-8 h-8 rounded
+             hover:bg-bg-hover hover:text-fg-accent disabled:opacity-50 disabled:hover:bg-transparent transition-colors"
+    >
+      <ChevronLeft size="16" />
+    </button>
+
+    <div class="flex items-center gap-1 font-mono tabular-nums">
+      <input
+        type="number"
+        min="1"
+        max={pageCount}
+        value={currentPage}
+        onkeydown={onPageInput}
+        class="w-12 h-7 px-1 rounded border border-border-default bg-bg-base text-center text-xs"
+      />
+      <span class="text-fg-muted">/ {pageCount}</span>
+    </div>
+
+    <button
+      type="button"
+      onclick={() => scrollToPage(currentPage + 1)}
+      disabled={currentPage >= pageCount}
+      aria-label="Next page"
+      class="inline-flex items-center justify-center w-8 h-8 rounded
+             hover:bg-bg-hover hover:text-fg-accent disabled:opacity-50 disabled:hover:bg-transparent transition-colors"
+    >
+      <ChevronRight size="16" />
+    </button>
+
+    <span class="ml-auto text-fg-muted">{loading ? "Loading…" : ""}</span>
   </div>
   <div class="flex-1 overflow-auto p-4 flex flex-col items-center gap-4">
     {#each Array(pageCount) as _, i (i)}

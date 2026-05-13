@@ -1,6 +1,6 @@
 <script lang="ts">
   import { iconFor, type FolderEntry } from "./icon-for";
-  import { hasPayload, NAS_ENTRY_MIME } from "./drag-drop";
+  import { dragEntry } from "./drag-drop-action";
 
   interface Props {
     entries: FolderEntry[];
@@ -13,39 +13,6 @@
   let { entries, dragPayload, onOpen, onMenu, onDropOnFolder }: Props = $props();
 
   let dropTargetName = $state<string | null>(null);
-
-  function onDragStart(event: DragEvent, entry: FolderEntry) {
-    if (!event.dataTransfer) return;
-    event.dataTransfer.effectAllowed = "move";
-    event.dataTransfer.setData(NAS_ENTRY_MIME, dragPayload(entry));
-  }
-
-  function onDragOver(event: DragEvent, entry: FolderEntry) {
-    if (!entry.isFolder || !hasPayload(event)) return;
-    event.preventDefault();
-    if (event.dataTransfer) event.dataTransfer.dropEffect = "move";
-    dropTargetName = entry.name;
-  }
-
-  function onDragLeave(entry: FolderEntry) {
-    if (dropTargetName === entry.name) dropTargetName = null;
-  }
-
-  function onDrop(event: DragEvent, entry: FolderEntry) {
-    dropTargetName = null;
-    onDropOnFolder(event, entry);
-  }
-
-  function onDblClick(event: MouseEvent, entry: FolderEntry) {
-    onOpen(entry, { newTab: entry.isFolder && (event.ctrlKey || event.metaKey) });
-  }
-
-  function onAuxClick(event: MouseEvent, entry: FolderEntry) {
-    if (event.button !== 1) return;
-    if (!entry.isFolder) return;
-    event.preventDefault();
-    onOpen(entry, { newTab: true });
-  }
 </script>
 
 <table class="w-full text-sm">
@@ -64,12 +31,17 @@
           ? 'ring-1 ring-inset ring-accent bg-bg-elevated'
           : ''}"
         draggable="true"
-        ondragstart={(event) => onDragStart(event, entry)}
-        ondragover={(event) => onDragOver(event, entry)}
-        ondragleave={() => onDragLeave(entry)}
-        ondrop={(event) => onDrop(event, entry)}
-        ondblclick={(event) => onDblClick(event, entry)}
-        onauxclick={(event) => onAuxClick(event, entry)}
+        use:dragEntry={{
+          entry,
+          dragPayload,
+          onDropOnFolder,
+          onOpen,
+          onDropEnter: (name) => (dropTargetName = name),
+          onDropLeave: (name) => {
+            if (dropTargetName === name) dropTargetName = null;
+          },
+          onDropFinish: () => (dropTargetName = null),
+        }}
         oncontextmenu={(event) => onMenu(event, entry)}
       >
         <td class="px-6 py-1.5">

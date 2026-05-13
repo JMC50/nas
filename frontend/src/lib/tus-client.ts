@@ -36,25 +36,21 @@ function metaHeader(loc: string, filename: string): string {
   ].join(",");
 }
 
-function tokenizedUrl(uploadUrl: string): string {
-  if (uploadUrl.includes("token=")) return uploadUrl;
-  const separator = uploadUrl.includes("?") ? "&" : "?";
-  return `${uploadUrl}${separator}token=${encodeURIComponent(auth.token)}`;
+function bearer(): string {
+  return `Bearer ${auth.token}`;
 }
 
 async function createUpload(options: TusUploadOptions): Promise<string> {
-  const response = await fetch(
-    `/server/files?token=${encodeURIComponent(auth.token)}`,
-    {
-      method: "POST",
-      headers: {
-        "Tus-Resumable": TUS_VERSION,
-        "Upload-Length": String(options.file.size),
-        "Upload-Metadata": metaHeader(options.loc, options.filename),
-        "Content-Type": "application/offset+octet-stream",
-      },
+  const response = await fetch("/server/files", {
+    method: "POST",
+    headers: {
+      "Tus-Resumable": TUS_VERSION,
+      "Upload-Length": String(options.file.size),
+      "Upload-Metadata": metaHeader(options.loc, options.filename),
+      "Content-Type": "application/offset+octet-stream",
+      Authorization: bearer(),
     },
-  );
+  });
 
   if (response.status !== 201) {
     throw new TusError(
@@ -71,9 +67,9 @@ async function createUpload(options: TusUploadOptions): Promise<string> {
 }
 
 async function getOffset(uploadUrl: string): Promise<number> {
-  const response = await fetch(tokenizedUrl(uploadUrl), {
+  const response = await fetch(uploadUrl, {
     method: "HEAD",
-    headers: { "Tus-Resumable": TUS_VERSION },
+    headers: { "Tus-Resumable": TUS_VERSION, Authorization: bearer() },
   });
   if (!response.ok) {
     throw new TusError(`tus HEAD failed: ${response.status}`, response.status);
@@ -88,12 +84,13 @@ async function uploadChunk(
   offset: number,
   signal: AbortSignal,
 ): Promise<number> {
-  const response = await fetch(tokenizedUrl(uploadUrl), {
+  const response = await fetch(uploadUrl, {
     method: "PATCH",
     headers: {
       "Tus-Resumable": TUS_VERSION,
       "Upload-Offset": String(offset),
       "Content-Type": "application/offset+octet-stream",
+      Authorization: bearer(),
     },
     body: chunk,
     signal,

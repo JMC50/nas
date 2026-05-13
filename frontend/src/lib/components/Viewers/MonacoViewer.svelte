@@ -81,7 +81,7 @@
       notifications.error(`Failed to load ${name}: ${response.status}`);
       return null;
     }
-    return response.text();
+    return (await response.json()).content ?? "";
   }
 
   function createInstance(

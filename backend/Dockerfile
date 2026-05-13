@@ -5,9 +5,13 @@ FROM node:22-alpine AS frontend-build
 WORKDIR /work
 COPY package*.json ./
 RUN npm ci --prefer-offline --no-audit --silent
+# Frontend has its own package.json (no workspaces at root) — install separately
+# so deps declared only in frontend/package.json (e.g. pdfjs-dist) are present
+# when vite resolves modules.
+COPY frontend/package.json frontend/package-lock.json ./frontend/
+RUN cd frontend && npm ci --prefer-offline --no-audit --silent
 COPY frontend ./frontend
-WORKDIR /work/frontend
-RUN npx vite build
+RUN cd frontend && npx vite build
 # SvelteKit (adapter-static) writes to /work/frontend/build
 
 # --- Stage 2: build Go binary ---

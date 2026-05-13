@@ -1,7 +1,9 @@
 <!-- frontend/src/lib/components/Viewers/VideoControls.svelte -->
 <script lang="ts">
-  import { SvelteComponentTyped } from "svelte";
-  // lucide-svelte icons extend SvelteComponentTyped (legacy class API)
+  import type { SvelteComponentTyped } from "svelte";
+  // lucide-svelte icons extend SvelteComponentTyped (legacy class API).
+  // `import type` keeps this purely at compile time — at runtime Svelte 5
+  // does not export SvelteComponentTyped as a value, only as a type.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   type IconComponent = typeof SvelteComponentTyped<any>;
   import { formatTime } from "./media-utils";

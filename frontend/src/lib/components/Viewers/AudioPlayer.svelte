@@ -16,6 +16,7 @@
   let { loc, name }: Props = $props();
 
   let audio: HTMLAudioElement | null = $state(null);
+  let playerRoot: HTMLDivElement | null = $state(null);
   let playing = $state(false);
   let currentTime = $state(0);
   let duration = $state(0);
@@ -90,6 +91,10 @@
 
   function onKeyDown(event: KeyboardEvent) {
     if (!audio) return;
+    // Skip when the player isn't in the active tab — inactive tab content
+    // stays mounted (display:none in TabContent), so offsetParent === null
+    // there. Without this guard, keys would fire in every mounted player.
+    if (!playerRoot || playerRoot.offsetParent === null) return;
     const target = event.target as HTMLElement;
     if (target.matches("input, textarea, [contenteditable='true']")) return;
 
@@ -113,7 +118,7 @@
   });
 </script>
 
-<div class="flex flex-col h-full w-full bg-bg-base items-center justify-center p-8">
+<div bind:this={playerRoot} class="flex flex-col h-full w-full bg-bg-base items-center justify-center p-8">
   <div class="w-full max-w-[360px] flex flex-col items-center gap-6">
     <h2 class="text-lg font-sans text-fg-primary truncate w-full text-center" title={name}>
       {name}

@@ -164,6 +164,10 @@
 
   function onKeyDown(event: KeyboardEvent) {
     if (!video) return;
+    // Skip when the player isn't in the active tab — inactive tab content
+    // stays mounted (display:none in TabContent), so offsetParent === null
+    // there. Without this guard, keys would fire in every mounted player.
+    if (!container || container.offsetParent === null) return;
     const target = event.target as HTMLElement;
     if (target.matches("input, textarea, [contenteditable='true']")) return;
 

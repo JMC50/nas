@@ -20,8 +20,8 @@ RUN CGO_ENABLED=0 GOOS=linux go build -trimpath -ldflags="-s -w" -o /out/server 
 
 # --- Stage 3: runtime ---
 FROM alpine:3.20 AS runtime
-RUN apk add --no-cache ca-certificates tzdata wget
-# Phase 3+ will add: ffmpeg libreoffice
+RUN apk add --no-cache ca-certificates tzdata wget libreoffice ttf-dejavu fontconfig
+RUN mkdir -p /tmp/soffice-home
 WORKDIR /app
 COPY --from=go-build /out/server /app/server
 COPY --from=frontend-build /work/frontend/build /app/frontend/build
@@ -29,6 +29,7 @@ COPY --from=frontend-build /work/frontend/build /app/frontend/build
 ENV NODE_ENV=production \
     PORT=7777 \
     HOST=0.0.0.0 \
+    HOME=/tmp/soffice-home \
     NAS_DATA_DIR=/data/nas \
     NAS_ADMIN_DATA_DIR=/data/nas-admin \
     DB_PATH=/data/db/nas.sqlite \

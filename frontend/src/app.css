@@ -115,6 +115,15 @@ html.light {
     --color-accent-muted: #fabd2f;
 }
 
+/* ─────────────────────────────────────────────────────────────────
+   Equalizer bar keyframes — used by AudioPlayer animated equalizer
+   ───────────────────────────────────────────────────────────────── */
+@keyframes equalize-1 { 0%, 100% { transform: scaleY(0.3); } 50% { transform: scaleY(1); } }
+@keyframes equalize-2 { 0%, 100% { transform: scaleY(0.5); } 50% { transform: scaleY(0.9); } }
+@keyframes equalize-3 { 0%, 100% { transform: scaleY(0.7); } 50% { transform: scaleY(0.4); } }
+@keyframes equalize-4 { 0%, 100% { transform: scaleY(0.4); } 50% { transform: scaleY(0.8); } }
+@keyframes equalize-5 { 0%, 100% { transform: scaleY(0.6); } 50% { transform: scaleY(1); } }
+
 @layer base {
     html {
         background-color: var(--color-bg-base);

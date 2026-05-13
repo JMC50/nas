@@ -108,7 +108,17 @@
       {/if}
     </button>
 
-    <!-- placeholder: equalizer goes here in Task 12 -->
+    <!-- equalizer -->
+    <div class="flex items-end justify-center gap-1 h-8">
+      {#each [1, 2, 3, 4, 5] as i (i)}
+        <span
+          class="block w-1.5 h-full rounded-sm bg-accent origin-bottom"
+          style="animation: equalize-{i} {0.5 + i * 0.1}s ease-in-out infinite;
+                 animation-play-state: {playing ? 'running' : 'paused'};
+                 transform: scaleY({playing ? 1 : 0.3});"
+        ></span>
+      {/each}
+    </div>
 
     <!-- scrubber -->
     <div class="w-full flex flex-col gap-1">

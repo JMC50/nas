@@ -127,6 +127,35 @@
     document.addEventListener("fullscreenchange", onFullscreenChange);
     return () => document.removeEventListener("fullscreenchange", onFullscreenChange);
   });
+
+  const SPEEDS = [0.5, 0.75, 1, 1.25, 1.5, 1.75, 2];
+
+  let speed = $state(1);
+  let speedMenuOpen = $state(false);
+
+  function setSpeed(rate: number) {
+    if (!video) return;
+    video.playbackRate = rate;
+    speed = rate;
+    speedMenuOpen = false;
+  }
+
+  function onRateChange() {
+    if (!video) return;
+    speed = video.playbackRate;
+  }
+
+  function closeMenu(event: MouseEvent) {
+    const target = event.target as HTMLElement;
+    if (!target.closest("[data-speed-menu]")) speedMenuOpen = false;
+  }
+
+  $effect(() => {
+    if (speedMenuOpen) {
+      document.addEventListener("click", closeMenu);
+      return () => document.removeEventListener("click", closeMenu);
+    }
+  });
 </script>
 
 <div bind:this={container} class="relative h-full w-full bg-black overflow-hidden group">
@@ -155,6 +184,7 @@
     onloadedmetadata={onLoadedMetadata}
     onprogress={onProgress}
     onvolumechange={onVolumeChange}
+    onratechange={onRateChange}
   ></video>
 
   <!-- center overlay (visible when paused) -->
@@ -252,6 +282,38 @@
 
       <!-- spacer; later tasks fill the right side -->
       <div class="ml-auto"></div>
+
+      <div class="relative" data-speed-menu>
+        <button
+          type="button"
+          onclick={(e) => { e.stopPropagation(); speedMenuOpen = !speedMenuOpen; }}
+          aria-label="Playback speed"
+          class="inline-flex items-center justify-center min-w-9 h-9 px-2 rounded
+                 font-mono text-xs tabular-nums
+                 hover:bg-bg-hover hover:text-fg-accent transition-colors"
+        >
+          {speed}×
+        </button>
+        {#if speedMenuOpen}
+          <div
+            class="absolute bottom-full right-0 mb-2 py-1 rounded-md
+                   bg-bg-elevated border border-border-default
+                   shadow-lg z-30 min-w-[72px]"
+          >
+            {#each SPEEDS as rate (rate)}
+              <button
+                type="button"
+                onclick={() => setSpeed(rate)}
+                class="w-full px-3 py-1.5 text-xs font-mono tabular-nums text-left
+                       hover:bg-bg-hover transition-colors
+                       {speed === rate ? 'text-fg-accent' : 'text-fg-primary'}"
+              >
+                {rate}×
+              </button>
+            {/each}
+          </div>
+        {/if}
+      </div>
 
       {#if pipSupported}
         <button

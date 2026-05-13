@@ -184,14 +184,49 @@
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
   });
+
+  const IDLE_HIDE_MS = 2500;
+
+  let controlsVisible = $state(true);
+  let idleTimer: number | null = null;
+
+  function showControls() {
+    controlsVisible = true;
+    if (idleTimer !== null) window.clearTimeout(idleTimer);
+    if (playing) {
+      idleTimer = window.setTimeout(() => {
+        controlsVisible = false;
+      }, IDLE_HIDE_MS);
+    }
+  }
+
+  $effect(() => {
+    if (!playing) {
+      controlsVisible = true;
+      if (idleTimer !== null) window.clearTimeout(idleTimer);
+    } else {
+      showControls();
+    }
+    return () => {
+      if (idleTimer !== null) window.clearTimeout(idleTimer);
+    };
+  });
 </script>
 
-<div bind:this={container} class="relative h-full w-full bg-black overflow-hidden group">
+<!-- svelte-ignore a11y_no_static_element_interactions -->
+<div
+  bind:this={container}
+  onmousemove={showControls}
+  class="relative h-full w-full bg-black overflow-hidden group
+         {controlsVisible ? '' : 'cursor-none'}"
+>
   <!-- top bar (filename) -->
   <div
     class="absolute top-0 left-0 right-0 h-9 px-4 flex items-center
            bg-gradient-to-b from-bg-overlay/80 to-transparent
-           text-fg-secondary text-xs font-mono z-10 pointer-events-none"
+           text-fg-secondary text-xs font-mono z-10 pointer-events-none
+           transition-opacity duration-200 ease-smooth
+           {controlsVisible ? 'opacity-100' : 'opacity-0'}"
   >
     <span class="truncate">{name}</span>
   </div>
@@ -234,7 +269,9 @@
   <div
     class="absolute bottom-0 left-0 right-0 px-4 pb-2 pt-3 flex flex-col gap-1
            bg-bg-overlay/80 backdrop-blur-sm
-           text-fg-primary z-10"
+           text-fg-primary z-10
+           transition-opacity duration-200 ease-smooth
+           {controlsVisible ? 'opacity-100' : 'opacity-0 pointer-events-none'}"
   >
     <!-- scrubber -->
     <!-- svelte-ignore a11y_click_events_have_key_events -->

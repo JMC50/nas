@@ -10,6 +10,7 @@
   import ZoomIn from "lucide-svelte/icons/zoom-in";
   import ZoomOut from "lucide-svelte/icons/zoom-out";
   import Maximize2 from "lucide-svelte/icons/maximize-2";
+  import Download from "lucide-svelte/icons/download";
 
   interface Props {
     loc: string;
@@ -264,6 +265,19 @@
     >
       <Maximize2 size="16" />
     </button>
+
+    <span class="text-fg-muted">|</span>
+    <a
+      href={pdfUrl}
+      download={name}
+      target="_blank"
+      rel="noopener"
+      aria-label="Download PDF"
+      class="inline-flex items-center justify-center w-8 h-8 rounded
+             hover:bg-bg-hover hover:text-fg-accent transition-colors"
+    >
+      <Download size="16" />
+    </a>
 
     <span class="ml-auto text-fg-muted">{loading ? "Loading…" : ""}</span>
   </div>

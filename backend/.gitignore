@@ -2,6 +2,7 @@
 /server
 /bin/
 *.exe
+*.exe~
 *.test
 
 # Coverage
@@ -15,5 +16,7 @@ go.work.sum
 # Test artifacts
 tests/fixtures/temp/
 
-# Tus staging
+# Tus staging (handler scratch from runs and tests)
 tus-data/
+tests/integration/tus/*
+!tests/integration/tus/.gitkeep

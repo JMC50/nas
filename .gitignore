@@ -36,9 +36,16 @@ Thumbs.db
 *.swp
 *.swo
 
-# Temporary files
-tmp/
+# Temporary files — all transient test data lives under tmp/ (see tmp/README.md)
+tmp/*
+!tmp/README.md
 temp/
+
+# Test/runtime scratch from tools that write to fixed paths
+.playwright-mcp/
+data/nas/Music/
+data/nas/Videos/
+data/tmp/
 
 # ─────────────────────────────────────────────────────────────
 # AI/Agent tooling — keep repo free of AI-assistant artifacts.

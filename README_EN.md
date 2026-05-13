@@ -1,10 +1,10 @@
-# NAS
+<p align="center">
+  <img src="Docs/images/hero.png" alt="NAS — self-hosted file server" width="640">
+</p>
 
 A self-hosted, browser-based file server. Go backend, SvelteKit frontend, shipped as a single Docker image.
 
 > 한국어: [README.md](README.md)
-
-![File explorer](Docs/screenshots/02-explorer.png)
 
 ## What it does
 

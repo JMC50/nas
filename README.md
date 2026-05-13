@@ -1,10 +1,10 @@
-# NAS
+<p align="center">
+  <img src="Docs/images/hero.png" alt="NAS — self-hosted file server" width="640">
+</p>
 
 브라우저로 접속하는 셀프호스트 파일 서버. Go 백엔드와 SvelteKit 프론트엔드, Docker 이미지 한 개로 배포합니다.
 
 > English version: [README_EN.md](README_EN.md)
-
-![File explorer](Docs/screenshots/02-explorer.png)
 
 ## 무엇을 할 수 있나
 

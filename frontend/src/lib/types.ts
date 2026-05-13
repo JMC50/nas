@@ -37,6 +37,7 @@ export type TabKind =
   | "video"
   | "audio"
   | "pdf"
+  | "office"
   | "user-manager"
   | "settings"
   | "activity"

@@ -56,6 +56,19 @@ const IMAGE_EXTENSIONS = new Set(["jpg", "jpeg", "png", "gif", "webp", "avif", "
 const VIDEO_EXTENSIONS = new Set(["mp4", "webm", "mov", "mkv", "avi"]);
 const AUDIO_EXTENSIONS = new Set(["mp3", "wav", "ogg", "flac", "m4a", "aac"]);
 const PDF_EXTENSIONS = new Set(["pdf"]);
+const OFFICE_EXTENSIONS = new Set([
+  "doc",
+  "docx",
+  "rtf",
+  "odt",
+  "xls",
+  "xlsx",
+  "ods",
+  "ppt",
+  "pptx",
+  "odp",
+  "hwp",
+]);
 
 export function pickViewer(extension: string): TabKind {
   const ext = extension.toLowerCase().replace(/^\./, "");
@@ -64,6 +77,7 @@ export function pickViewer(extension: string): TabKind {
   if (VIDEO_EXTENSIONS.has(ext)) return "video";
   if (AUDIO_EXTENSIONS.has(ext)) return "audio";
   if (PDF_EXTENSIONS.has(ext)) return "pdf";
+  if (OFFICE_EXTENSIONS.has(ext)) return "office";
   return "text";
 }
 
@@ -79,6 +93,8 @@ export function viewerIconName(kind: TabKind): string {
       return "music";
     case "pdf":
       return "file-type";
+    case "office":
+      return "file-text";
     default:
       return "file";
   }

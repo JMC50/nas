@@ -23,6 +23,7 @@
     video: Film,
     audio: Music,
     pdf: FileType,
+    office: FileText,
     "user-manager": Users,
     settings: Settings,
     activity: History,

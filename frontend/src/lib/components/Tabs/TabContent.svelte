@@ -10,6 +10,7 @@
   import ImageViewer from "$lib/components/Viewers/ImageViewer.svelte";
   import MediaViewer from "$lib/components/Viewers/MediaViewer.svelte";
   import PdfViewer from "$lib/components/Viewers/PdfViewer.svelte";
+  import OfficeViewer from "$lib/components/Viewers/OfficeViewer.svelte";
   import MonacoViewer from "$lib/components/Viewers/MonacoViewer.svelte";
 
   interface FilePayload {
@@ -51,6 +52,9 @@
       {:else if tab.kind === "pdf"}
         {@const payload = tab.payload as FilePayload}
         <PdfViewer loc={payload.loc} name={payload.name} />
+      {:else if tab.kind === "office"}
+        {@const payload = tab.payload as FilePayload}
+        <OfficeViewer loc={payload.loc} name={payload.name} />
       {:else if tab.kind === "text"}
         {@const payload = tab.payload as FilePayload}
         <MonacoViewer loc={payload.loc} name={payload.name} tabId={tab.id} />

@@ -14,8 +14,8 @@
     "svelte",
     "express"
   ],
-  "author": "",
-  "license": "ISC",
+  "author": "JMC50",
+  "license": "MIT",
   "description": "Web-based NAS file management system with Docker deployment",
   "engines": {
     "node": ">=20.0.0",

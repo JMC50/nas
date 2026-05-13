@@ -173,4 +173,4 @@ docker compose --profile autoupdate up -d
 
 ## License
 
-MIT.
+[MIT](LICENSE).

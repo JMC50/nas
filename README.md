@@ -173,4 +173,4 @@ GitHub Actions(`.github/workflows/build-and-deploy.yml`)가 main 브랜치 push 
 
 ## 라이선스
 
-MIT.
+[MIT](LICENSE).

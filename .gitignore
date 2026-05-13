@@ -10,6 +10,7 @@ frontend/.svelte-kit
 
 # Database files
 backend/db/*
+data/db/*.sqlite*
 
 # Environment files
 .env
@@ -39,9 +40,62 @@ Thumbs.db
 tmp/
 temp/
 
+# ─────────────────────────────────────────────────────────────
+# AI/Agent tooling — keep repo free of AI-assistant artifacts.
+# Project rules for AI agents live in ~/.claude/projects/<repo>/memory/
+# (auto-loaded per session), NOT in the repo.
+# ─────────────────────────────────────────────────────────────
+
+# Claude / Claude Code
+CLAUDE.md
+CLAUDE.local.md
 /.claude/
-/.serena/
+.claude/
 claudedocs/
+.claude-mem/
+claude-mem.log
+.claude-cache/
+
+# Other AI assistant rule/config files (project-level)
+AGENTS.md
+GEMINI.md
+.cursorrules
+.cursorignore
+.windsurfrules
+.aiderignore
+
+# AI tool directories
+/.cursor/
+.cursor/
+/.windsurf/
+.windsurf/
+/.codeium/
+.codeium/
+/.continue/
+.continue/
+/.copilot/
+.copilot/
+/.codex/
+.codex/
+/.aichat/
+.aichat/
+/.ai/
+.ai/
+/.tabnine/
+.tabnine/
+
+# Aider chat history & inputs
+.aider*
+aider.conf.yml
+
+# Serena / other MCP server caches
+/.serena/
+.serena/
+/.mcp/
+
+# Agent runtime caches and worktrees
+/worktrees/
+.worktrees/
 
 # Untracked scratch screenshots (manual UI captures, not part of README)
 Docs/images/_archive/

@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"io/fs"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -15,6 +16,36 @@ import (
 	"github.com/JMC50/nas/internal/config"
 	"github.com/JMC50/nas/internal/db"
 )
+
+// audioExt and videoExt mirror frontend
+// `src/lib/components/Viewers/registry.ts` (AUDIO_EXTENSIONS,
+// VIDEO_EXTENSIONS) — replicated server-side because those constants are not
+// exported. Keep in lockstep when registry.ts changes.
+var audioExt = map[string]bool{
+	"mp3":  true,
+	"wav":  true,
+	"ogg":  true,
+	"flac": true,
+	"m4a":  true,
+	"aac":  true,
+}
+
+var videoExt = map[string]bool{
+	"mp4":  true,
+	"webm": true,
+	"mov":  true,
+	"mkv":  true,
+	"avi":  true,
+}
+
+type mediaEntry struct {
+	Name       string `json:"name"`       // filename only, e.g. "song.mp3"
+	Loc        string `json:"loc"`        // directory loc, e.g. "/Music/2024" (no trailing slash, no filename)
+	Extensions string `json:"extensions"`
+	Size       int64  `json:"size"`
+	ModifiedAt string `json:"modifiedAt"`
+	Kind       string `json:"kind"` // "audio" | "video"
+}
 
 type Handlers struct {
 	Config *config.Config
@@ -289,6 +320,91 @@ func (h *Handlers) Search(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		http.Error(w, "search failed", http.StatusInternalServerError)
 		return
+	}
+	writeJSON(w, http.StatusOK, results)
+}
+
+// MediaLibrary walks NASDataDir for audio or video files. Used by the Music and
+// Videos tabs (frontend `Library/loader.ts`). Output rows match the existing
+// FilePayload shape (`{loc, name}`) so the frontend can hand them straight to
+// `tabs.open({kind: "audio"|"video", payload: {loc, name}})`.
+//
+// Cap: `Config.MediaLibraryLimit` (default 5000 via MEDIA_LIB_LIMIT env).
+// When the cap is reached the walk stops early and the response carries
+// `X-Library-Truncated: true` so the frontend can banner the user.
+func (h *Handlers) MediaLibrary(w http.ResponseWriter, r *http.Request) {
+	kind := r.URL.Query().Get("kind")
+	var extSet map[string]bool
+	switch kind {
+	case "audio":
+		extSet = audioExt
+	case "video":
+		extSet = videoExt
+	default:
+		http.Error(w, "kind must be audio or video", http.StatusBadRequest)
+		return
+	}
+
+	limit := h.Config.MediaLibraryLimit
+	results := make([]mediaEntry, 0)
+	truncated := false
+
+	err := filepath.WalkDir(h.Config.NASDataDir, func(path string, d fs.DirEntry, walkErr error) error {
+		if walkErr != nil {
+			// Skip unreadable entries — matches Search handler tolerance.
+			return nil
+		}
+		if path == h.Config.NASDataDir {
+			return nil
+		}
+		if d.IsDir() {
+			if strings.HasPrefix(d.Name(), ".") {
+				return fs.SkipDir
+			}
+			return nil
+		}
+		if strings.HasPrefix(d.Name(), ".") {
+			return nil
+		}
+		ext := extensionOf(d.Name())
+		if !extSet[ext] {
+			return nil
+		}
+		info, infoErr := d.Info()
+		if infoErr != nil {
+			return nil
+		}
+
+		if len(results) >= limit {
+			truncated = true
+			return filepath.SkipAll
+		}
+
+		rel, relErr := filepath.Rel(h.Config.NASDataDir, path)
+		if relErr != nil {
+			return nil
+		}
+		dirRel := filepath.ToSlash(filepath.Dir(rel))
+		loc := "/" + dirRel
+		if dirRel == "." {
+			loc = "/"
+		}
+		results = append(results, mediaEntry{
+			Name:       d.Name(),
+			Loc:        loc,
+			Extensions: ext,
+			Size:       info.Size(),
+			ModifiedAt: info.ModTime().Format(time.RFC3339),
+			Kind:       kind,
+		})
+		return nil
+	})
+	if err != nil {
+		http.Error(w, "walk error: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+	if truncated {
+		w.Header().Set("X-Library-Truncated", "true")
 	}
 	writeJSON(w, http.StatusOK, results)
 }

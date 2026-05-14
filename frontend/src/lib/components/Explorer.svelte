@@ -3,6 +3,9 @@
   import Folder from "lucide-svelte/icons/folder";
   import X from "lucide-svelte/icons/x";
   import Trash2 from "lucide-svelte/icons/trash-2";
+  import UploadIcon from "lucide-svelte/icons/upload";
+  import FolderUp from "lucide-svelte/icons/folder-up";
+  import RefreshCw from "lucide-svelte/icons/refresh-cw";
   import { files } from "$lib/store/files.svelte";
   import { tabs } from "$lib/store/tabs.svelte";
   import { ui } from "$lib/store/ui.svelte";
@@ -335,11 +338,40 @@
     menuY = event.clientY;
     menuTarget = entry;
     menuOpen = true;
+    bgMenuOpen = false;
   }
 
   function hideMenu() {
     menuOpen = false;
     menuTarget = null;
+  }
+
+  // ---------- Empty-area (background) context menu ----------
+  // Fires when the user right-clicks the canvas blank space (no entry under
+  // pointer). Offers folder-level actions: new folder, upload, upload folder,
+  // refresh — the same operations otherwise reachable only via the toolbar.
+  let bgMenuOpen = $state(false);
+  let bgMenuX = $state(0);
+  let bgMenuY = $state(0);
+
+  function showBackgroundMenu(event: MouseEvent) {
+    // Only fire when the contextmenu target is the canvas itself (not an
+    // entry, which sets data-marquee-canvas="false" on its outer wrapper).
+    const target = event.target as HTMLElement | null;
+    if (!target) return;
+    if (target.closest('[data-marquee-canvas="false"]')) return;
+    const canvasAncestor = target.closest<HTMLElement>("[data-marquee-canvas]");
+    if (!canvasAncestor || canvasAncestor.dataset.marqueeCanvas !== "true") return;
+    if (target.matches?.(EDITABLE_SELECTOR)) return;
+    event.preventDefault();
+    bgMenuX = event.clientX;
+    bgMenuY = event.clientY;
+    bgMenuOpen = true;
+    menuOpen = false;
+  }
+
+  function hideBackgroundMenu() {
+    bgMenuOpen = false;
   }
 
   useBackButton(tabId, navigateUp);
@@ -472,12 +504,17 @@
     pointerId = null;
   }
 
+  function hideAnyMenu() {
+    hideMenu();
+    hideBackgroundMenu();
+  }
+
   onMount(() => {
-    window.addEventListener("click", hideMenu);
+    window.addEventListener("click", hideAnyMenu);
     window.addEventListener("keydown", onKeyDown);
   });
   onDestroy(() => {
-    window.removeEventListener("click", hideMenu);
+    window.removeEventListener("click", hideAnyMenu);
     window.removeEventListener("keydown", onKeyDown);
   });
 </script>
@@ -550,6 +587,7 @@
     webkitdirectory
   />
 
+  <!-- svelte-ignore a11y_no_static_element_interactions -->
   <div
     bind:this={containerEl}
     class="flex-1 overflow-auto relative"
@@ -558,6 +596,7 @@
     onpointermove={onPointerMove}
     onpointerup={endMarquee}
     onpointercancel={endMarquee}
+    oncontextmenu={showBackgroundMenu}
   >
     {#if forbidden}
       <ForbiddenPanel
@@ -644,4 +683,52 @@
       hideMenu();
     }}
   />
+{/if}
+
+{#if bgMenuOpen}
+  <!-- Empty-area context menu: appears when the user right-clicks the
+       file canvas anywhere except on an entry. Folder-level actions only. -->
+  <div
+    class="fixed z-50 min-w-[180px] py-1 rounded-md bg-bg-overlay border border-border-strong shadow-[0_4px_16px_rgba(0,0,0,0.5)]"
+    style="left: {bgMenuX}px; top: {bgMenuY}px;"
+    role="menu"
+  >
+    <button
+      type="button"
+      class="w-full flex items-center gap-2 px-3 h-8 text-xs text-fg-primary hover:bg-bg-hover text-left"
+      role="menuitem"
+      onclick={() => { newFolder(); hideBackgroundMenu(); }}
+    >
+      <Folder size="12" />
+      New folder
+    </button>
+    <button
+      type="button"
+      class="w-full flex items-center gap-2 px-3 h-8 text-xs text-fg-primary hover:bg-bg-hover text-left"
+      role="menuitem"
+      onclick={() => { fileInputEl?.click(); hideBackgroundMenu(); }}
+    >
+      <UploadIcon size="12" />
+      Upload files
+    </button>
+    <button
+      type="button"
+      class="w-full flex items-center gap-2 px-3 h-8 text-xs text-fg-primary hover:bg-bg-hover text-left"
+      role="menuitem"
+      onclick={() => { folderInputEl?.click(); hideBackgroundMenu(); }}
+    >
+      <FolderUp size="12" />
+      Upload folder
+    </button>
+    <div class="h-px bg-border-default mx-1 my-1"></div>
+    <button
+      type="button"
+      class="w-full flex items-center gap-2 px-3 h-8 text-xs text-fg-primary hover:bg-bg-hover text-left"
+      role="menuitem"
+      onclick={() => { refresh(); hideBackgroundMenu(); }}
+    >
+      <RefreshCw size="12" />
+      Refresh
+    </button>
+  </div>
 {/if}

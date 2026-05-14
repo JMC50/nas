@@ -11,6 +11,8 @@
     "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch"
   },
   "dependencies": {
+    "@fontsource-variable/ibm-plex-sans": "^5.2.8",
+    "@fontsource/ibm-plex-sans-kr": "^5.2.8",
     "pdfjs-dist": "^5.7.284"
   }
 }

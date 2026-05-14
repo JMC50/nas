@@ -36,6 +36,9 @@
   let query = $state("");
   let highlighted = $state(0);
   let inputEl: HTMLInputElement | undefined = $state();
+  // visualViewport.height tracks the available area shrunk by the on-screen
+  // keyboard on mobile. Fallback to `100dvh` when null (desktop / unsupported).
+  let modalHeight = $state<number | null>(null);
 
   const filtered = $derived(
     query
@@ -55,12 +58,34 @@
     inputEl?.select();
   }
 
+  function syncViewportHeight() {
+    if (typeof window === "undefined") return;
+    const vv = window.visualViewport;
+    modalHeight = vv ? vv.height : null;
+  }
+
   $effect(() => {
-    if (ui.quickOpenVisible) {
-      query = "";
-      highlighted = 0;
-      focusInput();
-    }
+    if (!ui.quickOpenVisible) return;
+    query = "";
+    highlighted = 0;
+    focusInput();
+  });
+
+  // Track virtual-keyboard height while QuickOpen is open AND the viewport
+  // is mobile-sized; desktop uses a centered card with fixed intrinsic
+  // height. The on-screen keyboard shrinks `visualViewport.height` below
+  // `innerHeight`, so we mirror it onto the modal's height inline style.
+  $effect(() => {
+    if (!ui.quickOpenVisible || !ui.isMobile) return;
+    if (typeof window === "undefined") return;
+    const vv = window.visualViewport;
+    if (!vv) return;
+    syncViewportHeight();
+    vv.addEventListener("resize", syncViewportHeight);
+    return () => {
+      vv.removeEventListener("resize", syncViewportHeight);
+      modalHeight = null;
+    };
   });
 
   function pick(tab: Tab) {
@@ -100,7 +125,7 @@
   <!-- svelte-ignore a11y_click_events_have_key_events -->
   <!-- svelte-ignore a11y_no_static_element_interactions -->
   <div
-    class="fixed inset-0 z-50 bg-bg-base/70 backdrop-blur-sm flex items-start justify-center pt-[20vh]"
+    class="fixed inset-0 z-50 bg-bg-base md:bg-bg-base/70 md:backdrop-blur-sm flex items-start justify-center md:pt-[20vh]"
     onclick={() => ui.closeQuickOpen()}
   >
     <div
@@ -108,10 +133,11 @@
       tabindex="-1"
       aria-modal="true"
       aria-label="Quick open"
-      class="w-full max-w-lg mx-4 rounded-lg bg-bg-surface border border-border-strong shadow-[0_8px_32px_rgba(0,0,0,0.6)] overflow-hidden cursor-default"
+      class="w-full h-full md:h-auto md:max-w-lg md:mx-4 md:rounded-lg bg-bg-surface md:border md:border-border-strong md:shadow-[0_8px_32px_rgba(0,0,0,0.6)] overflow-hidden cursor-default flex flex-col"
+      style={ui.isMobile && modalHeight !== null ? `height: ${modalHeight}px` : ""}
       onclick={(event) => event.stopPropagation()}
     >
-      <div class="flex items-center gap-2 px-3 h-11 border-b border-border-default">
+      <div class="flex items-center gap-2 px-3 h-11 border-b border-border-default shrink-0">
         <Search size="14" class="text-fg-muted shrink-0" />
         <input
           bind:this={inputEl}
@@ -123,7 +149,7 @@
         <span class="text-[10px] text-fg-muted font-mono">ESC</span>
       </div>
 
-      <div class="max-h-80 overflow-y-auto py-1">
+      <div class="flex-1 md:max-h-80 overflow-y-auto py-1">
         {#if filtered.length === 0}
           <div class="px-3 py-6 text-center text-xs text-fg-muted">No matching tabs.</div>
         {/if}

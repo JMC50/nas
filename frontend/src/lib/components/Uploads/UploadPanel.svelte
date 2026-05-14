@@ -40,8 +40,9 @@
 
 {#if open}
   <aside
-    class="fixed top-12 right-0 bottom-7 w-[360px] bg-bg-surface border-l border-border-default z-40 flex flex-col shadow-[0_0_24px_rgba(0,0,0,0.4)]"
+    class="fixed inset-x-0 bottom-0 top-auto max-h-[70dvh] w-full rounded-t-lg border-t border-border-default pb-[env(safe-area-inset-bottom)] md:top-12 md:right-0 md:inset-x-auto md:bottom-7 md:max-h-none md:w-[360px] md:rounded-none md:border-t-0 md:border-l md:pb-0 bg-bg-surface z-40 flex flex-col shadow-[0_0_24px_rgba(0,0,0,0.4)]"
   >
+    <div class="md:hidden w-12 h-1 bg-fg-muted/40 rounded-full mx-auto mt-2 mb-1" aria-hidden="true"></div>
     <header class="flex items-center justify-between h-10 px-3 border-b border-border-default">
       <span class="text-sm font-semibold text-fg-primary">Uploads</span>
       <button

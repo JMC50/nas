@@ -17,7 +17,7 @@
 </script>
 
 <footer
-  class="row-start-3 col-span-2 h-7 flex items-center justify-between gap-4 px-3 text-xs text-fg-muted border-t border-border-default bg-bg-surface"
+  class="row-start-3 col-span-1 md:col-span-2 h-7 flex items-center justify-between gap-4 px-3 text-xs text-fg-muted border-t border-border-default bg-bg-surface pb-[env(safe-area-inset-bottom)] md:pb-0"
 >
   <button
     type="button"

@@ -115,6 +115,7 @@ func NewRouter(cfg *config.Config, conn *sql.DB) http.Handler {
 	// File operations — token + intent
 	addFileRoute(r, "GET", "/readFolder", auth.IntentView, requireToken, conn, fileHandlers.ReadFolder)
 	addFileRoute(r, "GET", "/searchInAllFiles", auth.IntentView, requireToken, conn, fileHandlers.Search)
+	addFileRoute(r, "GET", "/mediaLibrary", auth.IntentView, requireToken, conn, fileHandlers.MediaLibrary)
 	addFileRoute(r, "GET", "/getTextFile", auth.IntentOpen, requireToken, conn, fileHandlers.GetTextFile)
 	addFileRoute(r, "POST", "/saveTextFile", auth.IntentUpload, requireToken, conn, fileHandlers.SaveTextFile)
 	addFileRoute(r, "GET", "/makedir", auth.IntentUpload, requireToken, conn, fileHandlers.MakeDir)

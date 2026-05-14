@@ -51,6 +51,7 @@ type Config struct {
 	PasswordRequirements PasswordRequirements
 	CorsOrigin           string
 	MaxFileSizeBytes     int64
+	MediaLibraryLimit    int
 }
 
 func LoadFromEnv() (*Config, error) {
@@ -94,6 +95,7 @@ func LoadFromEnv() (*Config, error) {
 		return nil, fmt.Errorf("MAX_FILE_SIZE: %w", err)
 	}
 	c.MaxFileSizeBytes = maxSize
+	c.MediaLibraryLimit = getEnvInt("MEDIA_LIB_LIMIT", 5000)
 
 	if err := c.validate(); err != nil {
 		return nil, err

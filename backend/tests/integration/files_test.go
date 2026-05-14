@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"os"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -179,6 +180,94 @@ func TestReadFolderDetails(t *testing.T) {
 	// Folder row: isFolder true, size 0.
 	require.True(t, folder.IsFolder, "mydir should be isFolder=true")
 	require.Equal(t, int64(0), folder.Size, "folder size should be 0")
+}
+
+// mediaWire mirrors the JSON shape emitted by MediaLibrary
+// (`backend/internal/files/handlers.go`). Local to this test file because the
+// backend struct is unexported.
+type mediaWire struct {
+	Name       string `json:"name"`
+	Loc        string `json:"loc"`
+	Extensions string `json:"extensions"`
+	Size       int64  `json:"size"`
+	ModifiedAt string `json:"modifiedAt"`
+	Kind       string `json:"kind"`
+}
+
+// TestMediaLibrary verifies the /mediaLibrary endpoint walks the NAS data dir,
+// filters by audio/video extension, skips dot-prefixed dirs/files, and rejects
+// invalid `kind` values.
+func TestMediaLibrary(t *testing.T) {
+	router, cfg, _, dataDir := setupFilesTestServer(t)
+	cfg.MediaLibraryLimit = 5000 // explicit default for test
+	require.Equal(t, 5000, cfg.MediaLibraryLimit)
+
+	// Seed:
+	//   /a.mp3                  → audio at /
+	//   /b/c.mp3                → audio at /b
+	//   /b/d.mp4                → video at /b
+	//   /.hidden/e.mp3          → audio under hidden dir (must be skipped)
+	//   /f/.hidden.mp3          → hidden file under visible dir (must be skipped)
+	require.NoError(t, os.MkdirAll(filepath.Join(dataDir, "b"), 0o755))
+	require.NoError(t, os.MkdirAll(filepath.Join(dataDir, ".hidden"), 0o755))
+	require.NoError(t, os.MkdirAll(filepath.Join(dataDir, "f"), 0o755))
+	require.NoError(t, os.WriteFile(filepath.Join(dataDir, "a.mp3"), []byte("a"), 0o644))
+	require.NoError(t, os.WriteFile(filepath.Join(dataDir, "b", "c.mp3"), []byte("c"), 0o644))
+	require.NoError(t, os.WriteFile(filepath.Join(dataDir, "b", "d.mp4"), []byte("d"), 0o644))
+	require.NoError(t, os.WriteFile(filepath.Join(dataDir, ".hidden", "e.mp3"), []byte("e"), 0o644))
+	require.NoError(t, os.WriteFile(filepath.Join(dataDir, "f", ".hidden.mp3"), []byte("h"), 0o644))
+
+	token, err := auth.IssueToken("admin1", cfg.PrivateKey)
+	require.NoError(t, err)
+	srv := httptest.NewServer(router)
+	defer srv.Close()
+
+	// --- audio ---
+	resp, err := http.Get(srv.URL + "/mediaLibrary?kind=audio&token=" + token)
+	require.NoError(t, err)
+	require.Equal(t, http.StatusOK, resp.StatusCode)
+	var audio []mediaWire
+	require.NoError(t, json.NewDecoder(resp.Body).Decode(&audio))
+	resp.Body.Close()
+	require.Len(t, audio, 2, "expected 2 audio entries (a.mp3 + b/c.mp3); hidden skipped; got %+v", audio)
+
+	byName := func(rows []mediaWire, name string) *mediaWire {
+		for i := range rows {
+			if rows[i].Name == name {
+				return &rows[i]
+			}
+		}
+		return nil
+	}
+	a := byName(audio, "a.mp3")
+	require.NotNil(t, a, "a.mp3 missing")
+	require.Equal(t, "/", a.Loc)
+	require.Equal(t, "audio", a.Kind)
+	require.Equal(t, "mp3", a.Extensions)
+	require.Equal(t, int64(1), a.Size)
+
+	c := byName(audio, "c.mp3")
+	require.NotNil(t, c, "b/c.mp3 missing")
+	require.Equal(t, "/b", c.Loc)
+	require.Equal(t, "audio", c.Kind)
+
+	// --- video ---
+	resp2, err := http.Get(srv.URL + "/mediaLibrary?kind=video&token=" + token)
+	require.NoError(t, err)
+	require.Equal(t, http.StatusOK, resp2.StatusCode)
+	var video []mediaWire
+	require.NoError(t, json.NewDecoder(resp2.Body).Decode(&video))
+	resp2.Body.Close()
+	require.Len(t, video, 1, "expected 1 video entry (b/d.mp4); got %+v", video)
+	require.Equal(t, "d.mp4", video[0].Name)
+	require.Equal(t, "/b", video[0].Loc)
+	require.Equal(t, "video", video[0].Kind)
+
+	// --- invalid kind ---
+	resp3, err := http.Get(srv.URL + "/mediaLibrary?kind=invalid&token=" + token)
+	require.NoError(t, err)
+	require.Equal(t, http.StatusBadRequest, resp3.StatusCode)
+	resp3.Body.Close()
 }
 
 // --- helpers ---

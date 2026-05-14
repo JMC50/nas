@@ -1,5 +1,7 @@
 <script lang="ts">
   import Folder from "lucide-svelte/icons/folder";
+  import Music from "lucide-svelte/icons/music";
+  import Film from "lucide-svelte/icons/film";
   import Users from "lucide-svelte/icons/users";
   import History from "lucide-svelte/icons/history";
   import Settings from "lucide-svelte/icons/settings";
@@ -20,11 +22,17 @@
 
   const NAV_ITEMS: NavItem[] = [
     { id: EXPLORER_TAB_ID, kind: "explorer", title: "Files", icon: Folder },
+    { id: "system:music-library", kind: "music-library", title: "Music", icon: Music },
+    { id: "system:video-library", kind: "video-library", title: "Videos", icon: Film },
     { id: "system:user-manager", kind: "user-manager", title: "Users", icon: Users, adminOnly: true },
     { id: "system:activity", kind: "activity", title: "Activity", icon: History },
     { id: "system:settings", kind: "settings", title: "Settings", icon: Settings, adminOnly: true },
     { id: "system:system", kind: "system", title: "System", icon: Cpu, adminOnly: true },
   ];
+
+  // Sidebar entries that map to singleton tabs the user cannot close — the
+  // sidebar button is the only way back in.
+  const NON_CLOSABLE: TabKind[] = ["explorer", "music-library", "video-library"];
 
   const visibleItems = $derived(NAV_ITEMS.filter((item) => !item.adminOnly || auth.isAdmin));
 
@@ -40,7 +48,7 @@
       title: item.title,
       icon: item.kind,
       payload: null,
-      closable: item.kind !== "explorer",
+      closable: !NON_CLOSABLE.includes(item.kind),
     });
   }
 </script>

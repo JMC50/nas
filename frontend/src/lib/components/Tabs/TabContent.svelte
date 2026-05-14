@@ -12,6 +12,8 @@
   import PdfViewer from "$lib/components/Viewers/PdfViewer.svelte";
   import OfficeViewer from "$lib/components/Viewers/OfficeViewer.svelte";
   import MonacoViewer from "$lib/components/Viewers/MonacoViewer.svelte";
+  import MusicLibrary from "$lib/components/Library/MusicLibrary.svelte";
+  import VideoLibrary from "$lib/components/Library/VideoLibrary.svelte";
   import type { ExplorerPayload } from "$lib/types";
 
   interface FilePayload {
@@ -60,6 +62,10 @@
       {:else if tab.kind === "text"}
         {@const payload = tab.payload as FilePayload}
         <MonacoViewer loc={payload.loc} name={payload.name} tabId={tab.id} />
+      {:else if tab.kind === "music-library"}
+        <MusicLibrary />
+      {:else if tab.kind === "video-library"}
+        <VideoLibrary />
       {/if}
     </div>
   {/each}

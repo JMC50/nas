@@ -28,6 +28,8 @@
     activity: History,
     account: User,
     system: Cpu,
+    "music-library": Music,
+    "video-library": Film,
   };
 
   let sourceId = $state<string | null>(null);

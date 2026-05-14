@@ -32,10 +32,14 @@ export async function createFolder(loc: string[], name: string): Promise<void> {
   notifications.success(`Created ${name}`);
 }
 
-export async function deleteEntry(loc: string[], entry: FolderEntry): Promise<void> {
+export async function deleteEntry(
+  loc: string[],
+  entry: FolderEntry,
+  opts: { silent?: boolean } = {},
+): Promise<void> {
   const response = await fetch(url("forceDelete", { name: entry.name, loc: locPath(loc) }));
   if (!response.ok) throw new FetchError(response.status, `HTTP ${response.status}`);
-  notifications.success(`Deleted ${entry.name}`);
+  if (!opts.silent) notifications.success(`Deleted ${entry.name}`);
 }
 
 export async function renameEntry(loc: string[], entry: FolderEntry, next: string): Promise<void> {
@@ -48,6 +52,7 @@ export async function moveEntry(
   originLoc: string[],
   targetLoc: string[],
   name: string,
+  opts: { silent?: boolean } = {},
 ): Promise<void> {
   const response = await fetch(
     url("move", {
@@ -57,7 +62,7 @@ export async function moveEntry(
     }),
   );
   if (!response.ok) throw new FetchError(response.status, `HTTP ${response.status}`);
-  notifications.success(`Moved ${name}`);
+  if (!opts.silent) notifications.success(`Moved ${name}`);
 }
 
 export function downloadUrl(loc: string[], entry: FolderEntry): string {

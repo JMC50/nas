@@ -46,11 +46,32 @@
     loc: string;
   }
 
+  // Shared across one drop's recursive walk so each warning fires at most once.
+  interface WalkState {
+    depthWarned: boolean;
+    readWarned: boolean;
+  }
+
+  const MAX_DEPTH = 32;
+
   async function walkEntry(
     entry: FileSystemEntry,
     basePath: string,
     out: CollectedFile[],
+    depth: number,
+    state: WalkState,
   ): Promise<void> {
+    if (depth > MAX_DEPTH) {
+      if (!state.depthWarned) {
+        state.depthWarned = true;
+        notifications.warning(`Folder depth exceeded (${MAX_DEPTH}) — partial upload`);
+      }
+      return;
+    }
+    if (entry.name.startsWith(".")) {
+      // Skip dotfiles/dotfolders (.DS_Store, .git, __MACOSX is non-dot but harmless).
+      return;
+    }
     if (entry.isFile) {
       await new Promise<void>((resolve, reject) => {
         (entry as FileSystemFileEntry).file(
@@ -68,12 +89,23 @@
       const subBase = basePath === "/" ? "/" + dir.name : basePath + "/" + dir.name;
       const reader = dir.createReader();
       while (true) {
-        const batch: FileSystemEntry[] = await new Promise((resolve, reject) =>
-          reader.readEntries(resolve, reject),
-        );
+        let batch: FileSystemEntry[];
+        try {
+          batch = await new Promise<FileSystemEntry[]>((resolve, reject) =>
+            reader.readEntries(resolve, reject),
+          );
+        } catch (_cause) {
+          if (!state.readWarned) {
+            state.readWarned = true;
+            notifications.warning(
+              "Failed to read part of dropped folder — uploads may be incomplete",
+            );
+          }
+          break;
+        }
         if (batch.length === 0) break;
         for (const child of batch) {
-          await walkEntry(child, subBase, out);
+          await walkEntry(child, subBase, out, depth + 1, state);
         }
       }
     }
@@ -87,6 +119,8 @@
 
     const here = currentPath;
     const collected: CollectedFile[] = [];
+    const state: WalkState = { depthWarned: false, readWarned: false };
+    let entriesOffered = 0;
 
     const items = event.dataTransfer?.items;
     if (items && items.length > 0 && typeof items[0].webkitGetAsEntry === "function") {
@@ -96,7 +130,8 @@
         if (item.kind !== "file") continue;
         const entry = item.webkitGetAsEntry();
         if (entry) {
-          walks.push(walkEntry(entry, here, collected));
+          entriesOffered++;
+          walks.push(walkEntry(entry, here, collected, 0, state));
         }
       }
       try {
@@ -109,6 +144,7 @@
       const droppedFiles = event.dataTransfer?.files;
       if (droppedFiles) {
         for (const file of droppedFiles) {
+          entriesOffered++;
           collected.push({ file, loc: here });
         }
       }
@@ -117,6 +153,13 @@
     for (const { file, loc } of collected) {
       uploads.enqueue({ file, loc, filename: file.name });
     }
+
+    if (collected.length === 0 && entriesOffered > 0) {
+      notifications.warning("No uploadable files in dropped folder");
+    } else if (collected.length > 0) {
+      notifications.info(`Queued ${collected.length} file(s) for upload`);
+    }
+
     pumpQueue();
   }
 
@@ -125,6 +168,43 @@
     window.addEventListener("dragover", onDragOver);
     window.addEventListener("dragleave", onDragLeave);
     window.addEventListener("drop", onDrop);
+
+    // test-only DEV harness; treeshaken from prod build by import.meta.env.DEV check
+    if (import.meta.env.DEV) {
+      (window as unknown as Record<string, unknown>).__nasTestEnqueueFolder = (
+        items: Array<{ webkitRelativePath: string; name?: string; content?: string }>,
+      ) => {
+        const here = currentPath ?? "/";
+        const collected: CollectedFile[] = [];
+        for (const item of items) {
+          const rel = item.webkitRelativePath;
+          // Apply dotfile guard same as enqueueFolder.
+          if (rel.split("/").some((seg) => seg.startsWith("."))) continue;
+          const parts = rel.split("/");
+          const filename = item.name ?? parts[parts.length - 1];
+          const dirParts = parts.slice(0, -1);
+          const loc =
+            dirParts.length > 0
+              ? here === "/"
+                ? "/" + dirParts.join("/")
+                : here + "/" + dirParts.join("/")
+              : here;
+          const file = new File([item.content ?? ""], filename);
+          collected.push({ file, loc });
+        }
+        for (const { file, loc } of collected) {
+          uploads.enqueue({ file, loc, filename: file.name });
+        }
+        // Harness mirrors production: any empty-result drop warns (items=[]
+        // simulates empty-folder drop; non-empty items all filtered also warns).
+        if (collected.length === 0) {
+          notifications.warning("No uploadable files in dropped folder");
+        } else {
+          notifications.info(`Queued ${collected.length} file(s) for upload`);
+        }
+        pumpQueue();
+      };
+    }
   });
 
   onDestroy(() => {
@@ -132,6 +212,10 @@
     window.removeEventListener("dragover", onDragOver);
     window.removeEventListener("dragleave", onDragLeave);
     window.removeEventListener("drop", onDrop);
+
+    if (import.meta.env.DEV) {
+      delete (window as unknown as Record<string, unknown>).__nasTestEnqueueFolder;
+    }
   });
 </script>
 

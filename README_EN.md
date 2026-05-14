@@ -29,6 +29,8 @@
 
 NAS is a self-hosted file server. Files on your disk are browsed, streamed and edited straight from the browser, with eight per-user intents (VIEW · OPEN · DOWNLOAD · UPLOAD · COPY · DELETE · RENAME · ADMIN) gating every operation. The Go binary and the static SvelteKit build ship together in a single Alpine image — no CGO required.
 
+> **Auth in one line** — local accounts (bcrypt) plus Discord OAuth plus Google OAuth, all three usable side by side. The backend is the single source of truth, and OAuth credentials are stored in the DB at runtime through the admin UI — no environment-time secrets and no frontend rebuild when you add a provider.
+
 ---
 
 ## Quick start
@@ -105,11 +107,11 @@ Theme and default file view are per-user. Discord/Google OAuth credentials are s
 
 Same idea as VSCode's Quick Open. It searches open tabs, registered surfaces (System · Users · Settings · Activity), and files in the current folder, all from one input.
 
-### Sign-in
+### Sign-in — Discord + Google OAuth and local in one card
 
-![NAS sign-in card on dark background with User ID / Password fields and accent-yellow Sign in button](Docs/screenshots/01-login.png)
+![NAS sign-in card with Continue with Discord button (blue), Continue with Google button (white), or divider, and local User ID / Password fields below](Docs/screenshots/01-login.png)
 
-`AUTH_TYPE` controls which paths appear — local-only, OAuth-only, or both. OAuth providers light up once an admin has registered credentials in Settings.
+`AUTH_TYPE` controls which paths appear — local-only, OAuth-only, or both. The moment an admin registers Discord or Google credentials in Settings, the corresponding button appears above the local form like in the screenshot above. No frontend rebuild required.
 
 ---
 

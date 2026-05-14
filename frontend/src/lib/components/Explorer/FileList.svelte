@@ -1,6 +1,8 @@
 <script lang="ts">
   import { iconFor, type FolderEntry } from "./icon-for";
   import { dragEntry } from "./drag-drop-action";
+  import { longPress } from "$lib/actions/long-press";
+  import { ui } from "$lib/store/ui.svelte";
   import { formatBytes, formatRelTime, formatFullTime } from "./format";
 
   interface Props {
@@ -24,6 +26,17 @@
   }: Props = $props();
 
   let dropTargetName = $state<string | null>(null);
+
+  // Long-press on touch fires onMenu with a synthetic MouseEvent so the
+  // existing ContextMenu (anchored at clientX/clientY) opens under the finger.
+  function openMenuAt(entry: FolderEntry, clientX: number, clientY: number) {
+    const synthetic = new MouseEvent("contextmenu", {
+      clientX,
+      clientY,
+      bubbles: true,
+    });
+    onMenu(synthetic, entry);
+  }
 </script>
 
 <table class="w-full text-sm">
@@ -44,7 +57,7 @@
         class="border-b border-border-default/40 hover:bg-bg-hover cursor-pointer {isDropTarget
           ? 'ring-1 ring-inset ring-accent bg-bg-elevated'
           : ''} {isSelected ? 'ring-1 ring-inset ring-accent bg-bg-elevated' : ''}"
-        draggable="true"
+        draggable={!ui.isMobile}
         use:dragEntry={{
           entry,
           dragPayload,
@@ -55,6 +68,9 @@
             if (dropTargetName === name) dropTargetName = null;
           },
           onDropFinish: () => (dropTargetName = null),
+        }}
+        use:longPress={{
+          onLongPress: (clientX, clientY) => openMenuAt(entry, clientX, clientY),
         }}
         oncontextmenu={(event) => onMenu(event, entry)}
         onclick={() => onSelect(entry)}

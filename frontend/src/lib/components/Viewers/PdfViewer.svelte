@@ -11,6 +11,9 @@
   import ZoomOut from "lucide-svelte/icons/zoom-out";
   import Maximize2 from "lucide-svelte/icons/maximize-2";
   import Download from "lucide-svelte/icons/download";
+  import MoreHorizontal from "lucide-svelte/icons/more-horizontal";
+  import { ui } from "$lib/store/ui.svelte";
+  import { clickOutside } from "$lib/actions/click-outside";
 
   interface Props {
     loc: string;
@@ -185,6 +188,24 @@
     applyScale();
   });
 
+  // Mobile-only: zoom controls + fit-width + download collapse into a
+  // dropdown so the toolbar fits on a 375px width with prev / page / next
+  // staying visible.
+  let zoomMenuOpen = $state(false);
+
+  function pickZoomOut() {
+    zoomOut();
+    zoomMenuOpen = false;
+  }
+  function pickZoomIn() {
+    zoomIn();
+    zoomMenuOpen = false;
+  }
+  function pickFitWidth() {
+    fitWidth();
+    zoomMenuOpen = false;
+  }
+
   onMount(loadDocument);
 
   onDestroy(() => {
@@ -237,23 +258,23 @@
       <ChevronRight size="16" />
     </button>
 
-    <span class="text-fg-muted">|</span>
+    <span class="hidden md:inline text-fg-muted">|</span>
 
     <button
       type="button"
       onclick={zoomOut}
       aria-label="Zoom out"
-      class="inline-flex items-center justify-center w-8 h-8 rounded
+      class="hidden md:inline-flex items-center justify-center w-8 h-8 rounded
              hover:bg-bg-hover hover:text-fg-accent transition-colors"
     >
       <ZoomOut size="16" />
     </button>
-    <span class="font-mono tabular-nums w-12 text-center">{Math.round(scale * 100)}%</span>
+    <span class="hidden md:inline font-mono tabular-nums w-12 text-center">{Math.round(scale * 100)}%</span>
     <button
       type="button"
       onclick={zoomIn}
       aria-label="Zoom in"
-      class="inline-flex items-center justify-center w-8 h-8 rounded
+      class="hidden md:inline-flex items-center justify-center w-8 h-8 rounded
              hover:bg-bg-hover hover:text-fg-accent transition-colors"
     >
       <ZoomIn size="16" />
@@ -262,24 +283,91 @@
       type="button"
       onclick={fitWidth}
       aria-label="Fit width"
-      class="inline-flex items-center justify-center w-8 h-8 rounded
+      class="hidden md:inline-flex items-center justify-center w-8 h-8 rounded
              hover:bg-bg-hover hover:text-fg-accent transition-colors"
     >
       <Maximize2 size="16" />
     </button>
 
-    <span class="text-fg-muted">|</span>
+    <span class="hidden md:inline text-fg-muted">|</span>
     <a
       href={pdfUrl}
       download={name}
       target="_blank"
       rel="noopener"
       aria-label="Download PDF"
-      class="inline-flex items-center justify-center w-8 h-8 rounded
+      class="hidden md:inline-flex items-center justify-center w-8 h-8 rounded
              hover:bg-bg-hover hover:text-fg-accent transition-colors"
     >
       <Download size="16" />
     </a>
+
+    <!-- Mobile: zoom / fit / download collapse into an overflow menu -->
+    {#if ui.isMobile}
+      <div class="relative" use:clickOutside={{ onOutside: () => (zoomMenuOpen = false), enabled: zoomMenuOpen }}>
+        <button
+          type="button"
+          onclick={(event) => {
+            event.stopPropagation();
+            zoomMenuOpen = !zoomMenuOpen;
+          }}
+          aria-label="More PDF actions"
+          aria-expanded={zoomMenuOpen}
+          class="inline-flex items-center justify-center w-8 h-8 rounded
+                 hover:bg-bg-hover hover:text-fg-accent transition-colors"
+        >
+          <MoreHorizontal size="16" />
+        </button>
+        {#if zoomMenuOpen}
+          <div
+            class="absolute right-0 top-full mt-1 py-1 min-w-[180px] rounded-md
+                   bg-bg-elevated border border-border-default shadow-lg z-30"
+            role="menu"
+          >
+            <button
+              type="button"
+              onclick={pickZoomOut}
+              class="w-full flex items-center gap-2 px-3 h-9 text-left text-xs text-fg-primary hover:bg-bg-hover transition-colors"
+              role="menuitem"
+            >
+              <ZoomOut size="14" class="text-fg-muted shrink-0" />
+              <span>Zoom out</span>
+              <span class="ml-auto font-mono tabular-nums text-fg-muted">{Math.round(scale * 100)}%</span>
+            </button>
+            <button
+              type="button"
+              onclick={pickZoomIn}
+              class="w-full flex items-center gap-2 px-3 h-9 text-left text-xs text-fg-primary hover:bg-bg-hover transition-colors"
+              role="menuitem"
+            >
+              <ZoomIn size="14" class="text-fg-muted shrink-0" />
+              <span>Zoom in</span>
+            </button>
+            <button
+              type="button"
+              onclick={pickFitWidth}
+              class="w-full flex items-center gap-2 px-3 h-9 text-left text-xs text-fg-primary hover:bg-bg-hover transition-colors"
+              role="menuitem"
+            >
+              <Maximize2 size="14" class="text-fg-muted shrink-0" />
+              <span>Fit width</span>
+            </button>
+            <div class="my-1 border-t border-border-default"></div>
+            <a
+              href={pdfUrl}
+              download={name}
+              target="_blank"
+              rel="noopener"
+              class="w-full flex items-center gap-2 px-3 h-9 text-left text-xs text-fg-primary hover:bg-bg-hover transition-colors"
+              role="menuitem"
+            >
+              <Download size="14" class="text-fg-muted shrink-0" />
+              <span>Download</span>
+            </a>
+          </div>
+        {/if}
+      </div>
+    {/if}
 
     <span class="ml-auto text-fg-muted">{loading ? "Loading…" : ""}</span>
   </div>

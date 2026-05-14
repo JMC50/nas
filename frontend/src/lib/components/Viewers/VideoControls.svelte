@@ -7,11 +7,14 @@
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   type IconComponent = typeof SvelteComponentTyped<any>;
   import { formatTime } from "./media-utils";
+  import { ui } from "$lib/store/ui.svelte";
+  import { clickOutside } from "$lib/actions/click-outside";
   import Play from "lucide-svelte/icons/play";
   import Pause from "lucide-svelte/icons/pause";
   import Maximize from "lucide-svelte/icons/maximize";
   import Minimize from "lucide-svelte/icons/minimize";
   import PictureInPicture2 from "lucide-svelte/icons/picture-in-picture-2";
+  import MoreHorizontal from "lucide-svelte/icons/more-horizontal";
 
   interface Props {
     controlsVisible: boolean;
@@ -62,6 +65,20 @@
     onTogglePip,
     onToggleFullscreen,
   }: Props = $props();
+
+  // Mobile-only: secondary controls (speed, PIP) collapse into a "more" popup
+  // anchored to the overflow button so the controls row fits on a 375px width.
+  let moreOpen = $state(false);
+
+  function pickSpeed(rate: number) {
+    onSetSpeed(rate);
+    moreOpen = false;
+  }
+
+  function pickPip() {
+    onTogglePip();
+    moreOpen = false;
+  }
 </script>
 
 <!-- bottom controls bar -->
@@ -147,7 +164,8 @@
     <!-- spacer; later tasks fill the right side -->
     <div class="ml-auto"></div>
 
-    <div class="relative" data-speed-menu>
+    <!-- Desktop: inline speed menu + PIP -->
+    <div class="hidden md:block relative" data-speed-menu>
       <button
         type="button"
         onclick={onToggleSpeedMenu}
@@ -184,12 +202,70 @@
         type="button"
         onclick={onTogglePip}
         aria-label="Picture in Picture"
-        class="inline-flex items-center justify-center w-9 h-9 rounded
+        class="hidden md:inline-flex items-center justify-center w-9 h-9 rounded
                hover:bg-bg-hover hover:text-fg-accent transition-colors"
       >
         <PictureInPicture2 size="18" />
       </button>
     {/if}
+
+    <!-- Mobile: overflow menu for speed + PIP -->
+    {#if ui.isMobile}
+      <div class="relative" use:clickOutside={{ onOutside: () => (moreOpen = false), enabled: moreOpen }}>
+        <button
+          type="button"
+          onclick={(event) => {
+            event.stopPropagation();
+            moreOpen = !moreOpen;
+          }}
+          aria-label="More controls"
+          aria-expanded={moreOpen}
+          class="inline-flex items-center justify-center w-9 h-9 rounded
+                 hover:bg-bg-hover hover:text-fg-accent transition-colors"
+        >
+          <MoreHorizontal size="18" />
+        </button>
+        {#if moreOpen}
+          <div
+            class="absolute bottom-full right-0 mb-2 py-1 rounded-md
+                   bg-bg-elevated border border-border-default
+                   shadow-lg z-30 min-w-[140px]"
+            role="menu"
+          >
+            <div class="px-3 py-1 text-[10px] uppercase tracking-wide text-fg-muted font-mono">
+              Speed
+            </div>
+            {#each SPEEDS as rate (rate)}
+              <button
+                type="button"
+                onclick={() => pickSpeed(rate)}
+                class="w-full px-3 py-1.5 text-xs font-mono tabular-nums text-left
+                       hover:bg-bg-hover transition-colors
+                       {speed === rate ? 'text-fg-accent' : 'text-fg-primary'}"
+                role="menuitemradio"
+                aria-checked={speed === rate}
+              >
+                {rate}×
+              </button>
+            {/each}
+            {#if pipSupported}
+              <div class="my-1 border-t border-border-default"></div>
+              <button
+                type="button"
+                onclick={pickPip}
+                class="w-full flex items-center gap-2 px-3 py-1.5 text-xs text-left
+                       text-fg-primary hover:bg-bg-hover transition-colors"
+                role="menuitem"
+              >
+                <PictureInPicture2 size="14" class="text-fg-muted shrink-0" />
+                <span>Picture in Picture</span>
+              </button>
+            {/if}
+          </div>
+        {/if}
+      </div>
+    {/if}
+
     <button
       type="button"
       onclick={onToggleFullscreen}

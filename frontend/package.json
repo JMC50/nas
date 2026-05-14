@@ -1,6 +1,6 @@
 {
   "name": "nas-frontend",
-  "version": "0.0.1-beta",
+  "version": "0.1.0",
   "private": true,
   "type": "module",
   "scripts": {

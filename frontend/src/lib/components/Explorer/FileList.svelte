@@ -11,8 +11,12 @@
     onOpen: (entry: FolderEntry, opts?: { newTab?: boolean }) => void;
     onMenu: (event: MouseEvent, entry: FolderEntry) => void;
     onDropOnFolder: (event: DragEvent, target: FolderEntry) => void;
-    onSelect: (entry: FolderEntry) => void;
-    selectedName: string | null;
+    // Click → fires for every entry click (modifier-aware). Explorer.svelte
+    // dispatches setSingle / toggleEntry / selectRange based on the event.
+    onSelect: (event: MouseEvent, entry: FolderEntry) => void;
+    // Mobile long-press → enter selection mode with this entry as initial pick.
+    onLongSelect?: (entry: FolderEntry) => void;
+    selectedNames: string[];
   }
 
   let {
@@ -22,14 +26,18 @@
     onMenu,
     onDropOnFolder,
     onSelect,
-    selectedName,
+    onLongSelect,
+    selectedNames,
   }: Props = $props();
 
+  const selectedSet = $derived(new Set(selectedNames));
   let dropTargetName = $state<string | null>(null);
 
-  // Long-press on touch fires onMenu with a synthetic MouseEvent so the
-  // existing ContextMenu (anchored at clientX/clientY) opens under the finger.
-  function openMenuAt(entry: FolderEntry, clientX: number, clientY: number) {
+  function handleLongPress(entry: FolderEntry, clientX: number, clientY: number) {
+    if (onLongSelect && selectedSet.size === 0) {
+      onLongSelect(entry);
+      return;
+    }
     const synthetic = new MouseEvent("contextmenu", {
       clientX,
       clientY,
@@ -39,7 +47,11 @@
   }
 </script>
 
-<table class="w-full text-sm">
+<!--
+  data-marquee-canvas="false" stops marquee pointerdown trigger from firing on
+  table rows — only blank-area mousedowns inside the canvas start a marquee.
+-->
+<table class="w-full text-sm" data-marquee-canvas="false">
   <thead>
     <tr class="text-xs text-fg-muted border-b border-border-default">
       <th class="text-left font-normal px-6 py-2">Name</th>
@@ -51,9 +63,10 @@
   <tbody>
     {#each entries as entry (entry.name)}
       {@const Icon = iconFor(entry)}
-      {@const isSelected = entry.name === selectedName}
+      {@const isSelected = selectedSet.has(entry.name)}
       {@const isDropTarget = entry.isFolder && dropTargetName === entry.name}
       <tr
+        data-entry-name={entry.name}
         class="border-b border-border-default/40 hover:bg-bg-hover cursor-pointer {isDropTarget
           ? 'ring-1 ring-inset ring-accent bg-bg-elevated'
           : ''} {isSelected ? 'ring-1 ring-inset ring-accent bg-bg-elevated' : ''}"
@@ -70,10 +83,10 @@
           onDropFinish: () => (dropTargetName = null),
         }}
         use:longPress={{
-          onLongPress: (clientX, clientY) => openMenuAt(entry, clientX, clientY),
+          onLongPress: (clientX, clientY) => handleLongPress(entry, clientX, clientY),
         }}
         oncontextmenu={(event) => onMenu(event, entry)}
-        onclick={() => onSelect(entry)}
+        onclick={(event) => onSelect(event, entry)}
       >
         <td class="px-6 py-1.5">
           <div class="flex items-center gap-2 min-w-0">

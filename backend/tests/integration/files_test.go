@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 
@@ -131,6 +132,53 @@ func TestStat_ReturnsFolderType(t *testing.T) {
 	get(t, router, "/makedir?token="+token+"&loc=&name=mydir")
 	resp := get(t, router, "/stat?token="+token+"&loc=&name=mydir")
 	require.Contains(t, resp, `"type":"folder"`)
+}
+
+// TestReadFolderDetails verifies that readFolder responses include `size`
+// (bytes for files, 0 for folders) and a RFC3339 `modifiedAt` close to now.
+func TestReadFolderDetails(t *testing.T) {
+	router, cfg, _, _ := setupFilesTestServer(t)
+	token, err := auth.IssueToken("admin1", cfg.PrivateKey)
+	require.NoError(t, err)
+
+	// Seed: one file with known content + one subfolder.
+	body, _ := json.Marshal(map[string]string{"text": "hello world"})
+	postJSON(t, router, "/saveTextFile?token="+token+"&loc=&name=hello.txt", body)
+	get(t, router, "/makedir?token="+token+"&loc=&name=mydir")
+
+	// Read root, decode into the wire shape.
+	raw := get(t, router, "/readFolder?token="+token+"&loc=")
+	type wireEntry struct {
+		Name       string `json:"name"`
+		IsFolder   bool   `json:"isFolder"`
+		Extensions string `json:"extensions"`
+		Size       int64  `json:"size"`
+		ModifiedAt string `json:"modifiedAt"`
+	}
+	var entries []wireEntry
+	require.NoError(t, json.Unmarshal([]byte(raw), &entries))
+
+	var file, folder *wireEntry
+	for i := range entries {
+		switch entries[i].Name {
+		case "hello.txt":
+			file = &entries[i]
+		case "mydir":
+			folder = &entries[i]
+		}
+	}
+	require.NotNil(t, file, "hello.txt missing from readFolder response: %s", raw)
+	require.NotNil(t, folder, "mydir missing from readFolder response: %s", raw)
+
+	// File row: size > 0, modifiedAt parseable as RFC3339 within ±60s of now.
+	require.Greater(t, file.Size, int64(0), "file size should be > 0")
+	parsed, err := time.Parse(time.RFC3339, file.ModifiedAt)
+	require.NoError(t, err, "modifiedAt should parse as RFC3339, got %q", file.ModifiedAt)
+	require.WithinDuration(t, time.Now(), parsed, 60*time.Second)
+
+	// Folder row: isFolder true, size 0.
+	require.True(t, folder.IsFolder, "mydir should be isFolder=true")
+	require.Equal(t, int64(0), folder.Size, "folder size should be 0")
 }
 
 // --- helpers ---

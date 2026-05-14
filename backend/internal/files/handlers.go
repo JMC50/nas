@@ -26,6 +26,8 @@ type fileEntry struct {
 	IsFolder   bool   `json:"isFolder"`
 	Extensions string `json:"extensions"`
 	Loc        string `json:"loc,omitempty"`
+	Size       int64  `json:"size"`
+	ModifiedAt string `json:"modifiedAt"`
 }
 
 func (h *Handlers) ReadFolder(w http.ResponseWriter, r *http.Request) {
@@ -42,11 +44,17 @@ func (h *Handlers) ReadFolder(w http.ResponseWriter, r *http.Request) {
 	}
 	results := make([]fileEntry, 0, len(entries))
 	for _, entry := range entries {
+		info, err := entry.Info()
+		if err != nil {
+			continue
+		}
 		extension := extensionOf(entry.Name())
 		results = append(results, fileEntry{
 			Name:       entry.Name(),
 			IsFolder:   entry.IsDir(),
 			Extensions: extension,
+			Size:       info.Size(),
+			ModifiedAt: info.ModTime().Format(time.RFC3339),
 		})
 	}
 	writeJSON(w, http.StatusOK, results)

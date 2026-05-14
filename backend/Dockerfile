@@ -10,6 +10,10 @@ RUN npm ci --prefer-offline --no-audit --silent
 # when vite resolves modules.
 COPY frontend/package.json frontend/package-lock.json ./frontend/
 RUN cd frontend && npm ci --prefer-offline --no-audit --silent
+# VERSION at /work/VERSION — vite.config.ts reads `resolve(__dirname, "..", "VERSION")`
+# which from /work/frontend/ resolves to /work/VERSION. Without this copy the
+# readFileSync throws and __APP_VERSION__ falls back to "0.0.0-unknown".
+COPY VERSION ./
 COPY frontend ./frontend
 RUN cd frontend && npx vite build
 # SvelteKit (adapter-static) writes to /work/frontend/build

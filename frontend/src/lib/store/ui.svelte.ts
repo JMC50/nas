@@ -15,6 +15,7 @@ class UIStore {
   sidebarCollapsed = $state<boolean>(false);
   quickOpenVisible = $state<boolean>(QUICKOPEN_DEFAULT);
   uploadsPanelOpen = $state<boolean>(false);
+  drawerOpen = $state<boolean>(false);
   viewportWidth = $state<number>(0);
   viewportHeight = $state<number>(0);
 
@@ -38,6 +39,11 @@ class UIStore {
       window.addEventListener("resize", () => {
         this.viewportWidth = window.innerWidth;
         this.viewportHeight = window.innerHeight;
+        // Auto-close drawer when upsizing past md — the drawer is mobile-only
+        // and the sidebar grid column reappears at md+.
+        if (this.viewportWidth >= BREAKPOINTS.md && this.drawerOpen) {
+          this.closeDrawer();
+        }
       });
     }
   }
@@ -63,6 +69,27 @@ class UIStore {
 
   closeUploadsPanel() {
     this.uploadsPanelOpen = false;
+  }
+
+  // Mobile drawer: open/close mutates state AND locks <html> scroll to
+  // prevent body-scroll bleed under the overlay.
+  setDrawerOpen(value: boolean) {
+    this.drawerOpen = value;
+    if (browser) {
+      document.documentElement.style.overflow = value ? "hidden" : "";
+    }
+  }
+
+  openDrawer() {
+    this.setDrawerOpen(true);
+  }
+
+  closeDrawer() {
+    this.setDrawerOpen(false);
+  }
+
+  toggleDrawer() {
+    this.setDrawerOpen(!this.drawerOpen);
   }
 }
 

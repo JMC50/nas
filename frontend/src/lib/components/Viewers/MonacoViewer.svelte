@@ -54,6 +54,7 @@
   import { auth } from "$lib/store/auth.svelte";
   import { tabs } from "$lib/store/tabs.svelte";
   import { notifications } from "$lib/store/notifications.svelte";
+  import { ui } from "$lib/store/ui.svelte";
   import { GRUVBOX_DARK_THEME } from "$lib/components/Viewers/monaco-theme";
   import Save from "lucide-svelte/icons/save";
 
@@ -96,7 +97,10 @@
       automaticLayout: true,
       fontSize: 13,
       fontFamily: "'JetBrains Mono', ui-monospace, monospace",
-      minimap: { enabled: true },
+      // Minimap clutters narrow viewports; word-wrap prevents the horizontal
+      // scrolling that makes code unreadable on a 375px-wide phone.
+      minimap: { enabled: !ui.isMobile },
+      wordWrap: ui.isMobile ? "on" : "off",
       scrollBeyondLastLine: false,
       tabSize: 2,
     });

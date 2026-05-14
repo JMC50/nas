@@ -144,3 +144,14 @@ html.light {
         outline-offset: 2px;
     }
 }
+
+/* ─────────────────────────────────────────────────────────────────
+   `.h-app` — full viewport height for the (app) layout root.
+   Uses `100dvh` so iOS Safari's collapsing URL bar doesn't clip the
+   bottom 28px StatusBar (the classic `100vh` bug). Falls back to
+   `100vh` on browsers without dynamic viewport units.
+   ───────────────────────────────────────────────────────────────── */
+@utility h-app {
+    height: 100vh;
+    height: 100dvh;
+}

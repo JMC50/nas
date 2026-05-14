@@ -20,6 +20,8 @@ export interface FolderEntry {
   name: string;
   isFolder: boolean;
   extensions: string;
+  size: number;
+  modifiedAt: string;
 }
 
 export function iconFor(entry: FolderEntry) {

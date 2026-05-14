@@ -74,10 +74,16 @@ if git rev-parse "$TAG" >/dev/null 2>&1; then
 fi
 
 NOTE_FILE="Docs/release-notes/${TAG}.md"
+NOTE_FILE_KO="Docs/release-notes/${TAG}.ko.md"
 if [[ ! -f "$NOTE_FILE" ]]; then
-  echo "error: release note not found at $NOTE_FILE" >&2
+  echo "error: English release note not found at $NOTE_FILE" >&2
   echo "       run: scripts/release-draft.sh $NEW_VERSION" >&2
-  echo "       then polish the generated draft before re-running this script." >&2
+  echo "       then polish the generated draft (English main + Korean translation) before re-running this script." >&2
+  exit 2
+fi
+if [[ ! -f "$NOTE_FILE_KO" ]]; then
+  echo "error: Korean release note not found at $NOTE_FILE_KO" >&2
+  echo "       this project ships bilingual notes — both must exist before tagging." >&2
   exit 2
 fi
 
@@ -125,7 +131,7 @@ fi
 
 # 3. Stage + commit.
 echo "[3/5] commit"
-run git add VERSION frontend/package.json "$NOTE_FILE"
+run git add VERSION frontend/package.json "$NOTE_FILE" "$NOTE_FILE_KO"
 run git commit -m "[chore] release ${TAG}"
 
 # 4. Annotated tag pointing at the release commit. Body of the tag annotation is the note file.

@@ -53,6 +53,7 @@ fi
 RANGE="${PREV_REF}..HEAD"
 OUTPUT_DIR="Docs/release-notes"
 OUTPUT_FILE="${OUTPUT_DIR}/v${NEW_VERSION}.md"
+OUTPUT_FILE_KO="${OUTPUT_DIR}/v${NEW_VERSION}.ko.md"
 mkdir -p "$OUTPUT_DIR"
 
 # Pull commit pairs. Format: <short_hash>|<subject>
@@ -104,89 +105,154 @@ done
 total=$(( ${#LINES[@]} ))
 merges=$(git log "$RANGE" --merges --oneline | wc -l | tr -d '[:space:]')
 
-# Emit draft. The author replaces bullet lists with polished prose per the
-# release-notes skill rules; this file is just the raw material.
-{
-  echo "# Release Notes — v${NEW_VERSION}"
-  echo
-  echo "| | |"
-  echo "|---|---|"
-  echo "| Range | \`${PREV_REF}..HEAD\` |"
-  echo "| Commits | ${total} individual / ${merges} merge commits |"
-  echo "| Components | (작성 시 채움 — Backend, Frontend, Infra 중 실제 변경된 영역만) |"
-  echo "| Verification | (작성 시 채움 — 결과 요약만, 명령어 노출 금지) |"
-  echo
-  echo "(노트 본문 한두 문장 — 무엇을 통합했고 어디까지 push되었는지)"
-  echo
+# Emit drafts. The author replaces bullet lists with polished prose per the
+# release-notes skill rules; these files are just the raw material. Two files
+# are produced — English main and Korean translation — sharing the same bullets.
 
-  if [[ -n "${BUCKETS[breaking]}" ]]; then
+emit_draft() {
+  local out="$1"          # path
+  local lang="$2"         # "en" or "ko"
+  local title_suffix=""
+  local cross_link=""
+  local placeholder_components="" placeholder_verify="" placeholder_intro=""
+  local placeholder_features="" placeholder_fixes="" placeholder_infra=""
+  local label_features="" label_fixes="" label_ui="" label_infra="" label_docs="" label_tests="" label_other=""
+  local label_breaking="" label_verify="" label_known="" verify_body="" known_body=""
+
+  if [[ "$lang" == "en" ]]; then
+    title_suffix=""
+    cross_link="> [한국어 버전 / Korean version](./v${NEW_VERSION}.ko.md)"
+    placeholder_components="(fill in — Backend, Frontend, Infra; whichever actually changed)"
+    placeholder_verify="(fill in — outcomes only, do not paste verification shell commands)"
+    placeholder_intro="(one or two sentences — what was integrated and how far it was pushed)"
+    placeholder_features="(none)"
+    placeholder_fixes="(none)"
+    placeholder_infra="(none)"
+    label_breaking="## 0. Breaking Changes"
+    label_features="## 1. Features"
+    label_fixes="## 2. Fixes"
+    label_ui="## 3. User-Interface Refinements"
+    label_infra="## 4. Infrastructure and Refactors"
+    label_docs="### Documentation"
+    label_tests="### Tests"
+    label_other="### Other"
+    label_verify="## 5. Verification Summary"
+    label_known="## 6. Known Limitations and Follow-ups"
+    verify_body="(fill in — one paragraph of outcomes + E2E scenario table)"
+    known_body="(fill in — follow-up bullet list)"
+  else
+    title_suffix=" (한국어)"
+    cross_link="> [English version](./v${NEW_VERSION}.md)"
+    placeholder_components="(작성 시 채움 — Backend, Frontend, Infra 중 실제 변경된 영역만)"
+    placeholder_verify="(작성 시 채움 — 결과 요약만, 명령어 노출 금지)"
+    placeholder_intro="(노트 본문 한두 문장 — 무엇을 통합했고 어디까지 push되었는지)"
+    placeholder_features="(없음)"
+    placeholder_fixes="(없음)"
+    placeholder_infra="(없음)"
+    label_breaking="## 0. Breaking Changes"
+    label_features="## 1. Features"
+    label_fixes="## 2. Fixes"
+    label_ui="## 3. User-Interface Refinements"
+    label_infra="## 4. Infrastructure and Refactors"
+    label_docs="### Documentation"
+    label_tests="### Tests"
+    label_other="### Other"
+    label_verify="## 5. Verification Summary"
+    label_known="## 6. Known Limitations and Follow-ups"
+    verify_body="(작성 시 채움 — 결과 요약 한 단락 + E2E 시나리오 표)"
+    known_body="(작성 시 채움 — 후속 작업 bullet list)"
+  fi
+
+  {
+    echo "# Release Notes — v${NEW_VERSION}${title_suffix}"
+    echo
+    echo "${cross_link}"
+    echo
+    echo "| | |"
+    echo "|---|---|"
+    echo "| Range | \`${PREV_REF}..HEAD\` |"
+    echo "| Commits | ${total} individual / ${merges} merge commits |"
+    echo "| Components | ${placeholder_components} |"
+    echo "| Verification | ${placeholder_verify} |"
+    echo
+    echo "${placeholder_intro}"
+    echo
+
+    if [[ -n "${BUCKETS[breaking]}" ]]; then
+      echo "---"
+      echo
+      echo "${label_breaking}"
+      echo
+      echo "${BUCKETS[breaking]}"
+    fi
+
     echo "---"
     echo
-    echo "## 0. Breaking Changes"
+    echo "${label_features}"
     echo
-    echo "${BUCKETS[breaking]}"
-  fi
+    if [[ -n "${BUCKETS[features]}" ]]; then echo "${BUCKETS[features]}"; else echo "${placeholder_features}"; echo; fi
 
-  echo "---"
-  echo
-  echo "## 1. Features"
-  echo
-  if [[ -n "${BUCKETS[features]}" ]]; then echo "${BUCKETS[features]}"; else echo "(없음)"; echo; fi
-
-  echo "---"
-  echo
-  echo "## 2. Fixes"
-  echo
-  if [[ -n "${BUCKETS[fixes]}" ]]; then echo "${BUCKETS[fixes]}"; else echo "(없음)"; echo; fi
-
-  if [[ -n "${BUCKETS[ui]}" ]]; then
     echo "---"
     echo
-    echo "## 3. User-Interface Refinements"
+    echo "${label_fixes}"
     echo
-    echo "${BUCKETS[ui]}"
-  fi
+    if [[ -n "${BUCKETS[fixes]}" ]]; then echo "${BUCKETS[fixes]}"; else echo "${placeholder_fixes}"; echo; fi
 
-  echo "---"
-  echo
-  echo "## 4. Infrastructure and Refactors"
-  echo
-  if [[ -n "${BUCKETS[infra]}" ]]; then echo "${BUCKETS[infra]}"; else echo "(없음)"; echo; fi
+    if [[ -n "${BUCKETS[ui]}" ]]; then
+      echo "---"
+      echo
+      echo "${label_ui}"
+      echo
+      echo "${BUCKETS[ui]}"
+    fi
 
-  if [[ -n "${BUCKETS[docs]}" ]]; then
-    echo "### Documentation"
+    echo "---"
     echo
-    echo "${BUCKETS[docs]}"
-  fi
-
-  if [[ -n "${BUCKETS[tests]}" ]]; then
-    echo "### Tests"
+    echo "${label_infra}"
     echo
-    echo "${BUCKETS[tests]}"
-  fi
+    if [[ -n "${BUCKETS[infra]}" ]]; then echo "${BUCKETS[infra]}"; else echo "${placeholder_infra}"; echo; fi
 
-  if [[ -n "${BUCKETS[other]}" ]]; then
-    echo "### Other"
+    if [[ -n "${BUCKETS[docs]}" ]]; then
+      echo "${label_docs}"
+      echo
+      echo "${BUCKETS[docs]}"
+    fi
+
+    if [[ -n "${BUCKETS[tests]}" ]]; then
+      echo "${label_tests}"
+      echo
+      echo "${BUCKETS[tests]}"
+    fi
+
+    if [[ -n "${BUCKETS[other]}" ]]; then
+      echo "${label_other}"
+      echo
+      echo "${BUCKETS[other]}"
+    fi
+
+    echo "---"
     echo
-    echo "${BUCKETS[other]}"
-  fi
+    echo "${label_verify}"
+    echo
+    echo "${verify_body}"
+    echo
+    echo "---"
+    echo
+    echo "${label_known}"
+    echo
+    echo "${known_body}"
+    echo
+  } > "$out"
+}
 
-  echo "---"
-  echo
-  echo "## 5. Verification Summary"
-  echo
-  echo "(작성 시 채움 — 결과 요약 한 단락 + E2E 시나리오 표)"
-  echo
-  echo "---"
-  echo
-  echo "## 6. Known Limitations and Follow-ups"
-  echo
-  echo "(작성 시 채움 — 후속 작업 bullet list)"
-  echo
-} > "$OUTPUT_FILE"
+emit_draft "$OUTPUT_FILE" en
+emit_draft "$OUTPUT_FILE_KO" ko
 
-echo "Draft written: $OUTPUT_FILE"
-echo "  Range: ${PREV_REF}..HEAD"
+echo "Drafts written:"
+echo "  English: $OUTPUT_FILE"
+echo "  Korean:  $OUTPUT_FILE_KO"
+echo "  Range:   ${PREV_REF}..HEAD"
 echo "  Commits: ${total} individual / ${merges} merge"
 echo
-echo "Next: polish the draft (release-notes skill rules), then run scripts/release.sh ${NEW_VERSION}"
+echo "Next: polish both drafts (release-notes skill rules — English is the main"
+echo "      file that becomes the GitHub Release body), then run scripts/release.sh ${NEW_VERSION}"

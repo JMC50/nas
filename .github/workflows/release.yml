@@ -71,14 +71,22 @@ jobs:
             echo "is_prerelease=false" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Create GitHub Release
+      - name: Create or update GitHub Release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          args=(release create "${{ steps.notes.outputs.tag }}"
-                --title "${{ steps.notes.outputs.tag }}"
-                --notes-file "${{ steps.notes.outputs.notes_path }}")
-          if [[ "${{ steps.prerelease.outputs.is_prerelease }}" == "true" ]]; then
-            args+=(--prerelease)
+          tag="${{ steps.notes.outputs.tag }}"
+          notes="${{ steps.notes.outputs.notes_path }}"
+          # Idempotent: edit existing release if present, otherwise create new.
+          # This makes tag re-pushes (e.g. recovering from a failed build job)
+          # safe — the release body stays in sync with the in-repo notes file.
+          if gh release view "$tag" >/dev/null 2>&1; then
+            echo "Release $tag exists — updating notes"
+            gh release edit "$tag" --notes-file "$notes" --title "$tag"
+          else
+            args=(release create "$tag" --title "$tag" --notes-file "$notes")
+            if [[ "${{ steps.prerelease.outputs.is_prerelease }}" == "true" ]]; then
+              args+=(--prerelease)
+            fi
+            gh "${args[@]}"
           fi
-          gh "${args[@]}"

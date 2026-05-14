@@ -6,6 +6,7 @@
   import { tabs } from "$lib/store/tabs.svelte";
   import Header from "$lib/components/Shell/Header.svelte";
   import VerticalNav from "$lib/components/Shell/VerticalNav.svelte";
+  import MobileDrawer from "$lib/components/Shell/MobileDrawer.svelte";
   import StatusBar from "$lib/components/Shell/StatusBar.svelte";
   import DragDropOverlay from "$lib/components/Uploads/DragDropOverlay.svelte";
   import UploadPanel from "$lib/components/Uploads/UploadPanel.svelte";
@@ -28,15 +29,20 @@
   });
 </script>
 
-<div class="grid grid-rows-[48px_1fr_28px] grid-cols-[auto_1fr] h-screen w-screen bg-bg-base">
+<div
+  class="grid grid-rows-[48px_1fr_28px] grid-cols-[1fr] md:grid-cols-[auto_1fr] h-app w-screen bg-bg-base"
+>
   <Header />
-  <VerticalNav />
-  <main class="row-start-2 col-start-2 min-w-0 min-h-0 overflow-hidden bg-bg-base">
+  <div class="hidden md:contents">
+    <VerticalNav />
+  </div>
+  <main class="row-start-2 col-start-1 md:col-start-2 min-w-0 min-h-0 overflow-hidden bg-bg-base">
     {@render children?.()}
   </main>
   <StatusBar />
 </div>
 
+<MobileDrawer />
 <DragDropOverlay />
 <UploadPanel open={ui.uploadsPanelOpen} onClose={() => ui.closeUploadsPanel()} />
 <QuickOpen />

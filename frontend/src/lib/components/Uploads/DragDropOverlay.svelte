@@ -195,9 +195,11 @@
         for (const { file, loc } of collected) {
           uploads.enqueue({ file, loc, filename: file.name });
         }
-        if (collected.length === 0 && items.length > 0) {
+        // Harness mirrors production: any empty-result drop warns (items=[]
+        // simulates empty-folder drop; non-empty items all filtered also warns).
+        if (collected.length === 0) {
           notifications.warning("No uploadable files in dropped folder");
-        } else if (collected.length > 0) {
+        } else {
           notifications.info(`Queued ${collected.length} file(s) for upload`);
         }
         pumpQueue();

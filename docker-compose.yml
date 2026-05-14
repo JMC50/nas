@@ -1,9 +1,18 @@
 services:
-  # Go backend (local build during Phase 1; switch to ghcr.io image after CI is ready)
+  # Production: pull the published Go backend image from GHCR. The CI
+  # workflow (.github/workflows/build-and-deploy.yml) publishes
+  # `ghcr.io/jmc50/nas:latest` automatically as the highest semver tag
+  # (via docker/metadata-action `flavor: latest=auto`).
+  #
+  # To build locally instead (development without registry access), comment
+  # the `image:` line and uncomment the `build:` block below. The Dockerfile
+  # path remains `./backend/Dockerfile`.
   nas-app:
-    build:
-      context: .
-      dockerfile: ./backend/Dockerfile
+    image: ghcr.io/jmc50/nas:latest
+    pull_policy: always
+    # build:
+    #   context: .
+    #   dockerfile: ./backend/Dockerfile
     container_name: nas-app
     restart: unless-stopped
     ports:

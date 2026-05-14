@@ -1,13 +1,20 @@
 name: Build and Push Docker Image
 
+# Trigger model: tag push only.
+#
+# Rationale — release artifacts should publish exactly once per release event.
+# scripts/release.sh refuses to run without polished release notes (EN + KO),
+# so tag existence already implies "release is ready". Adding a main-branch
+# push trigger would double-build the same release (main push + tag push
+# arrive together) without adding meaningful artifacts.
+#
+# The :latest tag is automatically applied by docker/metadata-action's
+# `flavor: latest=auto` — it follows the highest semver tag in this repo.
 on:
   push:
-    branches: [deploy]
     tags: ["v*"]
-  pull_request:
-    branches: [deploy]
-  # Manual re-run trigger — useful after fixing the workflow itself or for
-  # rebuilding a published tag against new infrastructure.
+  # Manual escape hatch: rebuild a published tag or test workflow changes
+  # without re-tagging.
   workflow_dispatch:
     inputs:
       ref:
@@ -45,12 +52,14 @@ jobs:
         uses: docker/metadata-action@v5
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          # `latest=auto` applies :latest only to the highest semver tag in
+          # the repo. Pre-releases (e.g. 0.0.1-beta) qualify until a stable
+          # tag exists; once 0.1.0 ships, :latest moves to it.
+          flavor: |
+            latest=auto
           tags: |
-            type=ref,event=branch
-            type=ref,event=pr
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
-            type=raw,value=latest,enable={{is_default_branch}}
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v5

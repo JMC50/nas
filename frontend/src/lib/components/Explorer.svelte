@@ -9,6 +9,7 @@
   import Breadcrumb from "$lib/components/Explorer/Breadcrumb.svelte";
   import FileGrid from "$lib/components/Explorer/FileGrid.svelte";
   import FileList from "$lib/components/Explorer/FileList.svelte";
+  import Inspector from "$lib/components/Explorer/Inspector.svelte";
   import ContextMenu from "$lib/components/Explorer/ContextMenu.svelte";
   import ForbiddenPanel from "$lib/components/ForbiddenPanel.svelte";
   import {
@@ -42,8 +43,15 @@
   let forbidden = $state(false);
   let errorMessage: string | null = $state(null);
   let searchQuery = $state("");
+  let selected = $state<FolderEntry | null>(null);
   let fileInputEl: HTMLInputElement;
   let folderInputEl: HTMLInputElement;
+
+  const selectedName = $derived(selected?.name ?? null);
+
+  function toggleSelect(entry: FolderEntry) {
+    selected = selected?.name === entry.name ? null : entry;
+  }
 
   const filtered = $derived(
     searchQuery
@@ -80,6 +88,7 @@
 
   $effect(() => {
     void loc;
+    selected = null;
     refresh();
   });
 
@@ -282,6 +291,8 @@
         onOpen={openEntry}
         onMenu={showMenu}
         {onDropOnFolder}
+        onSelect={toggleSelect}
+        {selectedName}
       />
     {:else}
       <FileList
@@ -290,10 +301,14 @@
         onOpen={openEntry}
         onMenu={showMenu}
         {onDropOnFolder}
+        onSelect={toggleSelect}
+        {selectedName}
       />
     {/if}
   </div>
 </section>
+
+<Inspector entry={selected} {loc} onClose={() => (selected = null)} />
 
 {#if menuOpen && menuTarget}
   {@const target = menuTarget}

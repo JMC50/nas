@@ -52,19 +52,22 @@ jobs:
         uses: docker/metadata-action@v5
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-          # `latest=true` — every tagged release is published as :latest.
-          # Rationale: while the project is in pre-release (0.0.x-beta), the
-          # default `latest=auto` would NEVER promote a pre-release to :latest,
-          # leaving the moving tag undefined and breaking Watchtower-based
-          # autoupdates. Once a stable (non-prerelease) version ships we should
-          # revisit this — `latest=auto` is the safer long-term default.
-          # Also `type=semver,pattern={{major}}.{{minor}}` is omitted because
-          # the metadata-action skips that pattern for pre-release semver and
-          # would emit nothing in this phase.
+          # `latest=auto` (semver default) — only the highest non-prerelease
+          # tag is promoted to :latest. Pre-releases like 0.2.0-rc.1 are
+          # intentionally skipped, which is the correct behavior for users
+          # tracking the moving :latest tag. During the 0.0.1-beta phase this
+          # was temporarily `latest=true` so :latest stayed populated; reverted
+          # at the v0.1.0 stable cut.
+          # `type=semver,pattern={{major}}.{{minor}}` is enabled now that the
+          # project ships stable versions — gives consumers a minor-pin alias
+          # (e.g. `:0.1`) that auto-follows patch releases but stops at the
+          # next minor bump. Skipped during 0.0.x-beta because metadata-action
+          # emits no value for pre-release semver under this pattern.
           flavor: |
-            latest=true
+            latest=auto
           tags: |
             type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v5

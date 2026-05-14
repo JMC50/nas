@@ -50,6 +50,6 @@
 
   <div class="flex items-center gap-3 shrink-0">
     <span>{mode.current === "light" ? "Light" : "Dark"}</span>
-    <span class="font-mono">v2.0</span>
+    <span class="font-mono" title="App version">v{__APP_VERSION__}</span>
   </div>
 </footer>

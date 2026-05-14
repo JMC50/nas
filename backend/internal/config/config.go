@@ -54,6 +54,12 @@ type Config struct {
 	CorsOrigin           string
 	MaxFileSizeBytes     int64
 	MediaLibraryLimit    int
+
+	// Version is the app version string loaded from the repo-root VERSION
+	// file at startup (see ResolvePaths). Falls back to "0.0.0-unknown" if
+	// the file is missing — production builds should always provide it via
+	// linker `-ldflags '-X main.Version=...'` or an embed directive.
+	Version string
 }
 
 func LoadFromEnv() (*Config, error) {

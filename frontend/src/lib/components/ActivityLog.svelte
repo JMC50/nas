@@ -3,6 +3,7 @@
   import History from "lucide-svelte/icons/history";
   import RefreshCw from "lucide-svelte/icons/refresh-cw";
   import { notifications } from "$lib/store/notifications.svelte";
+  import ActivityGraph from "./Activity/ActivityGraph.svelte";
 
   interface ActivityEntry {
     id?: number;
@@ -23,7 +24,7 @@
     try {
       const response = await fetch("/server/getActivityLog");
       const data = await response.json();
-      const raw = (data.logs ?? data ?? []) as ActivityEntry[];
+      const raw = (data.logs ?? data.data ?? (Array.isArray(data) ? data : [])) as ActivityEntry[];
       entries = raw.sort((a, b) => b.time - a.time);
     } catch (cause) {
       notifications.error(`Failed: ${(cause as Error).message}`);
@@ -98,6 +99,10 @@
       <span>Refresh</span>
     </button>
   </header>
+
+  {#if !loading}
+    <ActivityGraph {entries} />
+  {/if}
 
   <div class="flex-1 overflow-auto">
     {#if loading}

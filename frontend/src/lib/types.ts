@@ -32,6 +32,7 @@ export interface FileEntry {
 
 export interface ExplorerPayload {
   loc: string[];
+  selection?: string[]; // entry names; last item is the range-anchor for Shift+click
 }
 
 export type TabKind =

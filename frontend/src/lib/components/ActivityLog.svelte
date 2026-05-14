@@ -3,6 +3,7 @@
   import History from "lucide-svelte/icons/history";
   import RefreshCw from "lucide-svelte/icons/refresh-cw";
   import { notifications } from "$lib/store/notifications.svelte";
+  import ActivityGraph from "./Activity/ActivityGraph.svelte";
 
   interface ActivityEntry {
     id?: number;
@@ -98,6 +99,10 @@
       <span>Refresh</span>
     </button>
   </header>
+
+  {#if !loading}
+    <ActivityGraph {entries} />
+  {/if}
 
   <div class="flex-1 overflow-auto">
     {#if loading}

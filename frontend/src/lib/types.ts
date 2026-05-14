@@ -46,7 +46,9 @@ export type TabKind =
   | "settings"
   | "activity"
   | "account"
-  | "system";
+  | "system"
+  | "music-library"
+  | "video-library";
 
 export interface Tab {
   id: string;
@@ -95,3 +97,15 @@ export interface Notification {
 }
 
 export type Breakpoint = "sm" | "md" | "lg" | "xl";
+
+// Returned by GET /server/mediaLibrary?kind=audio|video. `loc` is the directory
+// loc (no filename, no trailing slash) so it can be passed straight to
+// `tabs.open({payload: {loc, name}})` for click-to-play.
+export interface MediaEntry {
+  name: string;
+  loc: string;
+  extensions: string;
+  size: number;
+  modifiedAt: string;
+  kind: "audio" | "video";
+}

@@ -29,6 +29,8 @@
     activity: History,
     account: User,
     system: Cpu,
+    "music-library": Music,
+    "video-library": Film,
   };
 
   let query = $state("");

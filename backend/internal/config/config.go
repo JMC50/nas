@@ -3,7 +3,9 @@ package config
 import (
 	"errors"
 	"fmt"
+	"log/slog"
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 )
@@ -100,6 +102,7 @@ func LoadFromEnv() (*Config, error) {
 	if err := c.validate(); err != nil {
 		return nil, err
 	}
+	c.auditPaths()
 	return c, nil
 }
 
@@ -117,6 +120,41 @@ func (c *Config) validate() error {
 		return errors.New(strings.Join(errs, "; "))
 	}
 	return nil
+}
+
+// auditPaths logs a warning when a relative path env var resolves outside
+// the current working directory. Absolute paths are trusted (production NAS_DATA_DIR
+// commonly points at /mnt/* or similar). Only catches the "../parent" footgun that
+// caused stray nas-data, nas-admin-data, nas-db dirs to materialize above the repo.
+func (c *Config) auditPaths() {
+	cwd, err := os.Getwd()
+	if err != nil {
+		return
+	}
+	checks := map[string]string{
+		"NAS_DATA_DIR":       c.NASDataDir,
+		"NAS_ADMIN_DATA_DIR": c.NASAdminDataDir,
+		"NAS_TEMP_DIR":       c.NASTempDir,
+		"DB_PATH":            c.DBPath,
+		"FRONTEND_DIR":       c.FrontendDir,
+	}
+	for name, value := range checks {
+		if value == "" || filepath.IsAbs(value) {
+			continue
+		}
+		abs, err := filepath.Abs(value)
+		if err != nil {
+			continue
+		}
+		rel, err := filepath.Rel(cwd, abs)
+		if err != nil {
+			continue
+		}
+		if strings.HasPrefix(filepath.ToSlash(rel), "../") || rel == ".." {
+			slog.Warn("path resolves outside cwd — data will land above the project",
+				"var", name, "value", value, "resolved", abs)
+		}
+	}
 }
 
 func getEnv(key, def string) string {

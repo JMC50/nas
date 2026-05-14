@@ -28,3 +28,21 @@ gitignored so artifacts don't sneak in:
 
 If you find a new tool writing junk into the repo, prefer redirecting it here
 (via env/CLI flag) over adding a per-tool ignore line.
+
+## `recovered-from-parent/`
+
+If you see this subfolder, it contains data that previously leaked **above**
+the repo (siblings to the project root: `C:\Data\Git\ANXI\nas-data\`,
+`nas-admin-data\`, `nas-db\`). Root cause: a backend instance was started
+with relative env paths that traversed `..` out of `cwd` (e.g.
+`NAS_DATA_DIR=../nas-data`).
+
+Mitigations now in place:
+
+- `backend/internal/config/config.go` logs `slog.Warn` at startup when any of
+  `NAS_DATA_DIR`, `NAS_ADMIN_DATA_DIR`, `NAS_TEMP_DIR`, `DB_PATH`, `FRONTEND_DIR`
+  resolves outside cwd. Look for `path resolves outside cwd` in the log.
+- `.env.example` documents the safe defaults and the footgun.
+
+Once you've reviewed the recovered contents and decided what (if anything) to
+salvage, delete this subfolder — `tmp/*` is gitignored so it won't be tracked.

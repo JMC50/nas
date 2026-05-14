@@ -1,0 +1,84 @@
+name: release
+
+# Triggers on annotated tag push matching v*. `scripts/release.sh` creates the
+# tag locally and pushes it; this workflow turns the tag into a GitHub Release
+# whose body is the release-notes markdown shipped in the same commit.
+#
+# The workflow does NOT bump versions, build artifacts, or run integration
+# tests — those are the developer's responsibility before tagging. This stays
+# narrow on purpose: one job, one product (a Release entry on GitHub).
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write  # required to create a Release
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          # Need full history so we can resolve the tag-annotated body and run
+          # `gh release create` referencing the in-repo notes file.
+          fetch-depth: 0
+
+      - name: Resolve tag and verify notes file
+        id: notes
+        run: |
+          tag="${GITHUB_REF_NAME}"
+          notes="Docs/release-notes/${tag}.md"
+          if [[ ! -f "$notes" ]]; then
+            echo "error: release notes not found at $notes" >&2
+            echo "       scripts/release.sh should have committed it together with the tag." >&2
+            exit 1
+          fi
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          echo "notes_path=$notes" >> "$GITHUB_OUTPUT"
+          echo "Resolved: tag=$tag notes=$notes"
+
+      - name: Verify VERSION file matches tag
+        run: |
+          tag="${GITHUB_REF_NAME}"
+          expected="${tag#v}"
+          actual="$(tr -d '[:space:]' < VERSION)"
+          if [[ "$expected" != "$actual" ]]; then
+            echo "error: tag $tag implies VERSION='$expected' but VERSION file contains '$actual'" >&2
+            exit 1
+          fi
+
+      - name: Verify frontend/package.json matches tag
+        run: |
+          tag="${GITHUB_REF_NAME}"
+          expected="${tag#v}"
+          actual="$(node -e "console.log(require('./frontend/package.json').version)")"
+          if [[ "$expected" != "$actual" ]]; then
+            echo "error: tag $tag implies package.json version='$expected' but got '$actual'" >&2
+            exit 1
+          fi
+
+      - name: Detect pre-release
+        id: prerelease
+        run: |
+          tag="${GITHUB_REF_NAME}"
+          if [[ "$tag" =~ - ]]; then
+            echo "is_prerelease=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "is_prerelease=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          args=(release create "${{ steps.notes.outputs.tag }}"
+                --title "${{ steps.notes.outputs.tag }}"
+                --notes-file "${{ steps.notes.outputs.notes_path }}")
+          if [[ "${{ steps.prerelease.outputs.is_prerelease }}" == "true" ]]; then
+            args+=(--prerelease)
+          fi
+          gh "${args[@]}"

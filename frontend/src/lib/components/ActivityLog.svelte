@@ -24,7 +24,7 @@
     try {
       const response = await fetch("/server/getActivityLog");
       const data = await response.json();
-      const raw = (data.logs ?? data ?? []) as ActivityEntry[];
+      const raw = (data.logs ?? data.data ?? (Array.isArray(data) ? data : [])) as ActivityEntry[];
       entries = raw.sort((a, b) => b.time - a.time);
     } catch (cause) {
       notifications.error(`Failed: ${(cause as Error).message}`);

@@ -101,6 +101,12 @@ func contentTypeFor(name, fallback string) string {
 		return "video/mp4"
 	case ".webm":
 		return "video/webm"
+	case ".mov":
+		return "video/quicktime"
+	case ".mkv":
+		return "video/x-matroska"
+	case ".avi":
+		return "video/x-msvideo"
 	case ".mp3":
 		return "audio/mpeg"
 	case ".wav":

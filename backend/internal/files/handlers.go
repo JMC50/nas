@@ -309,11 +309,15 @@ func (h *Handlers) Search(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			return nil
 		}
+		loc := "/" + filepath.ToSlash(relative)
+		if loc == "/." {
+			loc = "/" // normalize root parent
+		}
 		results = append(results, fileEntry{
 			Name:       name,
 			IsFolder:   entry.IsDir(),
 			Extensions: extensionOf(name),
-			Loc:        "/" + filepath.ToSlash(relative),
+			Loc:        loc,
 		})
 		return nil
 	})

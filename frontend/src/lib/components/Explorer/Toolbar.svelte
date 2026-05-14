@@ -63,7 +63,11 @@
 {#snippet searchInput()}
   <Search size="13" class="text-fg-muted shrink-0" />
   <input
-    type="text"
+    type="search"
+    name="folder-q"
+    autocomplete="off"
+    autocorrect="off"
+    spellcheck="false"
     value={searchQuery}
     oninput={handleInput}
     placeholder="Search current folder…"

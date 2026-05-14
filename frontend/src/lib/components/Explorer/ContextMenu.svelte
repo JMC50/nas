@@ -6,6 +6,7 @@
   import Pencil from "lucide-svelte/icons/pencil";
   import Copy from "lucide-svelte/icons/copy";
   import Trash2 from "lucide-svelte/icons/trash-2";
+  import Info from "lucide-svelte/icons/info";
 
   interface Target {
     name: string;
@@ -23,6 +24,7 @@
     onRename: () => void;
     onCopy: () => void;
     onDelete: () => void;
+    onInspect: () => void;
   }
 
   let {
@@ -35,6 +37,7 @@
     onRename,
     onCopy,
     onDelete,
+    onInspect,
   }: Props = $props();
 </script>
 
@@ -95,6 +98,15 @@
     Copy
   </button>
   <div class="h-px bg-border-default mx-1 my-1"></div>
+  <button
+    type="button"
+    class="w-full flex items-center gap-2 px-3 h-8 text-xs text-fg-primary hover:bg-bg-hover text-left"
+    onclick={onInspect}
+    role="menuitem"
+  >
+    <Info size="12" />
+    Details
+  </button>
   <button
     type="button"
     class="w-full flex items-center gap-2 px-3 h-8 text-xs text-fg-danger hover:bg-bg-hover text-left"

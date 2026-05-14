@@ -127,20 +127,42 @@
     if (current !== desired) untrack(() => tabs.update(tabId, { title: desired }));
   });
 
-  // Inspector mirrors the current single selection (pure derivation — no
-  // effect required, no risk of feedback loop). When exactly one entry is
-  // selected, show its details; otherwise (0 or N>1) hide the Inspector.
-  const selected = $derived<FolderEntry | null>(
-    selection.length === 1
-      ? entries.find((e) => e.name === selection[0]) ?? null
-      : null,
+  // Inspector entry. Decoupled from selection so single-click only highlights
+  // the row (selection ring) — the Inspector opens ONLY via the context-menu
+  // "Details" action (or programmatically via inspect()). User decision: a
+  // selection-driven Inspector felt too pushy / kept covering the file area
+  // on accidental clicks.
+  let inspectedEntry = $state<FolderEntry | null>(null);
+
+  function inspect(entry: FolderEntry) {
+    inspectedEntry = entry;
+  }
+
+  function closeInspector() {
+    inspectedEntry = null;
+  }
+
+  // If the inspected entry disappears (e.g. deleted, renamed, or out of the
+  // filtered set after refresh), drop the Inspector. $derived rather than an
+  // effect so there's no write-back loop into entries.
+  const inspectedExists = $derived(
+    inspectedEntry === null
+      ? true
+      : entries.some((e) => e.name === inspectedEntry?.name),
   );
+  $effect(() => {
+    if (!inspectedExists && inspectedEntry !== null) {
+      untrack(() => (inspectedEntry = null));
+    }
+  });
 
   function navigateTo(target: string[], opts: { newTab?: boolean } = {}) {
     if (opts.newTab) {
       tabs.openExplorer(target);
       return;
     }
+    // Folder change invalidates Inspector contents.
+    inspectedEntry = null;
     // Reset selection here (not in a $effect) so per-tab state is cleared
     // exactly once per navigation event without creating a reactive cycle.
     tabs.update(tabId, {
@@ -650,7 +672,7 @@
   </div>
 </section>
 
-<Inspector entry={selected} {loc} onClose={() => updateSelection([])} />
+<Inspector entry={inspectedEntry} {loc} onClose={closeInspector} />
 
 {#if menuOpen && menuTarget}
   {@const target = menuTarget}
@@ -680,6 +702,10 @@
     }}
     onDelete={() => {
       remove(target);
+      hideMenu();
+    }}
+    onInspect={() => {
+      inspect(target);
       hideMenu();
     }}
   />

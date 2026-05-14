@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="Docs/images/hero.gif" alt="NAS — 파일 탐색기 · 시스템 대시보드 · 사용자 권한 · Quick Open 데모" width="860">
+  <img src="Docs/images/hero.gif" alt="NAS — 파일 탐색기, 시스템 대시보드, 사용자 권한, Quick Open 데모" width="860">
 </p>
 
 <h1 align="center">NAS</h1>
@@ -18,12 +18,12 @@
 </p>
 
 <p align="center">
-  <a href="README_EN.md">🇬🇧 English</a> · <a href="#-빠른-시작">빠른 시작</a> · <a href="#-기능">기능</a> · <a href="#-스크린샷">스크린샷</a> · <a href="#-아키텍처">아키텍처</a>
+  <a href="README_EN.md">English</a> · <a href="#한-줄-요약">한 줄 요약</a> · <a href="#빠른-시작">빠른 시작</a> · <a href="#기능">기능</a> · <a href="#스크린샷">스크린샷</a> · <a href="#아키텍처">아키텍처</a>
 </p>
 
 ---
 
-## ✨ 한 줄 요약
+## 한 줄 요약
 
 > 내 데이터는 내 서버에. 브라우저만 있으면 어디서나, 단 하나의 Docker 이미지로.
 
@@ -31,7 +31,7 @@ NAS 는 자체 호스팅 파일 서버다. 로컬 디스크에 있는 파일을 
 
 ---
 
-## 🚀 빠른 시작
+## 빠른 시작
 
 ### Docker 로 실행 (권장)
 
@@ -57,7 +57,7 @@ cd frontend && npm install && npm run dev
 
 ---
 
-## 🧩 기능
+## 기능
 
 | 영역 | 내용 |
 |------|------|
@@ -73,7 +73,7 @@ cd frontend && npm install && npm run dev
 
 ---
 
-## 📸 스크린샷
+## 스크린샷
 
 ### 파일 탐색기 — VSCode 패턴, 좌측 네비 / 상단 탭 / 하단 상태바
 
@@ -91,7 +91,7 @@ cd frontend && npm install && npm run dev
 
 ![User permissions: 8 intent toggles (VIEW/OPEN/DOWNLOAD/UPLOAD/COPY/DELETE/RENAME/ADMIN) per user](Docs/screenshots/04-users.png)
 
-ADMIN 인텐트는 관리자 화면 접근권한 그 자체. 한 명의 ADMIN 도 없는 상태는 자동으로 발생하지 않는다(가장 먼저 `Request admin` 으로 신청한 사용자가 시드 관리자가 된다).
+ADMIN 인텐트는 관리자 화면 접근권한 그 자체. 한 명의 ADMIN 도 없는 상태는 자동으로 발생하지 않는다 (가장 먼저 `Request admin` 으로 신청한 사용자가 시드 관리자가 된다).
 
 ### 설정 — Appearance · Account · Server OAuth
 
@@ -113,7 +113,7 @@ VSCode 의 Quick Open 과 같은 모드. 열린 탭, 등록된 화면(System · 
 
 ---
 
-## 🛠 기술 스택
+## 기술 스택
 
 | 영역 | 사용 기술 |
 |------|----------|
@@ -127,7 +127,7 @@ CGO 없이 빌드 → 크로스 컴파일 단순. SvelteKit static 빌드는 백
 
 ---
 
-## 🏗 아키텍처
+## 아키텍처
 
 ```
 ┌───────────────────────────────────────────────────────────────┐
@@ -164,7 +164,7 @@ CGO 없이 빌드 → 크로스 컴파일 단순. SvelteKit static 빌드는 백
 
 ---
 
-## ⚙️ 환경 변수
+## 환경 변수
 
 | 변수 | 기본값 | 설명 |
 |------|--------|------|
@@ -183,7 +183,7 @@ CGO 없이 빌드 → 크로스 컴파일 단순. SvelteKit static 빌드는 백
 
 ---
 
-## 🧪 개발
+## 개발
 
 ```bash
 # 백엔드 테스트 (integration 포함)
@@ -201,7 +201,7 @@ cd frontend && npm run build
 
 ---
 
-## 🔄 자동 업데이트 (옵션)
+## 자동 업데이트 (옵션)
 
 Watchtower 가 5분마다 GHCR 이미지 변경을 감지해 무중단 롤링 재시작한다. 기본 비활성, 명시적으로 켠다.
 
@@ -213,6 +213,6 @@ GitHub Actions(`.github/workflows/build-and-deploy.yml`)가 main 브랜치 push 
 
 ---
 
-## 📄 라이선스
+## 라이선스
 
 [MIT](LICENSE).

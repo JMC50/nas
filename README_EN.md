@@ -18,12 +18,12 @@
 </p>
 
 <p align="center">
-  <a href="README.md">🇰🇷 한국어</a> · <a href="#-quick-start">Quick start</a> · <a href="#-features">Features</a> · <a href="#-screenshots">Screenshots</a> · <a href="#-architecture">Architecture</a>
+  <a href="README.md">한국어</a> · <a href="#one-line">One line</a> · <a href="#quick-start">Quick start</a> · <a href="#features">Features</a> · <a href="#screenshots">Screenshots</a> · <a href="#architecture">Architecture</a>
 </p>
 
 ---
 
-## ✨ One line
+## One line
 
 > Your data on your server, from any browser, in one Docker image.
 
@@ -31,7 +31,7 @@ NAS is a self-hosted file server. Files on your disk are browsed, streamed and e
 
 ---
 
-## 🚀 Quick start
+## Quick start
 
 ### Run with Docker
 
@@ -57,7 +57,7 @@ cd frontend && npm install && npm run dev
 
 ---
 
-## 🧩 Features
+## Features
 
 | Area | What |
 |------|------|
@@ -73,7 +73,7 @@ cd frontend && npm install && npm run dev
 
 ---
 
-## 📸 Screenshots
+## Screenshots
 
 ### File explorer — VSCode pattern: sidebar nav, top tabs, bottom status bar
 
@@ -113,7 +113,7 @@ Same idea as VSCode's Quick Open. It searches open tabs, registered surfaces (Sy
 
 ---
 
-## 🛠 Stack
+## Stack
 
 | Area | Technology |
 |------|-----------|
@@ -127,7 +127,7 @@ No CGO means cross-compilation stays simple. The SvelteKit static build is embed
 
 ---
 
-## 🏗 Architecture
+## Architecture
 
 ```
 ┌───────────────────────────────────────────────────────────────┐
@@ -164,7 +164,7 @@ The whole router lives in [`backend/internal/server/router.go`](backend/internal
 
 ---
 
-## ⚙️ Environment variables
+## Environment variables
 
 | Variable | Default | Description |
 |----------|---------|-------------|
@@ -183,7 +183,7 @@ Full list: [`.env.example`](.env.example).
 
 ---
 
-## 🧪 Development
+## Development
 
 ```bash
 # Backend tests (integration included)
@@ -201,7 +201,7 @@ More docs: [`Docs/`](Docs/README.md).
 
 ---
 
-## 🔄 Auto-update (optional)
+## Auto-update (optional)
 
 Watchtower checks GHCR every 5 minutes and performs a zero-downtime rolling restart on new images. Off by default, opt in explicitly:
 
@@ -213,6 +213,6 @@ The GitHub Actions workflow (`.github/workflows/build-and-deploy.yml`) builds an
 
 ---
 
-## 📄 License
+## License
 
 [MIT](LICENSE).

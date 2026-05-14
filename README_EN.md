@@ -1,33 +1,37 @@
 <p align="center">
-  <img src="Docs/images/hero.png" alt="NAS — self-hosted file server" width="640">
+  <img src="Docs/images/hero.gif" alt="NAS — file explorer, system dashboard, user permissions, Quick Open demo" width="860">
 </p>
 
-A self-hosted, browser-based file server. Go backend, SvelteKit frontend, shipped as a single Docker image.
+<h1 align="center">NAS</h1>
 
-> 한국어: [README.md](README.md)
+<p align="center">
+  <b>A self-hosted file server you reach from the browser.</b><br/>
+  Go backend · SvelteKit frontend · one Docker image to ship it all.
+</p>
 
-## What it does
+<p align="center">
+  <img src="https://img.shields.io/badge/Go-1.25-00ADD8?logo=go&logoColor=white" alt="Go 1.25">
+  <img src="https://img.shields.io/badge/SvelteKit-5-FF3E00?logo=svelte&logoColor=white" alt="SvelteKit 5">
+  <img src="https://img.shields.io/badge/SQLite-modernc-003B57?logo=sqlite&logoColor=white" alt="SQLite (modernc)">
+  <img src="https://img.shields.io/badge/Docker-ghcr.io-2496ED?logo=docker&logoColor=white" alt="Docker GHCR">
+  <img src="https://img.shields.io/badge/License-MIT-fabd2f" alt="MIT License">
+</p>
 
-- **File operations** — browse, upload, download, copy, move, rename, delete, zip/unzip
-- **Resumable uploads** — [tus protocol](https://tus.io) via `tusd/v2`; per-file cap is `MAX_FILE_SIZE` (50 GB by default)
-- **In-browser editor** — Monaco with a Gruvbox theme for inline editing of text and code files
-- **Authentication** — local accounts (bcrypt) plus Discord and Google OAuth, backend is the single source of truth
-- **Permission model** — eight per-user intents (VIEW, OPEN, DOWNLOAD, UPLOAD, COPY, DELETE, RENAME, ADMIN) toggled by admins
-- **Ops surface** — system metrics dashboard (CPU/memory/disk/uptime), activity log, admin UI for OAuth credentials
+<p align="center">
+  <a href="README.md">🇰🇷 한국어</a> · <a href="#-quick-start">Quick start</a> · <a href="#-features">Features</a> · <a href="#-screenshots">Screenshots</a> · <a href="#-architecture">Architecture</a>
+</p>
 
-## Stack
+---
 
-| Area | Technology |
-|------|-----------|
-| Backend | Go 1.25 · chi v5 · modernc/sqlite (pure Go) · tusd v2 · gopsutil v3 · golang-jwt v5 |
-| Frontend | SvelteKit (adapter-static) · Svelte 5 runes · Tailwind 4 · Monaco editor · Vite 6 |
-| Design | Gruvbox dark/light · `mode-watcher` · `lucide-svelte` icons |
-| Deployment | Multi-stage Alpine Docker, optional Watchtower auto-update |
-| Storage | Single-file SQLite, schema auto-created and verified on startup |
+## ✨ One line
 
-Ships as one binary plus a built SPA inside an Alpine image. The pure-Go SQLite driver removes the need for CGO and keeps cross-compilation trivial.
+> Your data on your server, from any browser, in one Docker image.
 
-## Quick start
+NAS is a self-hosted file server. Files on your disk are browsed, streamed and edited straight from the browser, with eight per-user intents (VIEW · OPEN · DOWNLOAD · UPLOAD · COPY · DELETE · RENAME · ADMIN) gating every operation. The Go binary and the static SvelteKit build ship together in a single Alpine image — no CGO required.
+
+---
+
+## 🚀 Quick start
 
 ### Run with Docker
 
@@ -44,133 +48,171 @@ Open `http://localhost:7777`, register, then claim admin from the account menu (
 ### Local development
 
 ```bash
-# Backend
-cd backend
-go run ./cmd/server
+# Backend (port 7777)
+cd backend && go run ./cmd/server
 
-# Frontend (separate terminal)
-cd frontend
-npm install
-npm run dev    # Vite proxies /server/* to the Go server on :7777
+# Frontend (separate terminal; Vite proxies /server/* to the backend)
+cd frontend && npm install && npm run dev
 ```
 
-## Screenshots
+---
 
-### File explorer
+## 🧩 Features
 
-VSCode-style layout: left rail, top tab bar, status bar at the bottom.
+| Area | What |
+|------|------|
+| **File operations** | Browse, upload, download, copy, move, rename, delete, zip/unzip |
+| **Resumable uploads** | [tus protocol](https://tus.io) via `tusd/v2` · per-file cap `MAX_FILE_SIZE` (50 GB default) |
+| **In-browser editor** | Monaco with a Gruvbox theme for inline editing of text and code |
+| **Media viewers** | Video, audio, image, PDF, Office documents — no download round-trip |
+| **Authentication** | Local accounts (bcrypt) · Discord OAuth · Google OAuth · backend is the single source of truth |
+| **Permission model** | Eight per-user intents (`VIEW` / `OPEN` / `DOWNLOAD` / `UPLOAD` / `COPY` / `DELETE` / `RENAME` / `ADMIN`) |
+| **System dashboard** | `gopsutil`-backed live metrics — CPU, memory, disk, uptime, 5 s poll, 60-sample (5 min) sliding window |
+| **Ops surface** | Quick Open (`Ctrl+P`) · Activity log · admin UI for OAuth credentials |
+| **Theme** | Gruvbox dark/light, follows `prefers-color-scheme` with manual toggle |
 
-| Root | Inside a folder |
-|------|----------------|
-| ![Root](Docs/screenshots/02-explorer.png) | ![Folder](Docs/screenshots/03-explorer-folder.png) |
+---
 
-### System dashboard
+## 📸 Screenshots
 
-`gopsutil`-backed metrics, polled every five seconds, plotted as a sparkline over a sixty-sample (~5 min) sliding window.
+### File explorer — VSCode pattern: sidebar nav, top tabs, bottom status bar
 
-![System metrics](Docs/screenshots/04-system.png)
+![File explorer with sidebar nav, breadcrumb, and 7-item grid in Gruvbox dark](Docs/screenshots/02-explorer.png)
 
-### User and permission management
+The sidebar exposes seven surfaces (Files · Music · Videos · Users · Activity · Settings · System) — admins see all, non-admins see the first four. Tabs let you keep several workflows open at once, VSCode-style.
 
-An admin toggles each of the eight intents per user. Holding the ADMIN intent is itself the gate for the admin views.
+### System dashboard — gopsutil, 5 s poll, 60-sample sliding window
 
-![User permissions](Docs/screenshots/05-users.png)
+![Live system metrics — CPU, MEMORY, DISK with sparkline bars and live polling indicator](Docs/screenshots/03-system.png)
 
-### OAuth configuration (admin)
+`OK` / `WARN` badges flag thresholds. Five-second polling builds a five-minute (60-sample) bar history under each card. The lower row tracks uptime and the current polling interval.
 
-Discord and Google credentials are stored in the database at runtime. The frontend has no build-time environment dependencies for OAuth.
+### User permissions — eight intents per user
 
-![Settings — Server](Docs/screenshots/06-settings-server.png)
+![User permissions: 8 intent toggles (VIEW/OPEN/DOWNLOAD/UPLOAD/COPY/DELETE/RENAME/ADMIN) per user](Docs/screenshots/04-users.png)
 
-### Quick Open (`Ctrl+P`)
+The `ADMIN` intent is itself the gate to the admin screens. The server never ends up zero-admin: whoever knows the `ADMIN_PASSWORD` and asks first becomes the seed admin.
 
-Fuzzy-search across open tabs and registered views.
+### Settings — Appearance, Account, Server OAuth
 
-![Quick Open](Docs/screenshots/07-quickopen.png)
+![Settings page: theme + file view, password change, Discord/Google OAuth credentials](Docs/screenshots/05-settings.png)
+
+Theme and default file view are per-user. Discord/Google OAuth credentials are stored at runtime in the DB, so the frontend build does not depend on env-time secrets.
+
+### Quick Open (Ctrl+P) — unified files / folders / tabs search
+
+![Quick Open palette overlay with typed query and ranked file/folder/tab results](Docs/screenshots/06-quickopen.png)
+
+Same idea as VSCode's Quick Open. It searches open tabs, registered surfaces (System · Users · Settings · Activity), and files in the current folder, all from one input.
 
 ### Sign-in
 
-If OAuth providers are configured, their buttons appear above the local sign-in form.
+![NAS sign-in card on dark background with User ID / Password fields and accent-yellow Sign in button](Docs/screenshots/01-login.png)
 
-![Sign-in](Docs/screenshots/01-login.png)
+`AUTH_TYPE` controls which paths appear — local-only, OAuth-only, or both. OAuth providers light up once an admin has registered credentials in Settings.
 
-## Environment variables
+---
 
-| Variable | Default | Purpose |
-|----------|---------|---------|
+## 🛠 Stack
+
+| Area | Technology |
+|------|-----------|
+| Backend | Go 1.25 · [chi v5](https://github.com/go-chi/chi) · [modernc/sqlite](https://gitlab.com/cznic/sqlite) (pure Go) · [tusd v2](https://github.com/tus/tusd) · [gopsutil v3](https://github.com/shirou/gopsutil) · [golang-jwt v5](https://github.com/golang-jwt/jwt) |
+| Frontend | SvelteKit (adapter-static) · Svelte 5 runes · Tailwind 4 · [Monaco editor](https://github.com/microsoft/monaco-editor) · Vite 6 |
+| Design | Gruvbox dark/light · `mode-watcher` · `lucide-svelte` icons · IBM Plex Sans (550 weight) · FiraD2 mono |
+| Deployment | Multi-stage Alpine Docker · GHCR · optional Watchtower auto-update |
+| Storage | Single-file SQLite, schema auto-created and verified on startup |
+
+No CGO means cross-compilation stays simple. The SvelteKit static build is embedded and served by the same Go binary.
+
+---
+
+## 🏗 Architecture
+
+```
+┌───────────────────────────────────────────────────────────────┐
+│                     Browser (SPA)                              │
+│  SvelteKit static · Tailwind · Monaco · Svelte 5 runes         │
+└───────────────────────────────────────────────────────────────┘
+                          │  HTTP/JSON, tus, ranged GET
+                          ▼
+┌───────────────────────────────────────────────────────────────┐
+│                Go server (single binary, no CGO)               │
+│  chi router · JWT middleware · intent middleware               │
+│  ├─ /auth/*               local & OAuth                        │
+│  ├─ /files, /readFolder…  file operations                      │
+│  ├─ /files/*              tus resumable upload                 │
+│  ├─ /getVideoData,        ranged streaming                     │
+│  │  /getAudioData,                                             │
+│  │  /download                                                  │
+│  ├─ /admin/oauth-config,  admin only                           │
+│  │  /authorize                                                 │
+│  ├─ /getSystemInfo        gopsutil metrics                     │
+│  └─ /                     SPA (adapter-static) static serving  │
+└───────────────────────────────────────────────────────────────┘
+        │                                       │
+        ▼                                       ▼
+┌────────────────────┐                ┌────────────────────────┐
+│  SQLite (modernc)  │                │  filesystem            │
+│  users, intents,   │                │  /data/nas             │
+│  activity_log,     │                │  /data/nas-admin       │
+│  oauth_config      │                │  /tmp/nas (tus stage)  │
+└────────────────────┘                └────────────────────────┘
+```
+
+The whole router lives in [`backend/internal/server/router.go`](backend/internal/server/router.go) — one file. The seven sidebar surfaces are defined in [`frontend/src/lib/components/Shell/nav-items.ts`](frontend/src/lib/components/Shell/nav-items.ts).
+
+---
+
+## ⚙️ Environment variables
+
+| Variable | Default | Description |
+|----------|---------|-------------|
 | `PORT` | `7777` | HTTP listen port |
-| `DATA_PATH` | `./data` | Host-side data root used by the Compose volume mounts |
-| `PRIVATE_KEY` / `JWT_SECRET` | (required) | JWT signing key; ≥ 32 bytes recommended |
-| `ADMIN_PASSWORD` | (required) | Gates the `Request admin` endpoint |
-| `AUTH_TYPE` | `both` | `local`, `oauth`, or `both` |
+| `DATA_PATH` | `./data` | Host data root (relative to the Docker mount) |
+| `PRIVATE_KEY` / `JWT_SECRET` | (required) | JWT signing key. 32 bytes recommended |
+| `ADMIN_PASSWORD` | (required) | Verified when `Request admin` is called |
+| `AUTH_TYPE` | `both` | One of `local`, `oauth`, `both` |
 | `CORS_ORIGIN` | `*` | Allowed CORS origin |
-| `MAX_FILE_SIZE` | `50gb` | Per-upload cap |
-| `DISCORD_CLIENT_ID/SECRET/REDIRECT_URI` | — | Bootstrap values; admin UI can overwrite them at runtime |
+| `MAX_FILE_SIZE` | `50gb` | Per-file upload cap |
+| `DISCORD_CLIENT_ID/SECRET/REDIRECT_URI` | — | OAuth bootstrap; can be overridden via the admin UI |
 | `GOOGLE_CLIENT_ID/SECRET/REDIRECT_URI` | — | Same |
 | `TZ` | `UTC` | Container timezone |
 
-See [`.env.example`](.env.example) for the full list.
+Full list: [`.env.example`](.env.example).
 
-## Architecture
+---
 
-```
-┌──────────────────────────────────────────────────────┐
-│                     Browser (SPA)                     │
-│  SvelteKit static · Tailwind · Monaco · Svelte 5      │
-└──────────────────────────────────────────────────────┘
-                          │  HTTP/JSON, tus
-                          ▼
-┌──────────────────────────────────────────────────────┐
-│                Go server (single binary)              │
-│  chi router · JWT middleware · intent middleware      │
-│  ├─ /auth/*        local & OAuth                      │
-│  ├─ /files, /readFolder, /saveTextFile …  file ops    │
-│  ├─ /files/*       tus resumable uploads              │
-│  ├─ /getVideoData, /getAudioData, /download  streams  │
-│  ├─ /admin/oauth-config, /authorize  admin            │
-│  ├─ /getSystemInfo  gopsutil metrics                  │
-│  └─ /  SPA (adapter-static) static fallback           │
-└──────────────────────────────────────────────────────┘
-        │                                       │
-        ▼                                       ▼
-┌────────────────────┐                ┌────────────────────┐
-│  SQLite (modernc)  │                │  Filesystem        │
-│  users, intents,   │                │  /data/nas         │
-│  activity_log,     │                │  /data/nas-admin   │
-│  oauth_config      │                │  /tmp/nas (tus staging) │
-└────────────────────┘                └────────────────────┘
-```
-
-The complete route table lives in one file: [`backend/internal/server/router.go`](backend/internal/server/router.go).
-
-## Development
+## 🧪 Development
 
 ```bash
-# Backend tests (includes integration)
-cd backend
-go test ./...
+# Backend tests (integration included)
+cd backend && go test ./...
 
-# Frontend type-check
-cd frontend
-npm run check
+# Frontend type check
+cd frontend && npm run check
 
-# Production build of both
+# Full production build
 cd backend && go build -o bin/server ./cmd/server
 cd frontend && npm run build
 ```
 
-Further docs: [`Docs/`](Docs/README.md).
+More docs: [`Docs/`](Docs/README.md).
 
-## Auto-update (optional)
+---
 
-Watchtower polls GHCR every five minutes and performs a rolling restart on image change. Disabled by default — opt in explicitly:
+## 🔄 Auto-update (optional)
+
+Watchtower checks GHCR every 5 minutes and performs a zero-downtime rolling restart on new images. Off by default, opt in explicitly:
 
 ```bash
 docker compose --profile autoupdate up -d
 ```
 
-`.github/workflows/build-and-deploy.yml` builds the image on every push to `main` and pushes it to `ghcr.io/<owner>/nas:latest`. To run this from your own fork, set `GITHUB_REPOSITORY` and flip the GHCR package visibility to public.
+The GitHub Actions workflow (`.github/workflows/build-and-deploy.yml`) builds an image on every push to `main` and pushes it to `ghcr.io/<owner>/nas:latest`. To run it under your own account, fork the repo and adjust `GITHUB_REPOSITORY` plus the GHCR package visibility accordingly.
 
-## License
+---
+
+## 📄 License
 
 [MIT](LICENSE).

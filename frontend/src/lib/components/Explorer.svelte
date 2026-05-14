@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { onMount, onDestroy } from "svelte";
+  import { onMount, onDestroy, untrack } from "svelte";
   import Folder from "lucide-svelte/icons/folder";
   import X from "lucide-svelte/icons/x";
   import Trash2 from "lucide-svelte/icons/trash-2";
@@ -52,7 +52,6 @@
   let forbidden = $state(false);
   let errorMessage: string | null = $state(null);
   let searchQuery = $state("");
-  let selected = $state<FolderEntry | null>(null);
   let fileInputEl: HTMLInputElement;
   let folderInputEl: HTMLInputElement;
 
@@ -100,38 +99,41 @@
     }
   }
 
+  // Refresh entries on folder change.
+  // NB: do NOT write tabs payload here. Navigation handlers (navigateTo etc.)
+  // are responsible for resetting per-tab state including selection — writing
+  // to tabs.list inside this effect creates a reactive cycle because the
+  // parent (TabContent) re-passes our `loc` prop on every tab update, which
+  // would re-fire this effect ad infinitum.
   $effect(() => {
     void loc;
-    // Clear Inspector + multi-select on folder change.
-    selected = null;
-    updateSelection([]);
     refresh();
   });
 
   $effect(() => {
     const desired = loc.length === 0 ? "Files" : loc[loc.length - 1];
     const current = tabs.list.find((t) => t.id === tabId)?.title;
-    if (current !== desired) tabs.update(tabId, { title: desired });
+    if (current !== desired) untrack(() => tabs.update(tabId, { title: desired }));
   });
 
-  // Inspector mirrors the current single selection. When exactly one entry is
+  // Inspector mirrors the current single selection (pure derivation — no
+  // effect required, no risk of feedback loop). When exactly one entry is
   // selected, show its details; otherwise (0 or N>1) hide the Inspector.
-  $effect(() => {
-    if (selection.length === 1) {
-      const only = entries.find((e) => e.name === selection[0]) ?? null;
-      selected = only;
-    } else {
-      selected = null;
-    }
-  });
+  const selected = $derived<FolderEntry | null>(
+    selection.length === 1
+      ? entries.find((e) => e.name === selection[0]) ?? null
+      : null,
+  );
 
   function navigateTo(target: string[], opts: { newTab?: boolean } = {}) {
     if (opts.newTab) {
       tabs.openExplorer(target);
       return;
     }
+    // Reset selection here (not in a $effect) so per-tab state is cleared
+    // exactly once per navigation event without creating a reactive cycle.
     tabs.update(tabId, {
-      payload: { loc: target } as ExplorerPayload,
+      payload: { loc: target, selection: [] } as ExplorerPayload,
       title: target.length === 0 ? "Files" : target[target.length - 1],
     });
   }

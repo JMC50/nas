@@ -11,6 +11,7 @@ import (
 	"net/http/httptest"
 	"os"
 	"path/filepath"
+	"runtime"
 	"sync"
 	"testing"
 	"time"
@@ -380,6 +381,98 @@ func TestTus_PostHookHandlesMissingMetadata(t *testing.T) {
 	entries, err := os.ReadDir(filepath.Join(dataDir, "no-filename"))
 	if err == nil {
 		require.Empty(t, entries, "missing-filename upload should not finalize to nas-data")
+	}
+}
+
+// TestTusUploadCreatesNestedFolders: tus uploads with multi-level `loc` metadata
+// must auto-create intermediate directories under NAS_DATA_DIR via the post-hook
+// (`os.MkdirAll(filepath.Dir(target), 0o755)` in finalizeUpload). Each sub-test
+// runs a distinct upload through the same server to confirm no interference.
+func TestTusUploadCreatesNestedFolders(t *testing.T) {
+	srv, token, dataDir := setupTusTestServer(t)
+
+	// expectedDirMode is the permission bits MkdirAll is invoked with in
+	// finalizeUpload. On Windows the actual perm bits as returned by Stat
+	// can differ from the requested mode; we only assert on the unix-mask
+	// of executable+read bits we actually request.
+	const expectedDirMode os.FileMode = 0o755
+
+	type subCase struct {
+		name          string
+		loc           string
+		filename      string
+		payload       []byte
+		intermediates []string // relative paths under dataDir that must exist
+		finalDir      string   // relative path under dataDir where file lives
+	}
+	cases := []subCase{
+		{
+			name:          "three-level",
+			loc:           "/A/B/C",
+			filename:      "nested.txt",
+			payload:       []byte("three deep"),
+			intermediates: []string{"A", filepath.Join("A", "B"), filepath.Join("A", "B", "C")},
+			finalDir:      filepath.Join("A", "B", "C"),
+		},
+		{
+			name:     "five-level",
+			loc:      "/one/two/three/four/five",
+			filename: "deep.bin",
+			payload:  []byte("five deep payload"),
+			intermediates: []string{
+				"one",
+				filepath.Join("one", "two"),
+				filepath.Join("one", "two", "three"),
+				filepath.Join("one", "two", "three", "four"),
+				filepath.Join("one", "two", "three", "four", "five"),
+			},
+			finalDir: filepath.Join("one", "two", "three", "four", "five"),
+		},
+		{
+			name:          "root-level",
+			loc:           "",
+			filename:      "root.txt",
+			payload:       []byte("at root"),
+			intermediates: nil,
+			finalDir:      "",
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			client := newTusClient(t, srv.URL, token)
+			uploadURL, err := client.create(int64(len(tc.payload)), map[string]string{
+				"filename": tc.filename,
+				"loc":      tc.loc,
+			})
+			require.NoError(t, err)
+
+			offset, err := client.patch(uploadURL, 0, tc.payload)
+			require.NoError(t, err)
+			require.Equal(t, int64(len(tc.payload)), offset)
+
+			finalPath := filepath.Join(dataDir, tc.finalDir, tc.filename)
+			data := waitForFile(t, finalPath, 5*time.Second)
+			require.Equal(t, tc.payload, data, "uploaded content mismatch for %s", tc.name)
+
+			for _, rel := range tc.intermediates {
+				dir := filepath.Join(dataDir, rel)
+				stat, err := os.Stat(dir)
+				require.NoError(t, err, "intermediate dir missing: %s", rel)
+				require.True(t, stat.IsDir(), "expected directory at %s", rel)
+				perm := stat.Mode().Perm()
+				if runtime.GOOS == "windows" {
+					// On Windows os.MkdirAll mode bits are best-effort and
+					// Stat reports synthesized bits (typically 0o777). Assert
+					// owner readable+writable+executable as the invariant.
+					require.Equal(t, os.FileMode(0o700), perm&0o700,
+						"directory %s should be owner-rwx, got %#o", rel, perm)
+				} else {
+					require.Equal(t, expectedDirMode, perm,
+						"directory %s should be %#o, got %#o", rel, expectedDirMode, perm)
+				}
+			}
+		})
 	}
 }
 

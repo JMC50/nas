@@ -54,6 +54,10 @@
   let searchQuery = $state("");
   let fileInputEl: HTMLInputElement;
   let folderInputEl: HTMLInputElement;
+  // Monotonic token used to discard stale `readEntries` responses. Without
+  // this, rapid navigation (mount-fetch + immediate user click) could land
+  // the OLDER response last, overwriting the newer location's entries.
+  let refreshToken = 0;
 
   // Multi-select state lives in tab payload (per-tab isolated). The last
   // element of `selection` is the range anchor for Shift+click.
@@ -82,12 +86,16 @@
   const folderName = $derived(loc.length === 0 ? "Home" : loc[loc.length - 1]);
 
   async function refresh() {
+    const myToken = ++refreshToken;
     loading = true;
     errorMessage = null;
     forbidden = false;
     try {
-      entries = await readEntries(loc);
+      const next = await readEntries(loc);
+      if (myToken !== refreshToken) return; // stale — newer refresh in flight
+      entries = next;
     } catch (cause) {
+      if (myToken !== refreshToken) return;
       if (cause instanceof FetchError && cause.status === 403) {
         forbidden = true;
       } else {
@@ -95,7 +103,7 @@
       }
       entries = [];
     } finally {
-      loading = false;
+      if (myToken === refreshToken) loading = false;
     }
   }
 

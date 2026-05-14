@@ -113,7 +113,11 @@
         class="absolute left-2 top-1/2 -translate-y-1/2 text-fg-muted pointer-events-none"
       />
       <input
-        type="text"
+        type="search"
+        name="music-lib-q"
+        autocomplete="off"
+        autocorrect="off"
+        spellcheck="false"
         bind:value={query}
         placeholder="Search tracks or folders…"
         class="w-full h-8 pl-7 pr-3 text-xs bg-bg-base border border-border-default rounded text-fg-primary placeholder:text-fg-muted focus:outline-none focus:border-accent"

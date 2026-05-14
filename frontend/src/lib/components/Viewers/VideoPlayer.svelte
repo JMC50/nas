@@ -20,6 +20,18 @@
   let currentTime = $state(0);
   let duration = $state(0);
   let buffered = $state(0);
+  // Set when the browser fails to decode the source — typically AVI/MKV/MOV
+  // containers with codecs Chromium can't handle natively. Fallback UI offers
+  // a direct download instead of a silent black box.
+  let loadError = $state(false);
+
+  function onMediaError() {
+    loadError = true;
+  }
+
+  const downloadUrl = $derived(
+    `/server/download?token=${encodeURIComponent(auth.token)}&loc=${encodeURIComponent(loc)}&name=${encodeURIComponent(name)}`,
+  );
 
   function onTimeUpdate() {
     if (!video) return;
@@ -255,7 +267,27 @@
     onprogress={onProgress}
     onvolumechange={onVolumeChange}
     onratechange={onRateChange}
+    onerror={onMediaError}
   ></video>
+
+  {#if loadError}
+    <div
+      class="absolute inset-0 z-30 flex flex-col items-center justify-center gap-3 bg-bg-base/95 text-fg-primary px-6 text-center"
+    >
+      <div class="text-sm font-medium">Browser cannot play this format</div>
+      <div class="text-xs text-fg-muted max-w-md">
+        Container or codec is not supported natively (common for .avi, .mkv, .mov).
+        Download to play in a local media player.
+      </div>
+      <a
+        href={downloadUrl}
+        download={name}
+        class="inline-flex items-center gap-2 h-9 px-4 rounded-md bg-accent text-accent-fg text-sm font-medium hover:bg-accent/90 transition-colors"
+      >
+        Download {name}
+      </a>
+    </div>
+  {/if}
 
   <!-- center overlay (visible when paused) -->
   {#if !playing}

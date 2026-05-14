@@ -129,35 +129,32 @@ No CGO means cross-compilation stays simple. The SvelteKit static build is embed
 
 ## Architecture
 
-```
-┌───────────────────────────────────────────────────────────────┐
-│                     Browser (SPA)                              │
-│  SvelteKit static · Tailwind · Monaco · Svelte 5 runes         │
-└───────────────────────────────────────────────────────────────┘
-                          │  HTTP/JSON, tus, ranged GET
-                          ▼
-┌───────────────────────────────────────────────────────────────┐
-│                Go server (single binary, no CGO)               │
-│  chi router · JWT middleware · intent middleware               │
-│  ├─ /auth/*               local & OAuth                        │
-│  ├─ /files, /readFolder…  file operations                      │
-│  ├─ /files/*              tus resumable upload                 │
-│  ├─ /getVideoData,        ranged streaming                     │
-│  │  /getAudioData,                                             │
-│  │  /download                                                  │
-│  ├─ /admin/oauth-config,  admin only                           │
-│  │  /authorize                                                 │
-│  ├─ /getSystemInfo        gopsutil metrics                     │
-│  └─ /                     SPA (adapter-static) static serving  │
-└───────────────────────────────────────────────────────────────┘
-        │                                       │
-        ▼                                       ▼
-┌────────────────────┐                ┌────────────────────────┐
-│  SQLite (modernc)  │                │  filesystem            │
-│  users, intents,   │                │  /data/nas             │
-│  activity_log,     │                │  /data/nas-admin       │
-│  oauth_config      │                │  /tmp/nas (tus stage)  │
-└────────────────────┘                └────────────────────────┘
+```mermaid
+flowchart TB
+    Browser["<b>Browser (SPA)</b><br/>SvelteKit static · Tailwind · Monaco · Svelte 5 runes"]
+
+    subgraph Server ["<b>Go server</b> — single binary, no CGO · chi router · JWT + intent middleware"]
+        direction TB
+        R1["/auth/* — local plus OAuth"]
+        R2["/files, /readFolder, … — file operations"]
+        R3["/files/* — tus resumable upload"]
+        R4["/getVideoData, /getAudioData, /download — ranged streaming"]
+        R5["/admin/oauth-config, /authorize — admin only"]
+        R6["/getSystemInfo — gopsutil metrics"]
+        R7["/ — SPA (adapter-static) static serving"]
+    end
+
+    DB[("<b>SQLite</b> (modernc)<br/>users · intents · activity_log · oauth_config")]
+    FS[("<b>filesystem</b><br/>/data/nas · /data/nas-admin · /tmp/nas (tus staging)")]
+
+    Browser -->|"HTTP/JSON · tus · ranged GET"| Server
+    Server --> DB
+    Server --> FS
+
+    classDef store fill:#32302f,stroke:#83a598,color:#ebdbb2
+    classDef client fill:#3c3836,stroke:#fabd2f,color:#ebdbb2
+    class DB,FS store
+    class Browser client
 ```
 
 The whole router lives in [`backend/internal/server/router.go`](backend/internal/server/router.go) — one file. The seven sidebar surfaces are defined in [`frontend/src/lib/components/Shell/nav-items.ts`](frontend/src/lib/components/Shell/nav-items.ts).

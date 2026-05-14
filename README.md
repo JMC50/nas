@@ -129,35 +129,32 @@ CGO 없이 빌드 → 크로스 컴파일 단순. SvelteKit static 빌드는 백
 
 ## 아키텍처
 
-```
-┌───────────────────────────────────────────────────────────────┐
-│                     Browser (SPA)                              │
-│  SvelteKit static · Tailwind · Monaco · Svelte 5 runes         │
-└───────────────────────────────────────────────────────────────┘
-                          │  HTTP/JSON, tus, ranged GET
-                          ▼
-┌───────────────────────────────────────────────────────────────┐
-│                Go server (single binary, no CGO)               │
-│  chi router · JWT middleware · intent middleware               │
-│  ├─ /auth/*               local & OAuth                        │
-│  ├─ /files, /readFolder…  파일 조작                              │
-│  ├─ /files/*              tus 재개 업로드                        │
-│  ├─ /getVideoData,        ranged 스트리밍                        │
-│  │  /getAudioData,                                             │
-│  │  /download                                                  │
-│  ├─ /admin/oauth-config,  관리자                                 │
-│  │  /authorize                                                 │
-│  ├─ /getSystemInfo        gopsutil 메트릭                       │
-│  └─ /                     SPA(adapter-static) 정적 서빙          │
-└───────────────────────────────────────────────────────────────┘
-        │                                       │
-        ▼                                       ▼
-┌────────────────────┐                ┌────────────────────────┐
-│  SQLite (modernc)  │                │  filesystem            │
-│  users, intents,   │                │  /data/nas             │
-│  activity_log,     │                │  /data/nas-admin       │
-│  oauth_config      │                │  /tmp/nas (tus stage)  │
-└────────────────────┘                └────────────────────────┘
+```mermaid
+flowchart TB
+    Browser["<b>Browser (SPA)</b><br/>SvelteKit static · Tailwind · Monaco · Svelte 5 runes"]
+
+    subgraph Server ["<b>Go server</b> — single binary, no CGO · chi router · JWT + intent middleware"]
+        direction TB
+        R1["/auth/* — 로컬 + OAuth"]
+        R2["/files, /readFolder, … — 파일 조작"]
+        R3["/files/* — tus 재개 업로드"]
+        R4["/getVideoData, /getAudioData, /download — ranged 스트리밍"]
+        R5["/admin/oauth-config, /authorize — 관리자"]
+        R6["/getSystemInfo — gopsutil 메트릭"]
+        R7["/ — SPA (adapter-static) 정적 서빙"]
+    end
+
+    DB[("<b>SQLite</b> (modernc)<br/>users · intents · activity_log · oauth_config")]
+    FS[("<b>filesystem</b><br/>/data/nas · /data/nas-admin · /tmp/nas (tus 스테이징)")]
+
+    Browser -->|"HTTP/JSON · tus · ranged GET"| Server
+    Server --> DB
+    Server --> FS
+
+    classDef store fill:#32302f,stroke:#83a598,color:#ebdbb2
+    classDef client fill:#3c3836,stroke:#fabd2f,color:#ebdbb2
+    class DB,FS store
+    class Browser client
 ```
 
 라우터 전체 정의는 [`backend/internal/server/router.go`](backend/internal/server/router.go) 한 파일에 모여 있다. 사이드바 7개 화면은 [`frontend/src/lib/components/Shell/nav-items.ts`](frontend/src/lib/components/Shell/nav-items.ts) 에서 정의한다.

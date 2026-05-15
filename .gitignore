@@ -106,3 +106,6 @@ aider.conf.yml
 
 # Untracked scratch screenshots (manual UI captures, not part of README)
 Docs/images/_archive/
+
+/data/
+/repo-visuals-work/

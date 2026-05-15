@@ -20,7 +20,7 @@ function rootTab(): Tab {
     title: "Files",
     icon: "folder",
     payload: { loc: [] } as ExplorerPayload,
-    closable: false,
+    closable: true,
   };
 }
 
@@ -86,9 +86,17 @@ class TabStore {
     if (!target || !target.closable) return;
     const wasActive = this.activeId === id;
     const filtered = this.list.filter((tab) => tab.id !== id);
+    if (filtered.length === 0) {
+      // Closed the last tab — snap back to a fresh Files root so TabContent
+      // never has to render an empty state.
+      const fresh = rootTab();
+      this.list = [fresh];
+      this.activeId = fresh.id;
+      return;
+    }
     this.list = filtered;
     if (wasActive) {
-      this.activeId = filtered[filtered.length - 1]?.id ?? EXPLORER_TAB_ID;
+      this.activeId = filtered[filtered.length - 1].id;
     }
   }
 

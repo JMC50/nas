@@ -29,10 +29,6 @@ export const NAV_ITEMS: NavItem[] = [
   { id: "system:system", kind: "system", title: "System", icon: Cpu, adminOnly: true },
 ];
 
-// Sidebar entries that map to singleton tabs the user cannot close — the
-// sidebar button is the only way back in.
-const NON_CLOSABLE: TabKind[] = ["explorer", "music-library", "video-library"];
-
 export function activate(item: NavItem): void {
   const existing = tabs.list.find((tab) => tab.id === item.id);
   if (existing) {
@@ -45,6 +41,5 @@ export function activate(item: NavItem): void {
     title: item.title,
     icon: item.kind,
     payload: null,
-    closable: !NON_CLOSABLE.includes(item.kind),
   });
 }

@@ -102,6 +102,7 @@ func NewRouter(cfg *config.Config, conn *sql.DB) http.Handler {
 		r.Get("/authorize", adminHandlers.ToggleIntent)
 		r.Get("/unauthorize", adminHandlers.ToggleIntent)
 		r.Post("/requestAdminIntent", adminHandlers.RequestAdminIntent)
+		r.Delete("/users/{userId}", adminHandlers.DeleteUser)
 		r.Get("/admin/oauth-config", adminHandlers.GetOAuthConfig)
 		r.Put("/admin/oauth-config", adminHandlers.UpdateOAuthConfig)
 		r.Post("/auth/link/start", authHandlers.LinkStart)

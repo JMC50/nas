@@ -40,7 +40,8 @@ const fullSchema = `
 		user_id INTEGER NOT NULL,
 		provider TEXT NOT NULL,
 		external_id TEXT NOT NULL,
-		PRIMARY KEY (provider, external_id)
+		PRIMARY KEY (provider, external_id),
+		FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 	);
 `
 

@@ -4,7 +4,10 @@ import (
 	"crypto/subtle"
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"net/http"
+
+	"github.com/go-chi/chi/v5"
 
 	"github.com/JMC50/nas/internal/auth"
 	"github.com/JMC50/nas/internal/config"
@@ -73,6 +76,44 @@ func (h *Handlers) RequestAdminIntent(w http.ResponseWriter, r *http.Request) {
 	}
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte("complete"))
+}
+
+// DeleteUser hard-deletes a user. Caller must have ADMIN; self-delete is refused
+// to prevent admin lockout. FK cascades drop intent/identity rows in DB.
+func (h *Handlers) DeleteUser(w http.ResponseWriter, r *http.Request) {
+	claims := auth.ClaimsFromContext(r.Context())
+	if claims == nil {
+		http.Error(w, "unauthorized", http.StatusUnauthorized)
+		return
+	}
+	caller, err := db.GetUser(h.DB, claims.UserID)
+	if err != nil || caller == nil {
+		http.Error(w, "not found", http.StatusNotFound)
+		return
+	}
+	if !hasAdmin(caller.Intents) {
+		http.Error(w, "forbidden", http.StatusForbidden)
+		return
+	}
+	target := chi.URLParam(r, "userId")
+	if target == "" {
+		http.Error(w, "userId required", http.StatusBadRequest)
+		return
+	}
+	if target == claims.UserID {
+		http.Error(w, "cannot delete yourself", http.StatusBadRequest)
+		return
+	}
+	if err := db.DeleteUser(h.DB, target); err != nil {
+		if errors.Is(err, db.ErrUserNotFound) {
+			http.Error(w, "user not found", http.StatusNotFound)
+			return
+		}
+		http.Error(w, "delete failed", http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]any{"success": true})
 }
 
 func (h *Handlers) GetActivityLog(w http.ResponseWriter, r *http.Request) {

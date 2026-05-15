@@ -152,3 +152,39 @@ func UpdatePassword(conn *sql.DB, userID, newHash string) error {
 	}
 	return nil
 }
+
+// ErrUserNotFound is returned by DeleteUser when no row matches the supplied userID.
+var ErrUserNotFound = errors.New("user not found")
+
+// DeleteUser hard-deletes the user row plus their activity log entries.
+// FK cascades drop user_intents and user_identities. The log table declares
+// `user_id NOT NULL` with `ON DELETE SET NULL`, which is a latent schema bug
+// (SET NULL fails the NOT NULL constraint), so we delete log rows explicitly
+// inside the same transaction rather than relying on the broken cascade.
+func DeleteUser(conn *sql.DB, userID string) error {
+	tx, err := conn.Begin()
+	if err != nil {
+		return fmt.Errorf("begin tx: %w", err)
+	}
+	defer tx.Rollback()
+
+	var primaryKey int64
+	if err := tx.QueryRow("SELECT id FROM users WHERE userId = ?", userID).Scan(&primaryKey); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return ErrUserNotFound
+		}
+		return fmt.Errorf("lookup user: %w", err)
+	}
+
+	if _, err := tx.Exec("DELETE FROM log WHERE user_id = ?", primaryKey); err != nil {
+		return fmt.Errorf("delete user logs: %w", err)
+	}
+	if _, err := tx.Exec("DELETE FROM users WHERE id = ?", primaryKey); err != nil {
+		return fmt.Errorf("delete user: %w", err)
+	}
+
+	if err := tx.Commit(); err != nil {
+		return fmt.Errorf("commit delete: %w", err)
+	}
+	return nil
+}

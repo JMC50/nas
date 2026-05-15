@@ -67,6 +67,37 @@ func TestUpdatePassword(t *testing.T) {
 	require.Equal(t, "$2a$10$new", user.Password)
 }
 
+func TestDeleteUser_CascadesIntentsAndIdentities(t *testing.T) {
+	conn := setupTestDB(t)
+	id, err := SaveLocalUser(conn, "local-del", "del", "h", "del")
+	require.NoError(t, err)
+	require.NoError(t, AddIdentity(conn, id, "local", "local-del"))
+	require.NoError(t, ToggleIntent(conn, "local-del", "UPLOAD"))
+	require.NoError(t, InsertLog(conn, "local-del", "act", "desc", "/", 0))
+
+	require.NoError(t, DeleteUser(conn, "local-del"))
+
+	user, err := GetUser(conn, "local-del")
+	require.NoError(t, err)
+	require.Nil(t, user)
+
+	var intentCount, identityCount int
+	require.NoError(t, conn.QueryRow("SELECT COUNT(*) FROM user_intents WHERE user_id = ?", id).Scan(&intentCount))
+	require.Equal(t, 0, intentCount, "user_intents must cascade delete")
+	require.NoError(t, conn.QueryRow("SELECT COUNT(*) FROM user_identities WHERE user_id = ?", id).Scan(&identityCount))
+	require.Equal(t, 0, identityCount, "user_identities must cascade delete")
+
+	var logCount int
+	require.NoError(t, conn.QueryRow("SELECT COUNT(*) FROM log WHERE activity = ?", "act").Scan(&logCount))
+	require.Equal(t, 0, logCount, "log rows for deleted user must be removed")
+}
+
+func TestDeleteUser_ReturnsErrUserNotFoundWhenMissing(t *testing.T) {
+	conn := setupTestDB(t)
+	err := DeleteUser(conn, "nonexistent")
+	require.ErrorIs(t, err, ErrUserNotFound)
+}
+
 func TestGetAllUsers_AggregatesIntents(t *testing.T) {
 	conn := setupTestDB(t)
 	_, err := SaveLocalUser(conn, "local-a", "a", "h", "a")

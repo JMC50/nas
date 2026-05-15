@@ -33,7 +33,12 @@
   }
 </script>
 
-<div class="flex items-center justify-center h-full w-full p-6">
+<!--
+  data-marquee-canvas="false" opts out of Explorer's marquee pointer capture.
+  Without this, Explorer's containerEl swallows pointerdown via setPointerCapture
+  and the button never sees a complete click sequence — so prompt() never fires.
+-->
+<div class="flex items-center justify-center h-full w-full p-6" data-marquee-canvas="false">
   <div class="max-w-md w-full text-center">
     <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-accent/10 border border-accent/20 mb-5">
       <Lock size="28" class="text-accent" />

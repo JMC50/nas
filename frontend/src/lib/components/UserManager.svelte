@@ -2,6 +2,7 @@
   import { onMount } from "svelte";
   import Shield from "lucide-svelte/icons/shield";
   import UserIcon from "lucide-svelte/icons/user";
+  import Trash2 from "lucide-svelte/icons/trash-2";
   import { auth } from "$lib/store/auth.svelte";
   import { notifications } from "$lib/store/notifications.svelte";
   import type { Intent } from "$lib/types";
@@ -33,8 +34,10 @@
 
   let userId = $state(initialUserId);
   let users: UserView[] = $state([]);
-  let user: UserView | null = $state(null);
+  let user = $state<UserView | null>(null);
   let busy = $state<Set<Intent>>(new Set());
+  let deleting = $state(false);
+  const isSelf = $derived(user !== null && user.userId === auth.current.userId);
 
   async function loadUsers() {
     const response = await fetch("/server/getAllUsers");
@@ -86,6 +89,30 @@
       notifications.error(`Toggle failed: ${(cause as Error).message}`);
     } finally {
       setBusy(intent, false);
+    }
+  }
+
+  async function deleteUser() {
+    if (!user) return;
+    if (user.userId === auth.current.userId) return;
+    const label = user.krname || user.global_name || user.username || user.userId;
+    if (!confirm(`Delete user "${label}" (${user.userId})? This cannot be undone.`)) return;
+    const removedId = user.userId;
+    deleting = true;
+    try {
+      const response = await fetch(
+        `/server/users/${encodeURIComponent(removedId)}?token=${encodeURIComponent(auth.token)}`,
+        { method: "DELETE" },
+      );
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      notifications.success(`Deleted ${label}`);
+      users = users.filter((entry) => entry.userId !== removedId);
+      user = null;
+      userId = "";
+    } catch (cause) {
+      notifications.error(`Delete failed: ${(cause as Error).message}`);
+    } finally {
+      deleting = false;
     }
   }
 
@@ -166,6 +193,27 @@
                 </button>
               </div>
             {/each}
+          </div>
+
+          <div class="mt-6 pt-5 border-t border-border-default/60">
+            <div class="text-xs font-semibold text-fg-muted uppercase tracking-wide mb-2">Danger zone</div>
+            <div class="flex items-center justify-between gap-4">
+              <div class="text-xs text-fg-muted leading-relaxed">
+                {isSelf
+                  ? "You can't delete your own account from here."
+                  : "Permanently remove this user and their permissions. Activity log entries owned by this user are also removed."}
+              </div>
+              <button
+                type="button"
+                class="inline-flex items-center gap-1.5 h-8 px-3 rounded-md text-xs font-medium text-fg-danger border border-border-default hover:bg-bg-hover disabled:opacity-50 disabled:cursor-not-allowed transition-colors shrink-0"
+                onclick={deleteUser}
+                disabled={isSelf || deleting}
+                aria-label="Delete user"
+              >
+                <Trash2 size="12" />
+                {deleting ? "Deleting…" : "Delete user"}
+              </button>
+            </div>
           </div>
         </div>
       {/if}

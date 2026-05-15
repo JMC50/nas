@@ -1,10 +1,7 @@
 import type { Notification, NotificationKind } from "$lib/types";
+import { randomId } from "$lib/util/random-id";
 
 const DEFAULT_DURATION_MS = 5000;
-
-function randomId() {
-  return crypto.randomUUID();
-}
 
 class NotificationStore {
   queue = $state<Notification[]>([]);

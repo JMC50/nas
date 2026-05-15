@@ -1,10 +1,7 @@
 import type { ExplorerPayload, Tab } from "$lib/types";
+import { randomId } from "$lib/util/random-id";
 
 const EXPLORER_TAB_ID = "explorer";
-
-function randomId() {
-  return crypto.randomUUID();
-}
 
 function locToTitle(loc: string[]): string {
   return loc.length === 0 ? "Files" : loc[loc.length - 1];

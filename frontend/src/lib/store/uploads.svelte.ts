@@ -1,10 +1,7 @@
 import type { Upload, UploadStatus } from "$lib/types";
+import { randomId } from "$lib/util/random-id";
 
 const COMPLETED_RETENTION_MS = 60_000;
-
-function randomId() {
-  return crypto.randomUUID();
-}
 
 class UploadsStore {
   list = $state<Upload[]>([]);

@@ -1,4 +1,8 @@
 <p align="center">
+  <img src="Docs/images/logo.png" alt="NAS logo" width="96">
+</p>
+
+<p align="center">
   <img src="Docs/images/hero.gif" alt="NAS — file explorer, system dashboard, user permissions, Quick Open demo" width="860">
 </p>
 

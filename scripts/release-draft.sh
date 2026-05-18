@@ -119,9 +119,14 @@ emit_draft() {
   local label_features="" label_fixes="" label_ui="" label_infra="" label_docs="" label_tests="" label_other=""
   local label_breaking="" label_verify="" label_known="" verify_body="" known_body=""
 
+  # Absolute GitHub URLs in cross-links — relative paths (`./v...md`) render fine
+  # in the in-repo file view but break on the GitHub Release page, where the URL
+  # resolves against `/releases/tag/...` and produces a 404. The blob/main URL
+  # works in both contexts. If this project is ever forked, update the owner/repo
+  # segment to match.
   if [[ "$lang" == "en" ]]; then
     title_suffix=""
-    cross_link="> [한국어 버전 / Korean version](./v${NEW_VERSION}.ko.md)"
+    cross_link="> [한국어 버전 / Korean version](https://github.com/JMC50/nas/blob/main/Docs/release-notes/v${NEW_VERSION}.ko.md)"
     placeholder_components="(fill in — Backend, Frontend, Infra; whichever actually changed)"
     placeholder_verify="(fill in — outcomes only, do not paste verification shell commands)"
     placeholder_intro="(one or two sentences — what was integrated and how far it was pushed)"
@@ -142,7 +147,7 @@ emit_draft() {
     known_body="(fill in — follow-up bullet list)"
   else
     title_suffix=" (한국어)"
-    cross_link="> [English version](./v${NEW_VERSION}.md)"
+    cross_link="> [English version](https://github.com/JMC50/nas/blob/main/Docs/release-notes/v${NEW_VERSION}.md)"
     placeholder_components="(작성 시 채움 — Backend, Frontend, Infra 중 실제 변경된 영역만)"
     placeholder_verify="(작성 시 채움 — 결과 요약만, 명령어 노출 금지)"
     placeholder_intro="(노트 본문 한두 문장 — 무엇을 통합했고 어디까지 push되었는지)"

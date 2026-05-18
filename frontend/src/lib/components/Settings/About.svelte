@@ -8,8 +8,6 @@
     schema: string;
   }
 
-  const APP_VERSION = "2.0.0";
-
   let health = $state<Health | null>(null);
 
   async function load() {
@@ -38,7 +36,7 @@
   <div class="rounded-lg bg-bg-surface border border-border-default p-4 space-y-2">
     <div class="grid grid-cols-[140px_1fr] gap-x-4 gap-y-1.5 text-xs">
       <div class="text-fg-muted">App version</div>
-      <div class="font-mono text-fg-primary">{APP_VERSION}</div>
+      <div class="font-mono text-fg-primary">{__APP_VERSION__}</div>
 
       <div class="text-fg-muted">Backend</div>
       <div class="font-mono text-fg-primary">Go server</div>

@@ -14,5 +14,25 @@
     "@fontsource-variable/ibm-plex-sans": "^5.2.8",
     "@fontsource/ibm-plex-sans-kr": "^5.2.8",
     "pdfjs-dist": "^5.7.284"
+  },
+  "devDependencies": {
+    "@sveltejs/adapter-static": "^3.0.10",
+    "@sveltejs/kit": "^2.59.1",
+    "@sveltejs/vite-plugin-svelte": "^5.1.1",
+    "@tailwindcss/vite": "^4.3.0",
+    "@tsconfig/svelte": "^5.0.4",
+    "autoprefixer": "^10.5.0",
+    "clsx": "^2.1.1",
+    "lucide-svelte": "^1.0.1",
+    "mode-watcher": "^1.1.0",
+    "monaco-editor": "^0.52.2",
+    "postcss": "^8.5.14",
+    "svelte": "^5.19.6",
+    "svelte-check": "^4.1.4",
+    "tailwind-merge": "^3.6.0",
+    "tailwind-variants": "^3.2.2",
+    "tailwindcss": "^4.3.0",
+    "typescript": "^5.9.2",
+    "vite": "^6.1.0"
   }
 }

@@ -26,6 +26,14 @@ env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
 
+# Cancel any in-flight run for the same tag/ref when a new build is queued
+# (e.g. tag force-move after a CI failure). Without this, force-pushing v0.3.0
+# stacks a new run behind a stuck one — the arm64 QEMU build can sit for hours
+# blocking the manifest push.
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
     runs-on: ubuntu-latest

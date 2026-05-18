@@ -3,11 +3,13 @@
 # --- Stage 1: build frontend (Vite + Svelte) ---
 FROM node:22-alpine AS frontend-build
 WORKDIR /work
-COPY package*.json ./
-RUN npm ci --prefer-offline --no-audit --silent
-# Frontend has its own package.json (no workspaces at root) — install separately
-# so deps declared only in frontend/package.json (e.g. pdfjs-dist) are present
-# when vite resolves modules.
+# Frontend is self-contained — all toolchain (vite, svelte-kit, tailwind, etc.)
+# plus runtime deps (lucide-svelte, monaco-editor, etc.) live in frontend/package.json.
+# A single npm ci against that manifest installs everything. The repo no longer
+# carries a root package.json — the previous root install layer was Node-era
+# leftover that pinned express/better-sqlite3/etc. (0 imports anywhere) and
+# made arm64 cross-builds under QEMU stall for an hour on better-sqlite3's
+# native compile + the Korean font subset npm postinstall.
 COPY frontend/package.json frontend/package-lock.json ./frontend/
 RUN cd frontend && npm ci --prefer-offline --no-audit --silent
 # VERSION at /work/VERSION — vite.config.ts reads `resolve(__dirname, "..", "VERSION")`

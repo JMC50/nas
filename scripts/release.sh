@@ -18,8 +18,12 @@
 # Actions:
 #   1. Validate semver, branch, working tree, tag uniqueness, note file presence.
 #   2. Write <new_version> to VERSION (single source of truth).
-#   3. Sync frontend/package.json `version` field.
-#   4. Stage VERSION, frontend/package.json, the polished note, commit
+#   3. Sync package.json (root) + frontend/package.json `version` fields so all
+#      three sources stay locked together. The root package.json is a Node-era
+#      artifact that still pins frontend devDependencies (vite, svelte-kit,
+#      tailwindcss) used by the Docker build; until those move into
+#      frontend/package.json its `version` field stays in lockstep here.
+#   4. Stage VERSION, both package.json files, the polished notes, commit
 #      `[chore] release v<new_version>` (skip if dry-run).
 #   5. Create annotated tag `v<new_version>`.
 #   6. Push commit + tag to origin/main (skip if dry-run).
@@ -116,22 +120,27 @@ echo
 echo "[1/5] write VERSION"
 write_file "VERSION" "$NEW_VERSION"
 
-# 2. frontend/package.json — match in place, preserve formatting.
-echo "[2/5] sync frontend/package.json version"
-if $DRY_RUN; then
-  echo "[dry-run] sed -i 's/\"version\": .*/\"version\": \"$NEW_VERSION\",/' frontend/package.json"
-else
-  # Match the first `"version": "..."` line. Cross-platform sed: use -i'' for macOS, -i for GNU.
-  if sed --version >/dev/null 2>&1; then
-    sed -i "0,/\"version\": .*/{s//\"version\": \"$NEW_VERSION\",/}" frontend/package.json
+# 2. package.json (root) + frontend/package.json — match first `"version"` line
+#    in each, preserve formatting. Cross-platform sed.
+sync_pkg_version() {
+  local path="$1"
+  if $DRY_RUN; then
+    echo "[dry-run] sed -i 's/\"version\": .*/\"version\": \"$NEW_VERSION\",/' $path"
   else
-    sed -i '' "0,/\"version\": .*/{s//\"version\": \"$NEW_VERSION\",/;}" frontend/package.json
+    if sed --version >/dev/null 2>&1; then
+      sed -i "0,/\"version\": .*/{s//\"version\": \"$NEW_VERSION\",/}" "$path"
+    else
+      sed -i '' "0,/\"version\": .*/{s//\"version\": \"$NEW_VERSION\",/;}" "$path"
+    fi
   fi
-fi
+}
+echo "[2/5] sync package.json (root + frontend) version"
+sync_pkg_version package.json
+sync_pkg_version frontend/package.json
 
 # 3. Stage + commit.
 echo "[3/5] commit"
-run git add VERSION frontend/package.json "$NOTE_FILE" "$NOTE_FILE_KO"
+run git add VERSION package.json frontend/package.json "$NOTE_FILE" "$NOTE_FILE_KO"
 run git commit -m "[chore] release ${TAG}"
 
 # 4. Annotated tag pointing at the release commit. Body of the tag annotation is the note file.

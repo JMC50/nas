@@ -12,11 +12,11 @@
     onMenu: (event: MouseEvent, entry: FolderEntry) => void;
     onDropOnFolder: (event: DragEvent, target: FolderEntry) => void;
     // Click → fires for every entry click (modifier-aware). Explorer.svelte
-    // dispatches setSingle / toggleEntry / selectRange based on the event.
+    // dispatches setSingle / toggleEntry / selectRange / openEntry based on the
+    // event and viewport. On mobile with no current selection, the handler
+    // opens the entry; selection mode is entered via the context menu's
+    // "Select" item instead.
     onSelect: (event: MouseEvent, entry: FolderEntry) => void;
-    // Mobile long-press → enter selection mode with this entry as initial pick.
-    // When undefined or on desktop, FileGrid falls back to context menu.
-    onLongSelect?: (entry: FolderEntry) => void;
     selectedNames: string[];
   }
 
@@ -27,7 +27,6 @@
     onMenu,
     onDropOnFolder,
     onSelect,
-    onLongSelect,
     selectedNames,
   }: Props = $props();
 
@@ -46,15 +45,11 @@
     return `${entry.name}\n${formatBytes(entry.size)} · ${formatRelTime(entry.modifiedAt)}`;
   }
 
-  // Long-press on touch:
-  //  - if onLongSelect is provided and there's no current selection, enter
-  //    selection mode by selecting this entry (mobile multi-select entry path)
-  //  - otherwise fall back to the context menu (desktop right-click parity)
+  // Long-press unconditionally opens the context menu at the touch point.
+  // Selection entry on mobile lives in the menu's "Select" item instead of a
+  // competing gesture — see FileList.svelte and the v0.3.0 release notes for
+  // the unified rationale.
   function handleLongPress(entry: FolderEntry, clientX: number, clientY: number) {
-    if (onLongSelect && selectedSet.size === 0) {
-      onLongSelect(entry);
-      return;
-    }
     const synthetic = new MouseEvent("contextmenu", {
       clientX,
       clientY,

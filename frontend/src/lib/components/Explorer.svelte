@@ -248,9 +248,11 @@
   // Modifier precedence (highest → lowest):
   //   1. Shift (with existing anchor) → range select
   //   2. Ctrl/Cmd (Shift NOT held) → toggle
-  //   3. No modifier → set single
-  // Mobile selection mode: when `selection.length > 0` on mobile, plain tap
-  // toggles inclusion (ctrl-style) — so users can build up a selection by tap.
+  //   3. Mobile + active selection → toggle (build up selection by tap)
+  //   4. Mobile + no selection → OPEN the entry (single-tap is the primary
+  //      mobile gesture; selection is entered explicitly via the context
+  //      menu's "Select" item — see ContextMenu.svelte)
+  //   5. Desktop, no modifier → set single (selection ring without opening)
   function onSelect(event: MouseEvent, entry: FolderEntry) {
     if (event.shiftKey && selection.length > 0) {
       const anchor = selection[selection.length - 1];
@@ -259,16 +261,11 @@
       updateSelection(toggleEntry(selection, entry.name));
     } else if (ui.isMobile && selection.length > 0) {
       updateSelection(toggleEntry(selection, entry.name));
+    } else if (ui.isMobile) {
+      openEntry(entry);
     } else {
       updateSelection(setSingle(entry.name));
     }
-  }
-
-  // Long-press on mobile → enter selection mode with the long-pressed entry
-  // as initial selection (only when no current selection — FileGrid/FileList
-  // gates the call to avoid clobbering an existing selection).
-  function onLongSelect(entry: FolderEntry) {
-    updateSelection(setSingle(entry.name));
   }
 
   // ---------- Multi-entry delete ----------
@@ -642,7 +639,6 @@
         onMenu={showMenu}
         {onDropOnFolder}
         {onSelect}
-        {onLongSelect}
         selectedNames={selection}
       />
     {:else}
@@ -653,7 +649,6 @@
         onMenu={showMenu}
         {onDropOnFolder}
         {onSelect}
-        {onLongSelect}
         selectedNames={selection}
       />
     {/if}
@@ -706,6 +701,13 @@
     }}
     onInspect={() => {
       inspect(target);
+      hideMenu();
+    }}
+    onSelect={() => {
+      // Enters mobile selection mode by setting this entry as the single
+      // member. Subsequent taps toggle (see onSelect handler above), so the
+      // user builds up the selection from here.
+      updateSelection(setSingle(target.name));
       hideMenu();
     }}
   />

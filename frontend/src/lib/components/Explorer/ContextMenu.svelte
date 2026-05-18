@@ -7,6 +7,8 @@
   import Copy from "lucide-svelte/icons/copy";
   import Trash2 from "lucide-svelte/icons/trash-2";
   import Info from "lucide-svelte/icons/info";
+  import CheckSquare from "lucide-svelte/icons/check-square";
+  import { ui } from "$lib/store/ui.svelte";
 
   interface Target {
     name: string;
@@ -25,6 +27,10 @@
     onCopy: () => void;
     onDelete: () => void;
     onInspect: () => void;
+    // Mobile-only "Select" menu item — enters multi-select mode anchored at
+    // this entry. Desktop has shift/ctrl-click + drag-marquee for the same
+    // purpose, so the item is hidden at md+ viewport.
+    onSelect: () => void;
   }
 
   let {
@@ -38,6 +44,7 @@
     onCopy,
     onDelete,
     onInspect,
+    onSelect,
   }: Props = $props();
 </script>
 
@@ -59,6 +66,17 @@
     {/if}
     Open
   </button>
+  {#if ui.isMobile}
+    <button
+      type="button"
+      class="w-full flex items-center gap-2 px-3 h-8 text-xs text-fg-primary hover:bg-bg-hover text-left"
+      onclick={onSelect}
+      role="menuitem"
+    >
+      <CheckSquare size="12" />
+      Select
+    </button>
+  {/if}
   {#if target.isFolder}
     <button
       type="button"

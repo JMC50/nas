@@ -1,4 +1,5 @@
 <script lang="ts">
+  import MoreVertical from "lucide-svelte/icons/more-vertical";
   import { iconFor, type FolderEntry } from "./icon-for";
   import { dragEntry } from "./drag-drop-action";
   import { longPress } from "$lib/actions/long-press";
@@ -12,10 +13,11 @@
     onMenu: (event: MouseEvent, entry: FolderEntry) => void;
     onDropOnFolder: (event: DragEvent, target: FolderEntry) => void;
     // Click → fires for every entry click (modifier-aware). Explorer.svelte
-    // dispatches setSingle / toggleEntry / selectRange based on the event.
+    // dispatches setSingle / toggleEntry / selectRange / openEntry based on the
+    // event and viewport. On mobile with no current selection, the handler
+    // opens the entry; selection mode is entered via the context menu's
+    // "Select" item instead.
     onSelect: (event: MouseEvent, entry: FolderEntry) => void;
-    // Mobile long-press → enter selection mode with this entry as initial pick.
-    onLongSelect?: (entry: FolderEntry) => void;
     selectedNames: string[];
   }
 
@@ -26,24 +28,41 @@
     onMenu,
     onDropOnFolder,
     onSelect,
-    onLongSelect,
     selectedNames,
   }: Props = $props();
 
   const selectedSet = $derived(new Set(selectedNames));
   let dropTargetName = $state<string | null>(null);
 
+  // Long-press unconditionally opens the context menu at the touch point.
+  // Mobile selection entry is exposed via the menu's "Select" item rather
+  // than a competing gesture, so long-press is always menu and never a
+  // hidden mode-switch (avoids the 500ms-delay confusion users hit when
+  // the same gesture meant different things in different states).
   function handleLongPress(entry: FolderEntry, clientX: number, clientY: number) {
-    if (onLongSelect && selectedSet.size === 0) {
-      onLongSelect(entry);
-      return;
-    }
     const synthetic = new MouseEvent("contextmenu", {
       clientX,
       clientY,
       bubbles: true,
     });
     onMenu(synthetic, entry);
+  }
+
+  // Kebab tap on mobile — opens the same menu as long-press, anchored at
+  // the kebab's screen position. stopPropagation prevents the row's onclick
+  // (onSelect) from also firing.
+  function onKebab(event: MouseEvent, entry: FolderEntry) {
+    event.stopPropagation();
+    onMenu(event, entry);
+  }
+
+  // Without this, pressing the kebab would also start the row's longPress
+  // timer (action is on <tr>, kebab pointerdown bubbles up). After 500ms the
+  // timer would fire onMenu, then pointerup → click → onKebab → onMenu again,
+  // opening the menu twice. Stopping pointerdown at the kebab keeps the row's
+  // longPress action from ever seeing the press.
+  function stopRowLongPress(event: PointerEvent) {
+    event.stopPropagation();
   }
 </script>
 
@@ -58,6 +77,8 @@
       <th class="text-left font-normal px-6 py-2 w-24">Type</th>
       <th class="text-right font-normal px-6 py-2 w-20 font-mono">Size</th>
       <th class="text-left font-normal px-6 py-2 w-32">Modified</th>
+      <!-- Kebab column header — empty label, mobile-only width reservation. -->
+      <th class="md:hidden w-10" aria-hidden="true"></th>
     </tr>
   </thead>
   <tbody>
@@ -105,6 +126,22 @@
           title={formatFullTime(entry.modifiedAt)}
         >
           {formatRelTime(entry.modifiedAt)}
+        </td>
+        <!--
+          Mobile-only kebab. Hidden at md+ where right-click / two-finger tap
+          already invokes the context menu. data-marquee-canvas inherited as
+          "false" from the parent <table>, so the kebab cannot start a marquee.
+        -->
+        <td class="md:hidden px-2 py-1.5 text-right">
+          <button
+            type="button"
+            class="inline-flex items-center justify-center w-8 h-8 rounded text-fg-muted hover:text-fg-primary hover:bg-bg-hover"
+            onpointerdown={stopRowLongPress}
+            onclick={(event) => onKebab(event, entry)}
+            aria-label="More actions for {entry.name}"
+          >
+            <MoreVertical size="16" />
+          </button>
         </td>
       </tr>
     {/each}

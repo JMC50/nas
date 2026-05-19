@@ -109,3 +109,5 @@ Docs/images/_archive/
 
 /data/
 /repo-visuals-work/
+# Backend dev/test data (created when running backend locally with DATA_PATH=./data)
+backend/data/

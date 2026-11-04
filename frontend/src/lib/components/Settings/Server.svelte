@@ -121,7 +121,7 @@
     <h2 class="text-xs font-semibold uppercase tracking-wide text-fg-muted">Server</h2>
   </div>
 
-  <div class="rounded-lg bg-bg-surface border border-border-default p-4 space-y-3">
+  <div class="bg-bg-surface border border-border-default p-4 space-y-3">
     <div class="flex items-center gap-2">
       <DiscordIcon size={14} />
       <div class="text-sm font-medium text-fg-primary">Discord OAuth</div>
@@ -132,7 +132,7 @@
     <p class="text-[11px] text-fg-muted">Leave the secret empty to keep the stored value. Clear Client ID or Redirect URI to disable Discord sign-in.</p>
   </div>
 
-  <div class="rounded-lg bg-bg-surface border border-border-default p-4 space-y-3">
+  <div class="bg-bg-surface border border-border-default p-4 space-y-3">
     <div class="flex items-center gap-2">
       <GoogleIcon size={14} />
       <div class="text-sm font-medium text-fg-primary">Google OAuth</div>
@@ -145,7 +145,7 @@
 
   <button
     type="button"
-    class="inline-flex items-center gap-2 h-9 px-4 rounded-md bg-accent text-accent-fg text-xs font-semibold hover:bg-accent-hover disabled:opacity-60 transition-colors"
+    class="inline-flex items-center gap-2 h-9 px-4 bg-accent text-accent-fg text-xs font-semibold hover:bg-accent-hover disabled:opacity-60 transition-colors"
     onclick={save}
     disabled={busy}
   >

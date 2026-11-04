@@ -128,10 +128,10 @@
       type="button"
       onclick={toggle}
       aria-label={playing ? "Pause" : "Play"}
-      class="w-24 h-24 rounded-full bg-accent text-accent-fg
-             flex items-center justify-center
-             hover:bg-accent-hover transition-colors
-             shadow-lg"
+      class="w-24 h-24 bg-accent text-accent-fg
+ flex items-center justify-center
+ hover:bg-accent-hover transition-colors
+ shadow-lg"
     >
       {#if playing}
         <Pause size="40" fill="currentColor" />
@@ -144,7 +144,7 @@
     <div class="flex items-end justify-center gap-1 h-8">
       {#each [1, 2, 3, 4, 5] as i (i)}
         <span
-          class="block w-1.5 h-full rounded-sm bg-accent origin-bottom"
+          class="block w-1.5 h-full bg-accent origin-bottom"
           style="animation: equalize-{i} {0.5 + i * 0.1}s ease-in-out infinite;
                  animation-play-state: {playing ? 'running' : 'paused'};
                  transform: scaleY({playing ? 1 : 0.3});"
@@ -158,15 +158,15 @@
       <!-- svelte-ignore a11y_no_static_element_interactions -->
       <div
         onclick={seek}
-        class="relative h-1.5 rounded-full bg-bg-hover cursor-pointer
-               hover:h-2 transition-all"
+        class="relative h-1.5 bg-bg-hover cursor-pointer
+ hover:h-2 transition-all"
       >
         <div
-          class="absolute top-0 left-0 h-full rounded-full bg-bg-selected"
+          class="absolute top-0 left-0 h-full bg-bg-selected"
           style="width: {bufferedRatio * 100}%"
         ></div>
         <div
-          class="absolute top-0 left-0 h-full rounded-full bg-accent"
+          class="absolute top-0 left-0 h-full bg-accent"
           style="width: {playedRatio * 100}%"
         ></div>
       </div>
@@ -182,8 +182,8 @@
         type="button"
         onclick={toggleMute}
         aria-label={muted ? "Unmute" : "Mute"}
-        class="inline-flex items-center justify-center w-8 h-8 rounded
-               text-fg-muted hover:bg-bg-hover hover:text-fg-accent transition-colors"
+        class="inline-flex items-center justify-center w-8 h-8 
+ text-fg-muted hover:bg-bg-hover hover:text-fg-accent transition-colors"
       >
         <VolumeIcon size="16" />
       </button>
@@ -191,10 +191,10 @@
       <!-- svelte-ignore a11y_no_static_element_interactions -->
       <div
         onclick={setVolume}
-        class="flex-1 relative h-1.5 rounded-full bg-bg-hover cursor-pointer"
+        class="flex-1 relative h-1.5 bg-bg-hover cursor-pointer"
       >
         <div
-          class="absolute top-0 left-0 h-full rounded-full bg-fg-secondary"
+          class="absolute top-0 left-0 h-full bg-fg-secondary"
           style="width: {muted ? 0 : volume * 100}%"
         ></div>
       </div>

@@ -52,10 +52,10 @@
 >
   <button
     type="button"
-    class="inline-flex items-center gap-1 px-1.5 h-6 rounded hover:bg-bg-hover hover:text-fg-primary transition-colors {dropTarget ===
-    -1
-      ? 'bg-bg-elevated text-fg-accent ring-1 ring-accent'
-      : ''}"
+    class="inline-flex items-center gap-1 px-1.5 h-6 hover:bg-bg-hover hover:text-fg-primary transition-colors {dropTarget ===
+ -1
+ ? 'bg-bg-elevated text-fg-accent ring-1 ring-accent'
+ : ''}"
     onclick={onRoot}
     ondragover={rootDragOver}
     ondragleave={dragLeave}
@@ -68,7 +68,7 @@
     <ChevronRight size="11" class="text-fg-disabled shrink-0" />
     {#if index === loc.length - 1}
       <span
-        class="inline-flex items-center px-1.5 h-6 rounded bg-bg-elevated text-fg-accent font-medium truncate"
+        class="inline-flex items-center px-1.5 h-6 bg-bg-elevated text-fg-accent font-medium truncate"
         aria-current="page"
       >
         {segment}
@@ -76,10 +76,10 @@
     {:else}
       <button
         type="button"
-        class="px-1.5 h-6 rounded hover:bg-bg-hover hover:text-fg-primary transition-colors truncate {dropTarget ===
-        index
-          ? 'bg-bg-elevated text-fg-accent ring-1 ring-accent'
-          : ''}"
+        class="px-1.5 h-6 hover:bg-bg-hover hover:text-fg-primary transition-colors truncate {dropTarget ===
+ index
+ ? 'bg-bg-elevated text-fg-accent ring-1 ring-accent'
+ : ''}"
         onclick={() => onGoto(index)}
         ondragover={(event) => segmentDragOver(event, index)}
         ondragleave={dragLeave}

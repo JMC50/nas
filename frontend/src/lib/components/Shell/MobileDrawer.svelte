@@ -41,9 +41,9 @@
           {@const isActive = tabs.activeId === item.id}
           <button
             type="button"
-            class="flex items-center gap-3 h-10 px-3 rounded-md text-sm transition-colors {isActive
-              ? 'bg-accent text-accent-fg'
-              : 'text-fg-secondary hover:text-fg-primary hover:bg-bg-hover'}"
+            class="flex items-center gap-3 h-10 px-3 text-sm transition-colors {isActive
+ ? 'bg-accent text-accent-fg'
+ : 'text-fg-secondary hover:text-fg-primary hover:bg-bg-hover'}"
             onclick={() => pick(item)}
             aria-label={item.title}
             aria-current={isActive ? "page" : undefined}

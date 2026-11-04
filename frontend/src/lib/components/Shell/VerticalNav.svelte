@@ -17,9 +17,9 @@
       {@const isActive = tabs.activeId === item.id}
       <button
         type="button"
-        class="flex items-center gap-3 h-9 px-2 rounded-md text-sm transition-colors {isActive
-          ? 'bg-accent text-accent-fg'
-          : 'text-fg-secondary hover:text-fg-primary hover:bg-bg-hover'}"
+        class="flex items-center gap-3 h-9 px-2 text-sm transition-colors {isActive
+ ? 'bg-accent text-accent-fg'
+ : 'text-fg-secondary hover:text-fg-primary hover:bg-bg-hover'}"
         onclick={() => activate(item)}
         aria-label={item.title}
         aria-current={isActive ? "page" : undefined}
@@ -34,7 +34,7 @@
 
   <button
     type="button"
-    class="flex items-center gap-3 h-9 px-2 m-1.5 rounded-md text-sm text-fg-muted hover:text-fg-primary hover:bg-bg-hover transition-colors"
+    class="flex items-center gap-3 h-9 px-2 m-1.5 text-sm text-fg-muted hover:text-fg-primary hover:bg-bg-hover transition-colors"
     onclick={() => ui.toggleSidebar()}
     aria-label={ui.sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
   >

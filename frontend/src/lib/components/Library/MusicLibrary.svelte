@@ -120,7 +120,7 @@
         spellcheck="false"
         bind:value={query}
         placeholder="Search tracks or folders…"
-        class="w-full h-8 pl-7 pr-3 text-xs bg-bg-base border border-border-default rounded text-fg-primary placeholder:text-fg-muted focus:outline-none focus:border-accent"
+        class="w-full h-8 pl-7 pr-3 text-xs bg-bg-base border border-border-default text-fg-primary placeholder:text-fg-muted focus:outline-none focus:border-accent"
       />
     </div>
   </header>

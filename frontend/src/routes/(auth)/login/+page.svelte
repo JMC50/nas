@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Logo from "$lib/components/Logo.svelte";
   import { onMount } from "svelte";
   import { useAuth } from "$lib/store/store";
   import { auth } from "$lib/store/auth.svelte";
@@ -106,14 +107,14 @@
 </script>
 
 <main class="min-h-screen flex items-center justify-center bg-bg-base p-6">
-  <div class="w-full max-w-md bg-bg-surface border border-border-default rounded-lg p-6 shadow-[0_4px_12px_rgba(0,0,0,0.4)]">
+  <div class="w-full max-w-md bg-bg-surface border border-border-default p-6">
     <div class="flex items-center gap-2 mb-6">
-      <img src="/logo.png" alt="" width="20" height="20" />
+      <Logo />
       <span class="text-base font-semibold text-fg-primary tracking-tight">NAS</span>
     </div>
 
     {#if error}
-      <div class="mb-4 p-3 rounded-md bg-fg-danger/10 border border-fg-danger/30 text-fg-danger text-sm">
+      <div class="mb-4 p-3 bg-fg-danger/10 border border-fg-danger/30 text-fg-danger text-sm">
         {error}
       </div>
     {/if}
@@ -128,11 +129,11 @@
       <div class="space-y-3 mb-4">
         <div>
           <div class="text-[11px] text-fg-muted mb-1">Username</div>
-          <input type="text" value={saveData.username} readonly class="w-full px-3 h-9 rounded-md bg-bg-elevated border border-border-default text-fg-disabled text-sm" />
+          <input type="text" value={saveData.username} readonly class="w-full px-3 h-9 bg-bg-elevated border border-border-default text-fg-disabled text-sm" />
         </div>
         <div>
           <div class="text-[11px] text-fg-muted mb-1">Display name</div>
-          <input type="text" value={saveData.global_name} readonly class="w-full px-3 h-9 rounded-md bg-bg-elevated border border-border-default text-fg-disabled text-sm" />
+          <input type="text" value={saveData.global_name} readonly class="w-full px-3 h-9 bg-bg-elevated border border-border-default text-fg-disabled text-sm" />
         </div>
         <div>
           <label for="krname" class="block text-[11px] text-fg-muted mb-1">Korean name</label>
@@ -141,14 +142,14 @@
             type="text"
             bind:value={koreanName}
             placeholder="홍길동"
-            class="w-full px-3 h-9 rounded-md bg-bg-elevated border border-border-default text-fg-primary text-sm focus:border-border-focus outline-none"
+            class="w-full px-3 h-9 bg-bg-elevated border border-border-default text-fg-primary text-sm focus:border-border-focus outline-none"
           />
         </div>
       </div>
 
       <button
         type="button"
-        class="w-full h-10 rounded-md bg-accent text-accent-fg text-sm font-semibold hover:bg-accent-hover transition-colors"
+        class="w-full h-10 bg-accent text-accent-fg text-sm font-semibold hover:bg-accent-hover transition-colors"
         onclick={register}
       >
         Complete registration

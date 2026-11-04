@@ -34,7 +34,7 @@
   {#if discordEnabled}
     <button
       type="button"
-      class="w-full flex items-center justify-center gap-2.5 h-10 rounded-md bg-[#5865F2] text-white text-sm font-medium hover:bg-[#4752C4] transition-colors"
+      class="w-full flex items-center justify-center gap-2.5 h-10 bg-bg-elevated border border-border-strong text-fg-primary text-sm font-medium hover:bg-bg-overlay transition-colors"
       onclick={goDiscord}
     >
       <DiscordIcon size={16} />
@@ -44,7 +44,7 @@
   {#if googleEnabled}
     <button
       type="button"
-      class="w-full flex items-center justify-center gap-2.5 h-10 rounded-md bg-white text-[#3c4043] text-sm font-medium hover:bg-[#f8f9fa] border border-[#dadce0] transition-colors"
+      class="w-full flex items-center justify-center gap-2.5 h-10 bg-bg-elevated border border-border-strong text-fg-primary text-sm font-medium hover:bg-bg-overlay transition-colors"
       onclick={goGoogle}
     >
       <GoogleIcon size={16} />
@@ -54,7 +54,7 @@
   {#if localEnabled}
     <button
       type="button"
-      class="w-full flex items-center justify-center gap-2 h-10 rounded-md bg-accent text-accent-fg text-sm font-semibold hover:bg-accent-hover transition-colors"
+      class="w-full flex items-center justify-center gap-2 h-10 bg-accent text-accent-fg text-sm font-semibold hover:bg-accent-hover transition-colors"
       onclick={onLocal}
     >
       <KeyRound size="14" />

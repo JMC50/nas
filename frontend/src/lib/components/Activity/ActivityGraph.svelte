@@ -29,7 +29,7 @@
   <div class="flex-1">
     <div class="text-[10px] uppercase tracking-wide text-fg-muted mb-1">Last 30 days</div>
     {#if entries.length === 0}
-      <div class="h-12 bg-bg-elevated rounded animate-pulse"></div>
+      <div class="h-12 bg-bg-elevated animate-pulse"></div>
     {:else}
       <Sparkline points={counts} color="#fabd2f" height={48} max={ceiling} />
       <div class="flex justify-between text-[10px] font-mono text-fg-muted mt-1">
@@ -42,14 +42,14 @@
   <div class="w-72">
     <div class="text-[10px] uppercase tracking-wide text-fg-muted mb-1">Distribution</div>
     {#if entries.length === 0}
-      <div class="h-2 bg-bg-elevated rounded-full animate-pulse"></div>
+      <div class="h-2 bg-bg-elevated animate-pulse"></div>
       <div class="flex flex-wrap gap-x-2 gap-y-1 mt-1.5">
-        <span class="h-3 w-12 bg-bg-elevated rounded animate-pulse"></span>
-        <span class="h-3 w-12 bg-bg-elevated rounded animate-pulse"></span>
-        <span class="h-3 w-12 bg-bg-elevated rounded animate-pulse"></span>
+        <span class="h-3 w-12 bg-bg-elevated animate-pulse"></span>
+        <span class="h-3 w-12 bg-bg-elevated animate-pulse"></span>
+        <span class="h-3 w-12 bg-bg-elevated animate-pulse"></span>
       </div>
     {:else}
-      <div class="h-2 rounded-full overflow-hidden bg-bg-elevated flex">
+      <div class="h-2 overflow-hidden bg-bg-elevated flex">
         {#each dist as share (share.type)}
           <div
             class={ACTIVITY_DOT[share.type] ?? "bg-fg-secondary"}
@@ -63,7 +63,7 @@
             title="{share.count} · {(share.ratio * 100).toFixed(0)}%"
             class="inline-flex items-center gap-1"
           >
-            <span class="w-1.5 h-1.5 rounded-full {ACTIVITY_DOT[share.type] ?? 'bg-fg-secondary'}"></span>
+            <span class="w-1.5 h-1.5 {ACTIVITY_DOT[share.type] ?? 'bg-fg-secondary'}"></span>
             {share.type}
             <span class="font-mono text-fg-muted">{share.count}</span>
           </span>

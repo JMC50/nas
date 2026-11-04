@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Logo from "$lib/components/Logo.svelte";
   import { onMount } from "svelte";
   import LogIn from "lucide-svelte/icons/log-in";
   import UserPlus from "lucide-svelte/icons/user-plus";
@@ -91,9 +92,9 @@
 </script>
 
 <main class="min-h-screen flex items-center justify-center bg-bg-base p-6">
-  <div class="w-full max-w-md bg-bg-surface border border-border-default rounded-lg p-6 shadow-[0_4px_12px_rgba(0,0,0,0.4)]">
+  <div class="w-full max-w-md bg-bg-surface border border-border-default p-6">
     <div class="flex items-center gap-2 mb-6">
-      <img src="/logo.png" alt="" width="20" height="20" />
+      <Logo />
       <span class="text-base font-semibold text-fg-primary tracking-tight">NAS</span>
     </div>
 
@@ -107,7 +108,7 @@
     {#if !authConfig}
       <div class="text-xs text-fg-muted">Loading configuration…</div>
     {:else if !authConfig.oauthEnabled && !authConfig.localAuthEnabled}
-      <div class="p-3 rounded-md bg-fg-warning/10 border border-fg-warning/30 text-fg-warning text-xs">
+      <div class="p-3 bg-fg-warning/10 border border-fg-warning/30 text-fg-warning text-xs">
         No authentication methods enabled.
       </div>
     {:else}
@@ -131,7 +132,7 @@
 
       {#if authConfig.localAuthEnabled}
         {#if error}
-          <div class="mb-4 p-3 rounded-md bg-fg-danger/10 border border-fg-danger/30 text-fg-danger text-xs">{error}</div>
+          <div class="mb-4 p-3 bg-fg-danger/10 border border-fg-danger/30 text-fg-danger text-xs">{error}</div>
         {/if}
 
         <form class="space-y-3" onsubmit={submit}>
@@ -151,7 +152,7 @@
 
           <button
             type="submit"
-            class="w-full h-10 inline-flex items-center justify-center gap-2 rounded-md bg-accent text-accent-fg text-sm font-semibold hover:bg-accent-hover transition-colors disabled:opacity-60"
+            class="w-full h-10 inline-flex items-center justify-center gap-2 bg-accent text-accent-fg text-sm font-semibold hover:bg-accent-hover transition-colors disabled:opacity-60"
             disabled={loading}
           >
             {#if mode === "login"}

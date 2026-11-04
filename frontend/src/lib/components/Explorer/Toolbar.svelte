@@ -78,9 +78,9 @@
 <header class="flex items-center gap-1.5 md:gap-2 px-3 md:px-6 h-12 border-b border-border-default bg-bg-surface">
   <button
     type="button"
-    class="inline-flex items-center justify-center w-8 h-8 rounded-md text-fg-muted hover:text-fg-primary hover:bg-bg-hover disabled:opacity-40 disabled:hover:bg-transparent transition-colors {upDropActive
-      ? 'bg-bg-elevated text-fg-accent ring-1 ring-accent'
-      : ''}"
+    class="inline-flex items-center justify-center w-8 h-8 text-fg-muted hover:text-fg-primary hover:bg-bg-hover disabled:opacity-40 disabled:hover:bg-transparent transition-colors {upDropActive
+ ? 'bg-bg-elevated text-fg-accent ring-1 ring-accent'
+ : ''}"
     onclick={onUp}
     disabled={loc.length === 0}
     aria-label="Up one directory"
@@ -93,7 +93,7 @@
 
   <button
     type="button"
-    class="inline-flex items-center justify-center w-8 h-8 md:w-auto md:gap-1.5 md:px-2.5 rounded-md text-fg-primary hover:bg-bg-hover text-xs font-medium transition-colors"
+    class="inline-flex items-center justify-center w-8 h-8 md:w-auto md:gap-1.5 md:px-2.5 text-fg-primary hover:bg-bg-hover text-xs font-medium transition-colors"
     onclick={onUpload}
     aria-label="Upload"
   >
@@ -103,7 +103,7 @@
 
   <button
     type="button"
-    class="hidden md:inline-flex items-center gap-1.5 h-8 px-2.5 rounded-md text-fg-primary hover:bg-bg-hover text-xs font-medium transition-colors"
+    class="hidden md:inline-flex items-center gap-1.5 h-8 px-2.5 text-fg-primary hover:bg-bg-hover text-xs font-medium transition-colors"
     onclick={onUploadFolder}
   >
     <FolderUp size="14" />
@@ -112,7 +112,7 @@
 
   <button
     type="button"
-    class="hidden md:inline-flex items-center gap-1.5 h-8 px-2.5 rounded-md text-fg-primary hover:bg-bg-hover text-xs font-medium transition-colors"
+    class="hidden md:inline-flex items-center gap-1.5 h-8 px-2.5 text-fg-primary hover:bg-bg-hover text-xs font-medium transition-colors"
     onclick={onNewFolder}
   >
     <FolderPlus size="14" />
@@ -120,18 +120,18 @@
   </button>
 
   <div
-    class="hidden md:flex items-center gap-1.5 ml-2 h-8 px-2.5 rounded-md bg-bg-elevated flex-1 min-w-0 max-w-md"
+    class="hidden md:flex items-center gap-1.5 ml-2 h-8 px-2.5 bg-bg-elevated flex-1 min-w-0 max-w-md"
   >
     {@render searchInput()}
   </div>
 
   <div class="ml-auto flex items-center gap-1.5 md:gap-2">
-    <div class="flex items-center gap-0.5 p-0.5 rounded-md bg-bg-elevated">
+    <div class="flex items-center gap-0.5 p-0.5 bg-bg-elevated">
       <button
         type="button"
-        class="inline-flex items-center justify-center w-7 h-7 rounded {files.viewMode === 'grid'
-          ? 'bg-accent text-accent-fg'
-          : 'text-fg-muted hover:text-fg-primary'}"
+        class="inline-flex items-center justify-center w-7 h-7 {files.viewMode === 'grid'
+ ? 'bg-accent text-accent-fg'
+ : 'text-fg-muted hover:text-fg-primary'}"
         onclick={() => files.setViewMode('grid')}
         aria-label="Grid view"
       >
@@ -139,9 +139,9 @@
       </button>
       <button
         type="button"
-        class="inline-flex items-center justify-center w-7 h-7 rounded {files.viewMode === 'list'
-          ? 'bg-accent text-accent-fg'
-          : 'text-fg-muted hover:text-fg-primary'}"
+        class="inline-flex items-center justify-center w-7 h-7 {files.viewMode === 'list'
+ ? 'bg-accent text-accent-fg'
+ : 'text-fg-muted hover:text-fg-primary'}"
         onclick={() => files.setViewMode('list')}
         aria-label="List view"
       >
@@ -161,7 +161,7 @@
 
 {#if searchOpen}
   <div class="md:hidden flex items-center gap-1.5 h-9 px-3 border-b border-border-default bg-bg-surface">
-    <div class="flex items-center gap-1.5 h-8 px-2.5 rounded-md bg-bg-elevated flex-1 min-w-0">
+    <div class="flex items-center gap-1.5 h-8 px-2.5 bg-bg-elevated flex-1 min-w-0">
       {@render searchInput()}
     </div>
   </div>

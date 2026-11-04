@@ -224,7 +224,7 @@
     class="fixed inset-0 z-50 flex items-center justify-center bg-bg-base/80 backdrop-blur-sm pointer-events-none"
   >
     <div
-      class="flex flex-col items-center gap-4 p-12 rounded-lg border-2 border-dashed border-accent bg-bg-elevated"
+      class="flex flex-col items-center gap-4 p-12 border-2 border-dashed border-accent bg-bg-elevated"
     >
       <Upload size="48" class="text-accent" />
       <div class="text-lg text-fg-primary font-semibold">Drop files or folders to upload</div>

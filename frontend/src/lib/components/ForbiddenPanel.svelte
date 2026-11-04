@@ -40,7 +40,7 @@
 -->
 <div class="flex items-center justify-center h-full w-full p-6" data-marquee-canvas="false">
   <div class="max-w-md w-full text-center">
-    <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-accent/10 border border-accent/20 mb-5">
+    <div class="inline-flex items-center justify-center w-16 h-16 bg-accent/10 border border-accent/20 mb-5">
       <Lock size="28" class="text-accent" />
     </div>
 
@@ -49,7 +49,7 @@
 
     <button
       type="button"
-      class="inline-flex items-center gap-2 h-10 px-4 rounded-md bg-accent text-accent-fg text-sm font-semibold hover:bg-accent-hover disabled:opacity-60 transition-colors"
+      class="inline-flex items-center gap-2 h-10 px-4 bg-accent text-accent-fg text-sm font-semibold hover:bg-accent-hover disabled:opacity-60 transition-colors"
       onclick={tryClaim}
       disabled={busy}
     >

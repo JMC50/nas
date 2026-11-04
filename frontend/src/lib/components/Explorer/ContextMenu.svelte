@@ -49,7 +49,7 @@
 </script>
 
 <div
-  class="fixed z-50 min-w-[160px] py-1 rounded-md bg-bg-overlay border border-border-strong shadow-[0_4px_16px_rgba(0,0,0,0.5)]"
+  class="fixed z-50 min-w-[160px] py-1 bg-bg-overlay border border-border-strong shadow-[0_4px_16px_rgba(0,0,0,0.5)]"
   style="left: {x}px; top: {y}px;"
   role="menu"
 >

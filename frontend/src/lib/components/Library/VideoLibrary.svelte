@@ -115,7 +115,7 @@
         spellcheck="false"
         bind:value={query}
         placeholder="Search videos or folders…"
-        class="w-full h-8 pl-7 pr-3 text-xs bg-bg-base border border-border-default rounded text-fg-primary placeholder:text-fg-muted focus:outline-none focus:border-accent"
+        class="w-full h-8 pl-7 pr-3 text-xs bg-bg-base border border-border-default text-fg-primary placeholder:text-fg-muted focus:outline-none focus:border-accent"
       />
     </div>
   </header>
@@ -144,7 +144,7 @@
         {#each visible as entry (entry.loc + "/" + entry.name)}
           <button
             type="button"
-            class="group flex flex-col text-left rounded overflow-hidden border border-border-default bg-bg-surface hover:border-accent transition-colors"
+            class="group flex flex-col text-left overflow-hidden border border-border-default bg-bg-surface hover:border-accent transition-colors"
             onclick={() => playVideo(entry)}
           >
             <div

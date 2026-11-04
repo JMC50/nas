@@ -1,19 +1,16 @@
 @import "tailwindcss";
 
 /* ─────────────────────────────────────────────────────────────────
-   Body font: IBM Plex Sans (Latin, variable weight 100-700) for the
-   UI text, IBM Plex Sans KR (static 500/600/700) for Korean glyphs.
-   Variable Latin lets us pin a custom 550 weight (between 500/600) so
-   the UI feels denser without going full bold.
+   Body font: Pretendard Variable covers Latin and Hangul on one
+   weight axis (45-920), so the custom 550 weight applies to Korean
+   text as well. The dynamic subset loads only the glyph ranges a page
+   uses.
 
    Mono font: FiraD2 (Fira Code + D2 Coding) kept for code/paths/
    timestamps where Korean + Latin glyphs both need monospace alignment.
    Source: https://github.com/partrita/FiraD2 v1.0.2
    ───────────────────────────────────────────────────────────────── */
-@import "@fontsource-variable/ibm-plex-sans/index.css";
-@import "@fontsource/ibm-plex-sans-kr/500.css";
-@import "@fontsource/ibm-plex-sans-kr/600.css";
-@import "@fontsource/ibm-plex-sans-kr/700.css";
+@import "pretendard/dist/web/variable/pretendardvariable-dynamic-subset.css";
 
 @font-face {
     font-family: "FiraD2";
@@ -77,7 +74,7 @@
     --color-accent-fg: #282828;
     --color-accent-muted: #d79921;
 
-    --font-sans: "IBM Plex Sans Variable", "IBM Plex Sans KR", "Inter", ui-sans-serif, system-ui, sans-serif;
+    --font-sans: "Pretendard Variable", Pretendard, ui-sans-serif, system-ui, sans-serif;
     --font-mono: "FiraD2", "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
 
     --text-xs: 12px;
@@ -139,10 +136,7 @@ html.light {
         color: var(--color-fg-primary);
         font-family: var(--font-sans);
         font-size: 13px;
-        /* Per project request: minimum 550 weight for body text. IBM Plex
-           Sans Variable supports arbitrary weight on the [100..700] axis;
-           Korean fallback (static) snaps to the closest available — we
-           bundle 500/600/700 so KR text renders at 600 when 550 is asked. */
+        /* Per project request: minimum 550 weight for body text. */
         font-weight: 550;
         font-variation-settings: "wght" 550;
     }

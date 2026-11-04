@@ -576,7 +576,7 @@
     >
       <button
         type="button"
-        class="w-7 h-7 inline-flex items-center justify-center rounded text-fg-muted hover:text-fg-primary hover:bg-bg-hover"
+        class="w-7 h-7 inline-flex items-center justify-center text-fg-muted hover:text-fg-primary hover:bg-bg-hover"
         onclick={() => updateSelection([])}
         aria-label="Cancel selection"
       >
@@ -587,7 +587,7 @@
       </span>
       <button
         type="button"
-        class="ml-auto h-7 inline-flex items-center gap-1 px-2 rounded text-xs text-fg-danger hover:bg-bg-hover"
+        class="ml-auto h-7 inline-flex items-center gap-1 px-2 text-xs text-fg-danger hover:bg-bg-hover"
         onclick={deleteSelected}
         aria-label="Delete selected"
       >
@@ -717,7 +717,7 @@
   <!-- Empty-area context menu: appears when the user right-clicks the
        file canvas anywhere except on an entry. Folder-level actions only. -->
   <div
-    class="fixed z-50 min-w-[180px] py-1 rounded-md bg-bg-overlay border border-border-strong shadow-[0_4px_16px_rgba(0,0,0,0.5)]"
+    class="fixed z-50 min-w-[180px] py-1 bg-bg-overlay border border-border-strong shadow-[0_4px_16px_rgba(0,0,0,0.5)]"
     style="left: {bgMenuX}px; top: {bgMenuY}px;"
     role="menu"
   >

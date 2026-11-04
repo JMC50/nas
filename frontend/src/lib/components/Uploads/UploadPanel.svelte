@@ -40,14 +40,14 @@
 
 {#if open}
   <aside
-    class="fixed inset-x-0 bottom-0 top-auto max-h-[70dvh] w-full rounded-t-lg border-t border-border-default pb-[env(safe-area-inset-bottom)] md:top-12 md:right-0 md:inset-x-auto md:bottom-7 md:max-h-none md:w-[360px] md:rounded-none md:border-t-0 md:border-l md:pb-0 bg-bg-surface z-40 flex flex-col shadow-[0_0_24px_rgba(0,0,0,0.4)]"
+    class="fixed inset-x-0 bottom-0 top-auto max-h-[70dvh] w-full border-t border-border-default pb-[env(safe-area-inset-bottom)] md:top-12 md:right-0 md:inset-x-auto md:bottom-7 md:max-h-none md:w-[360px] md:rounded-none md:border-t-0 md:border-l md:pb-0 bg-bg-surface z-40 flex flex-col shadow-[0_0_24px_rgba(0,0,0,0.4)]"
   >
-    <div class="md:hidden w-12 h-1 bg-fg-muted/40 rounded-full mx-auto mt-2 mb-1" aria-hidden="true"></div>
+    <div class="md:hidden w-12 h-1 bg-fg-muted/40 mx-auto mt-2 mb-1" aria-hidden="true"></div>
     <header class="flex items-center justify-between h-10 px-3 border-b border-border-default">
       <span class="text-sm font-semibold text-fg-primary">Uploads</span>
       <button
         type="button"
-        class="w-7 h-7 inline-flex items-center justify-center rounded text-fg-muted hover:text-fg-primary hover:bg-bg-hover"
+        class="w-7 h-7 inline-flex items-center justify-center text-fg-muted hover:text-fg-primary hover:bg-bg-hover"
         onclick={onClose}
         aria-label="Close uploads panel"
       >
@@ -61,7 +61,7 @@
       {/if}
 
       {#each uploads.list as upload (upload.id)}
-        <div class="p-2 rounded-md bg-bg-elevated">
+        <div class="p-2 bg-bg-elevated">
           <div class="flex items-center gap-2 mb-1">
             <span class="text-xs font-medium truncate flex-1 text-fg-primary">
               {upload.filename}
@@ -78,13 +78,13 @@
             <span class="ml-auto font-mono tabular-nums">{percentOf(upload)}%</span>
           </div>
 
-          <div class="h-1 rounded-full bg-bg-base overflow-hidden">
+          <div class="h-1 bg-bg-base overflow-hidden">
             <div
               class="h-full transition-[width] duration-200 {upload.status === 'error'
-                ? 'bg-fg-danger'
-                : upload.status === 'complete'
-                  ? 'bg-fg-success'
-                  : 'bg-accent'}"
+ ? 'bg-fg-danger'
+ : upload.status === 'complete'
+ ? 'bg-fg-success'
+ : 'bg-accent'}"
               style="width: {percentOf(upload)}%;"
             ></div>
           </div>
@@ -93,7 +93,7 @@
             <div class="flex justify-end gap-1 mt-1.5">
               <button
                 type="button"
-                class="w-7 h-7 inline-flex items-center justify-center rounded text-fg-muted hover:text-fg-warning hover:bg-bg-hover"
+                class="w-7 h-7 inline-flex items-center justify-center text-fg-muted hover:text-fg-warning hover:bg-bg-hover"
                 onclick={() => pauseUpload(upload.id)}
                 aria-label="Pause"
               >
@@ -101,7 +101,7 @@
               </button>
               <button
                 type="button"
-                class="w-7 h-7 inline-flex items-center justify-center rounded text-fg-muted hover:text-fg-danger hover:bg-bg-hover"
+                class="w-7 h-7 inline-flex items-center justify-center text-fg-muted hover:text-fg-danger hover:bg-bg-hover"
                 onclick={() => cancelUpload(upload.id)}
                 aria-label="Cancel"
               >
@@ -112,7 +112,7 @@
             <div class="flex justify-end gap-1 mt-1.5">
               <button
                 type="button"
-                class="w-7 h-7 inline-flex items-center justify-center rounded text-fg-muted hover:text-fg-success hover:bg-bg-hover"
+                class="w-7 h-7 inline-flex items-center justify-center text-fg-muted hover:text-fg-success hover:bg-bg-hover"
                 onclick={() => resumeUpload(upload.id)}
                 aria-label="Resume"
               >
@@ -120,7 +120,7 @@
               </button>
               <button
                 type="button"
-                class="w-7 h-7 inline-flex items-center justify-center rounded text-fg-muted hover:text-fg-danger hover:bg-bg-hover"
+                class="w-7 h-7 inline-flex items-center justify-center text-fg-muted hover:text-fg-danger hover:bg-bg-hover"
                 onclick={() => cancelUpload(upload.id)}
                 aria-label="Cancel"
               >
@@ -146,7 +146,7 @@
       <footer class="border-t border-border-default p-2">
         <button
           type="button"
-          class="w-full h-7 text-xs text-fg-muted hover:text-fg-primary rounded hover:bg-bg-hover"
+          class="w-full h-7 text-xs text-fg-muted hover:text-fg-primary hover:bg-bg-hover"
           onclick={() => uploads.clearCompleted()}
         >
           Clear completed

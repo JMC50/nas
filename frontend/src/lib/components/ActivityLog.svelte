@@ -158,7 +158,7 @@
     </div>
     <button
       type="button"
-      class="inline-flex items-center gap-1.5 h-8 px-2.5 rounded-md text-fg-muted hover:text-fg-primary hover:bg-bg-hover text-xs transition-colors"
+      class="inline-flex items-center gap-1.5 h-8 px-2.5 text-fg-muted hover:text-fg-primary hover:bg-bg-hover text-xs transition-colors"
       onclick={load}
       aria-label="Refresh"
     >
@@ -206,11 +206,11 @@
                 <!-- Dot + author chip column -->
                 <div class="flex flex-col items-center pt-1.5 gap-1">
                   <span
-                    class="w-2.5 h-2.5 rounded-full {dotClass(entry.activity)} ring-2 ring-bg-base"
+                    class="w-2.5 h-2.5 {dotClass(entry.activity)} ring-2 ring-bg-base"
                     aria-hidden="true"
                   ></span>
                   <span
-                    class="w-5 h-5 rounded-full bg-bg-elevated text-fg-primary text-[10px] font-semibold flex items-center justify-center"
+                    class="w-5 h-5 bg-bg-elevated text-fg-primary text-[10px] font-semibold flex items-center justify-center"
                     title={authorName(entry)}
                   >
                     {authorInitial(entry)}

@@ -29,20 +29,20 @@
     <h2 class="text-xs font-semibold uppercase tracking-wide text-fg-muted">Appearance</h2>
   </div>
 
-  <div class="rounded-lg bg-bg-surface border border-border-default divide-y divide-border-default/60">
+  <div class="bg-bg-surface border border-border-default divide-y divide-border-default/60">
     <div class="px-4 py-3">
       <div class="flex items-center justify-between gap-4">
         <div>
           <div class="text-sm text-fg-primary">Theme</div>
           <div class="text-xs text-fg-muted mt-0.5">Choose between dark, light, or follow your OS preference.</div>
         </div>
-        <div class="flex items-center p-0.5 rounded-md bg-bg-elevated">
+        <div class="flex items-center p-0.5 bg-bg-elevated">
           {#each MODE_OPTIONS as option (option.value)}
             {@const Icon = option.icon}
             {@const active = userPrefersMode.current === option.value}
             <button
               type="button"
-              class="inline-flex items-center gap-1.5 h-7 px-2.5 rounded text-xs transition-colors {active ? 'bg-accent text-accent-fg' : 'text-fg-muted hover:text-fg-primary'}"
+              class="inline-flex items-center gap-1.5 h-7 px-2.5 text-xs transition-colors {active ? 'bg-accent text-accent-fg' : 'text-fg-muted hover:text-fg-primary'}"
               onclick={() => setMode(option.value)}
               aria-pressed={active}
             >
@@ -60,13 +60,13 @@
           <div class="text-sm text-fg-primary">File view</div>
           <div class="text-xs text-fg-muted mt-0.5">Default layout for the file explorer.</div>
         </div>
-        <div class="flex items-center p-0.5 rounded-md bg-bg-elevated">
+        <div class="flex items-center p-0.5 bg-bg-elevated">
           {#each VIEW_OPTIONS as option (option.value)}
             {@const Icon = option.icon}
             {@const active = files.viewMode === option.value}
             <button
               type="button"
-              class="inline-flex items-center gap-1.5 h-7 px-2.5 rounded text-xs transition-colors {active ? 'bg-accent text-accent-fg' : 'text-fg-muted hover:text-fg-primary'}"
+              class="inline-flex items-center gap-1.5 h-7 px-2.5 text-xs transition-colors {active ? 'bg-accent text-accent-fg' : 'text-fg-muted hover:text-fg-primary'}"
               onclick={() => files.setViewMode(option.value)}
               aria-pressed={active}
             >

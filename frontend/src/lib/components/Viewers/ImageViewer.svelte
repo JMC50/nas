@@ -32,7 +32,7 @@
   <div class="flex items-center gap-2 px-3 h-9 border-b border-border-default text-xs text-fg-muted">
     <button
       type="button"
-      class="inline-flex items-center justify-center w-7 h-7 rounded hover:bg-bg-hover"
+      class="inline-flex items-center justify-center w-7 h-7 hover:bg-bg-hover"
       onclick={zoomOut}
       aria-label="Zoom out"
     >
@@ -41,7 +41,7 @@
     <span class="font-mono w-12 text-center">{Math.round(zoom * 100)}%</span>
     <button
       type="button"
-      class="inline-flex items-center justify-center w-7 h-7 rounded hover:bg-bg-hover"
+      class="inline-flex items-center justify-center w-7 h-7 hover:bg-bg-hover"
       onclick={zoomIn}
       aria-label="Zoom in"
     >
@@ -49,7 +49,7 @@
     </button>
     <button
       type="button"
-      class="inline-flex items-center justify-center w-7 h-7 rounded hover:bg-bg-hover"
+      class="inline-flex items-center justify-center w-7 h-7 hover:bg-bg-hover"
       onclick={zoomReset}
       aria-label="Reset zoom"
     >

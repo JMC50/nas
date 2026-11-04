@@ -237,15 +237,15 @@
   bind:this={container}
   onmousemove={showControls}
   class="relative h-full w-full bg-black overflow-hidden group
-         {controlsVisible ? '' : 'cursor-none'}"
+ {controlsVisible ? '' : 'cursor-none'}"
 >
   <!-- top bar (filename) -->
   <div
     class="absolute top-0 left-0 right-0 h-9 px-4 flex items-center
-           bg-gradient-to-b from-bg-overlay/80 to-transparent
-           text-fg-secondary text-xs font-mono z-10 pointer-events-none
-           transition-opacity duration-200 ease-smooth
-           {controlsVisible ? 'opacity-100' : 'opacity-0'}"
+ bg-gradient-to-b from-bg-overlay/80 to-transparent
+ text-fg-secondary text-xs font-mono z-10 pointer-events-none
+ transition-opacity duration-200 ease-smooth
+ {controlsVisible ? 'opacity-100' : 'opacity-0'}"
   >
     <span class="truncate">{name}</span>
   </div>
@@ -282,7 +282,7 @@
       <a
         href={downloadUrl}
         download={name}
-        class="inline-flex items-center gap-2 h-9 px-4 rounded-md bg-accent text-accent-fg text-sm font-medium hover:bg-accent/90 transition-colors"
+        class="inline-flex items-center gap-2 h-9 px-4 bg-accent text-accent-fg text-sm font-medium hover:bg-accent/90 transition-colors"
       >
         Download {name}
       </a>
@@ -296,9 +296,9 @@
       onclick={toggle}
       aria-label="Play"
       class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2
-             w-24 h-24 rounded-full bg-bg-overlay/70 backdrop-blur-sm
-             text-fg-primary flex items-center justify-center
-             hover:bg-bg-overlay/90 hover:text-fg-accent transition-colors z-20"
+ w-24 h-24 bg-bg-overlay/70 backdrop-blur-sm
+ text-fg-primary flex items-center justify-center
+ hover:bg-bg-overlay/90 hover:text-fg-accent transition-colors z-20"
     >
       <Play size="40" fill="currentColor" />
     </button>

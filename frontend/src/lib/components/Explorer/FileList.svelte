@@ -89,8 +89,8 @@
       <tr
         data-entry-name={entry.name}
         class="border-b border-border-default/40 hover:bg-bg-hover cursor-pointer {isDropTarget
-          ? 'ring-1 ring-inset ring-accent bg-bg-elevated'
-          : ''} {isSelected ? 'ring-1 ring-inset ring-accent bg-bg-elevated' : ''}"
+ ? 'ring-1 ring-inset ring-accent bg-bg-elevated'
+ : ''} {isSelected ? 'ring-1 ring-inset ring-accent bg-bg-elevated' : ''}"
         draggable={!ui.isMobile}
         use:dragEntry={{
           entry,
@@ -135,7 +135,7 @@
         <td class="md:hidden px-2 py-1.5 text-right">
           <button
             type="button"
-            class="inline-flex items-center justify-center w-8 h-8 rounded text-fg-muted hover:text-fg-primary hover:bg-bg-hover"
+            class="inline-flex items-center justify-center w-8 h-8 text-fg-muted hover:text-fg-primary hover:bg-bg-hover"
             onpointerdown={stopRowLongPress}
             onclick={(event) => onKebab(event, entry)}
             aria-label="More actions for {entry.name}"

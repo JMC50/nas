@@ -134,8 +134,8 @@
         <button
           type="button"
           class="w-full flex items-center gap-2 px-4 py-2.5 border-b border-border-default/40 text-left transition-colors {entry.userId === userId
-            ? 'bg-bg-hover text-fg-primary'
-            : 'text-fg-secondary hover:bg-bg-hover/60 hover:text-fg-primary'}"
+ ? 'bg-bg-hover text-fg-primary'
+ : 'text-fg-secondary hover:bg-bg-hover/60 hover:text-fg-primary'}"
           onclick={() => selectUser(entry.userId)}
         >
           <UserIcon size="14" class="shrink-0 text-fg-muted" />
@@ -146,7 +146,7 @@
             <div class="text-xs text-fg-muted truncate font-mono">{entry.userId}</div>
           </div>
           {#if entry.intents.includes("ADMIN")}
-            <span class="text-[10px] px-1.5 h-4 rounded bg-accent/15 text-fg-accent border border-accent/30 font-mono leading-4">
+            <span class="text-[10px] px-1.5 h-4 bg-accent/15 text-fg-accent border border-accent/30 font-mono leading-4">
               ADMIN
             </span>
           {/if}
@@ -160,7 +160,7 @@
       {:else}
         <div class="max-w-xl">
           <div class="flex items-center gap-3 mb-5">
-            <div class="w-10 h-10 rounded-full bg-bg-elevated border border-border-default flex items-center justify-center">
+            <div class="w-10 h-10 bg-bg-elevated border border-border-default flex items-center justify-center">
               <UserIcon size="18" class="text-fg-muted" />
             </div>
             <div class="min-w-0">
@@ -171,7 +171,7 @@
             </div>
           </div>
 
-          <div class="rounded-lg bg-bg-surface border border-border-default divide-y divide-border-default/60">
+          <div class="bg-bg-surface border border-border-default divide-y divide-border-default/60">
             {#each ALL_INTENTS as intent}
               {@const granted = user.intents.includes(intent)}
               {@const pending = busy.has(intent)}
@@ -179,16 +179,16 @@
                 <div class="text-sm font-mono text-fg-primary">{intent}</div>
                 <button
                   type="button"
-                  class="relative inline-flex items-center h-5 w-9 rounded-full transition-colors disabled:opacity-60 {granted
-                    ? 'bg-accent'
-                    : 'bg-bg-elevated border border-border-default'}"
+                  class="relative inline-flex items-center h-5 w-9 transition-colors disabled:opacity-60 {granted
+ ? 'bg-accent'
+ : 'bg-bg-elevated border border-border-default'}"
                   onclick={() => toggleIntent(intent)}
                   disabled={pending}
                   aria-label={granted ? `Revoke ${intent}` : `Grant ${intent}`}
                   aria-pressed={granted}
                 >
                   <span
-                    class="inline-block w-3.5 h-3.5 rounded-full bg-bg-base shadow transition-transform {granted ? 'translate-x-[18px]' : 'translate-x-0.5'}"
+                    class="inline-block w-3.5 h-3.5 bg-bg-base shadow transition-transform {granted ? 'translate-x-[18px]' : 'translate-x-0.5'}"
                   ></span>
                 </button>
               </div>
@@ -205,7 +205,7 @@
               </div>
               <button
                 type="button"
-                class="inline-flex items-center gap-1.5 h-8 px-3 rounded-md text-xs font-medium text-fg-danger border border-border-default hover:bg-bg-hover disabled:opacity-50 disabled:cursor-not-allowed transition-colors shrink-0"
+                class="inline-flex items-center gap-1.5 h-8 px-3 text-xs font-medium text-fg-danger border border-border-default hover:bg-bg-hover disabled:opacity-50 disabled:cursor-not-allowed transition-colors shrink-0"
                 onclick={deleteUser}
                 disabled={isSelf || deleting}
                 aria-label="Delete user"

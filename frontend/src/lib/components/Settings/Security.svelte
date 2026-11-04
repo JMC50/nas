@@ -49,7 +49,7 @@
     <h2 class="text-xs font-semibold uppercase tracking-wide text-fg-muted">Account & Security</h2>
   </div>
 
-  <div class="rounded-lg bg-bg-surface border border-border-default p-4 space-y-3">
+  <div class="bg-bg-surface border border-border-default p-4 space-y-3">
     <div>
       <div class="text-sm text-fg-primary">Change password</div>
       <div class="text-xs text-fg-muted mt-0.5">Local accounts only. OAuth users manage credentials with their provider.</div>
@@ -61,7 +61,7 @@
 
     <button
       type="button"
-      class="inline-flex items-center gap-2 h-9 px-4 rounded-md bg-accent text-accent-fg text-xs font-semibold hover:bg-accent-hover disabled:opacity-60 transition-colors"
+      class="inline-flex items-center gap-2 h-9 px-4 bg-accent text-accent-fg text-xs font-semibold hover:bg-accent-hover disabled:opacity-60 transition-colors"
       onclick={submit}
       disabled={busy}
     >

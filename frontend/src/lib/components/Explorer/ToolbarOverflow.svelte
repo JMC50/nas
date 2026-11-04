@@ -35,7 +35,7 @@
 <div class="relative" use:clickOutside={{ onOutside: () => (open = false), enabled: open }}>
   <button
     type="button"
-    class="inline-flex items-center justify-center w-8 h-8 rounded-md text-fg-muted hover:text-fg-primary hover:bg-bg-hover transition-colors"
+    class="inline-flex items-center justify-center w-8 h-8 text-fg-muted hover:text-fg-primary hover:bg-bg-hover transition-colors"
     onclick={(event) => {
       event.stopPropagation();
       open = !open;
@@ -47,7 +47,7 @@
   </button>
   {#if open}
     <div
-      class="absolute right-0 top-full mt-1 py-1 min-w-[180px] rounded-md bg-bg-elevated border border-border-default shadow-lg z-30"
+      class="absolute right-0 top-full mt-1 py-1 min-w-[180px] bg-bg-elevated border border-border-default shadow-lg z-30"
       role="menu"
     >
       <button

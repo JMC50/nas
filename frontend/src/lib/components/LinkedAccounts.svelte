@@ -95,7 +95,7 @@
   onMount(loadLinked);
 </script>
 
-<div class="p-5 rounded-lg bg-bg-surface border border-border-default">
+<div class="p-5 bg-bg-surface border border-border-default">
   <div class="flex items-center gap-2 mb-4">
     <Link2 size="14" class="text-fg-muted" />
     <h2 class="text-sm font-semibold text-fg-primary">Linked accounts</h2>
@@ -119,7 +119,7 @@
         {#if linked}
           <button
             type="button"
-            class="h-8 px-3 rounded-md bg-bg-elevated border border-border-default text-xs text-fg-primary hover:bg-bg-hover disabled:opacity-60 transition-colors"
+            class="h-8 px-3 bg-bg-elevated border border-border-default text-xs text-fg-primary hover:bg-bg-hover disabled:opacity-60 transition-colors"
             onclick={() => disconnect(provider.id)}
             disabled={pending}
           >
@@ -128,7 +128,7 @@
         {:else}
           <button
             type="button"
-            class="h-8 px-3 rounded-md bg-accent text-accent-fg text-xs font-semibold hover:bg-accent-hover disabled:opacity-60 transition-colors"
+            class="h-8 px-3 bg-accent text-accent-fg text-xs font-semibold hover:bg-accent-hover disabled:opacity-60 transition-colors"
             onclick={() => connect(provider.id)}
             disabled={pending}
           >

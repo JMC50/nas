@@ -96,7 +96,7 @@
       {#if !authConfig}
         <div class="text-xs text-fg-muted">Loading auth options…</div>
       {:else}
-        <div class="max-w-md mx-auto mt-12 p-6 rounded-lg bg-bg-surface border border-border-default">
+        <div class="max-w-md mx-auto mt-12 p-6 bg-bg-surface border border-border-default">
           <h2 class="text-base font-semibold text-fg-primary mb-1">Sign in</h2>
           <p class="text-xs text-fg-muted mb-6">Choose a provider to continue.</p>
           <SignInOptions
@@ -111,9 +111,9 @@
       {/if}
     {:else}
       <div class="max-w-2xl">
-        <div class="p-5 rounded-lg bg-bg-surface border border-border-default mb-4">
+        <div class="p-5 bg-bg-surface border border-border-default mb-4">
           <div class="flex items-center gap-3 mb-4">
-            <div class="w-12 h-12 rounded-full bg-bg-elevated border border-border-default flex items-center justify-center">
+            <div class="w-12 h-12 bg-bg-elevated border border-border-default flex items-center justify-center">
               <UserIcon size="20" class="text-fg-muted" />
             </div>
             <div class="min-w-0">
@@ -126,7 +126,7 @@
 
           <button
             type="button"
-            class="inline-flex items-center gap-2 h-9 px-3 rounded-md bg-bg-elevated text-fg-primary text-xs font-medium hover:bg-bg-hover border border-border-default transition-colors"
+            class="inline-flex items-center gap-2 h-9 px-3 bg-bg-elevated text-fg-primary text-xs font-medium hover:bg-bg-hover border border-border-default transition-colors"
             onclick={logout}
           >
             <LogOut size="13" />
@@ -138,7 +138,7 @@
           <LinkedAccounts />
         </div>
 
-        <div class="p-5 rounded-lg bg-bg-surface border border-border-default">
+        <div class="p-5 bg-bg-surface border border-border-default">
           <div class="flex items-center justify-between mb-4">
             <div class="flex items-center gap-2">
               <Shield size="14" class="text-fg-muted" />
@@ -147,7 +147,7 @@
             {#if !intents.includes("ADMIN")}
               <button
                 type="button"
-                class="inline-flex items-center gap-1.5 h-7 px-2.5 rounded text-xs text-fg-muted hover:text-fg-primary hover:bg-bg-hover transition-colors"
+                class="inline-flex items-center gap-1.5 h-7 px-2.5 text-xs text-fg-muted hover:text-fg-primary hover:bg-bg-hover transition-colors"
                 onclick={requestAdmin}
               >
                 <KeyRound size="11" />
@@ -163,9 +163,9 @@
               {#each ALL_INTENTS as intent}
                 {@const granted = intents.includes(intent)}
                 <span
-                  class="inline-flex items-center px-2 h-6 rounded-md text-xs font-mono {granted
-                    ? 'bg-accent/15 text-fg-accent border border-accent/30'
-                    : 'bg-bg-elevated text-fg-disabled border border-border-default'}"
+                  class="inline-flex items-center px-2 h-6 text-xs font-mono {granted
+ ? 'bg-accent/15 text-fg-accent border border-accent/30'
+ : 'bg-bg-elevated text-fg-disabled border border-border-default'}"
                 >
                   {intent}
                 </span>

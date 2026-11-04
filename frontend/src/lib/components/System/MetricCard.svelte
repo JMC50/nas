@@ -28,14 +28,14 @@
   }
 </script>
 
-<div class="p-5 rounded-lg bg-bg-surface border border-border-default flex flex-col gap-3 overflow-hidden">
+<div class="p-5 bg-bg-surface border border-border-default flex flex-col gap-3 overflow-hidden">
   <div class="flex items-center justify-between">
     <div class="flex items-center gap-2 text-fg-muted text-xs uppercase tracking-wide">
       <Icon size="14" />
       <span>{label}</span>
     </div>
     <span
-      class="text-[10px] font-mono px-2 py-0.5 rounded-full border"
+      class="text-[10px] font-mono px-2 py-0.5 border"
       style="color: {color}; border-color: {color}40; background-color: {color}10;"
     >
       {value >= THRESHOLD_DANGER ? "HIGH" : value >= THRESHOLD_WARN ? "WARN" : "OK"}

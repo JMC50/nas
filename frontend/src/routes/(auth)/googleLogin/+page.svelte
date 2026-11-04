@@ -116,9 +116,9 @@
 </script>
 
 <main class="min-h-screen flex items-center justify-center bg-bg-base p-6">
-  <div class="w-full max-w-md bg-bg-surface border border-border-default rounded-lg p-6 shadow-[0_4px_12px_rgba(0,0,0,0.4)]">
+  <div class="w-full max-w-md bg-bg-surface border border-border-default p-6 shadow-[0_4px_12px_rgba(0,0,0,0.4)]">
     {#if error}
-      <div class="mb-4 p-3 rounded-md bg-fg-danger/10 border border-fg-danger/30 text-fg-danger text-sm">
+      <div class="mb-4 p-3 bg-fg-danger/10 border border-fg-danger/30 text-fg-danger text-sm">
         {error}
       </div>
     {/if}
@@ -133,11 +133,11 @@
       <div class="space-y-3 mb-4">
         <div>
           <div class="text-xs text-fg-muted mb-1">Email</div>
-          <input type="text" value={saveData.email} readonly class="w-full px-3 h-9 rounded-md bg-bg-elevated border border-border-default text-fg-disabled text-sm" />
+          <input type="text" value={saveData.email} readonly class="w-full px-3 h-9 bg-bg-elevated border border-border-default text-fg-disabled text-sm" />
         </div>
         <div>
           <div class="text-xs text-fg-muted mb-1">Name</div>
-          <input type="text" value={saveData.global_name} readonly class="w-full px-3 h-9 rounded-md bg-bg-elevated border border-border-default text-fg-disabled text-sm" />
+          <input type="text" value={saveData.global_name} readonly class="w-full px-3 h-9 bg-bg-elevated border border-border-default text-fg-disabled text-sm" />
         </div>
         <div>
           <label for="krname-input" class="block text-xs text-fg-muted mb-1">Korean Name</label>
@@ -146,14 +146,14 @@
             type="text"
             bind:value={koreanName}
             placeholder="홍길동"
-            class="w-full px-3 h-9 rounded-md bg-bg-elevated border border-border-default text-fg-primary text-sm focus:border-border-focus outline-none"
+            class="w-full px-3 h-9 bg-bg-elevated border border-border-default text-fg-primary text-sm focus:border-border-focus outline-none"
           />
         </div>
       </div>
 
       <button
         type="button"
-        class="w-full h-10 rounded-md bg-accent text-accent-fg font-semibold hover:bg-accent-hover transition-colors"
+        class="w-full h-10 bg-accent text-accent-fg font-semibold hover:bg-accent-hover transition-colors"
         onclick={register}
       >
         Complete Registration

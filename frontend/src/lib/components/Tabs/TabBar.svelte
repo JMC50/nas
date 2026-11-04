@@ -115,10 +115,10 @@
         draggable={!ui.isMobile}
         aria-selected={isActive}
         class="group relative flex items-center gap-2 h-full px-3 text-xs border-r border-border-default transition-colors min-w-[100px] max-w-[140px] md:min-w-[120px] md:max-w-[200px] cursor-pointer select-none {isActive
-          ? 'bg-bg-base text-fg-primary'
-          : 'bg-bg-surface text-fg-muted hover:text-fg-primary hover:bg-bg-elevated'} {isDragOver
-          ? 'ring-1 ring-inset ring-accent'
-          : ''}"
+ ? 'bg-bg-base text-fg-primary'
+ : 'bg-bg-surface text-fg-muted hover:text-fg-primary hover:bg-bg-elevated'} {isDragOver
+ ? 'ring-1 ring-inset ring-accent'
+ : ''}"
         onclick={() => focus(tab)}
         onauxclick={(event) => onAuxClick(event, tab)}
         onkeydown={(event) => onKey(event, tab)}
@@ -138,7 +138,7 @@
         {#if tab.closable}
           <button
             type="button"
-            class="shrink-0 w-4 h-4 inline-flex items-center justify-center rounded text-fg-muted hover:text-fg-danger hover:bg-bg-hover opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity"
+            class="shrink-0 w-4 h-4 inline-flex items-center justify-center text-fg-muted hover:text-fg-danger hover:bg-bg-hover opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity"
             onclick={(event) => close(event, tab)}
             aria-label="Close tab"
           >
@@ -150,7 +150,7 @@
   </div>
   <button
     type="button"
-    class="shrink-0 inline-flex items-center justify-center w-8 h-8 mb-0.5 ml-1 rounded text-fg-muted hover:text-fg-primary hover:bg-bg-elevated"
+    class="shrink-0 inline-flex items-center justify-center w-8 h-8 mb-0.5 ml-1 text-fg-muted hover:text-fg-primary hover:bg-bg-elevated"
     onclick={openNewTab}
     aria-label="New explorer tab"
     title="New explorer tab (clone current location)"

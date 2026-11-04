@@ -74,9 +74,9 @@
     <button
       type="button"
       data-entry-name={entry.name}
-      class="group flex flex-col items-center gap-1.5 p-3 rounded-md text-fg-primary hover:bg-bg-hover transition-colors focus-visible:outline-2 focus-visible:outline-border-focus {isDropTarget
-        ? 'ring-1 ring-accent bg-bg-elevated'
-        : ''} {isSelected ? 'ring-1 ring-accent bg-bg-elevated' : ''}"
+      class="group flex flex-col items-center gap-1.5 p-3 text-fg-primary hover:bg-bg-hover transition-colors focus-visible:outline-2 focus-visible:outline-border-focus {isDropTarget
+ ? 'ring-1 ring-accent bg-bg-elevated'
+ : ''} {isSelected ? 'ring-1 ring-accent bg-bg-elevated' : ''}"
       draggable={!ui.isMobile}
       use:dragEntry={{
         entry,

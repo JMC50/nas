@@ -88,7 +88,7 @@
 
   <div class="flex-1 overflow-auto p-6">
     {#if error && !snapshot}
-      <div class="p-4 rounded-md bg-fg-danger/10 border border-fg-danger/30 text-fg-danger text-sm max-w-md">
+      <div class="p-4 bg-fg-danger/10 border border-fg-danger/30 text-fg-danger text-sm max-w-md">
         Failed to load system info: {error}
       </div>
     {:else if !snapshot}
@@ -107,7 +107,7 @@
       </div>
 
       <div class="mt-4 max-w-6xl grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div class="p-5 rounded-lg bg-bg-surface border border-border-default">
+        <div class="p-5 bg-bg-surface border border-border-default">
           <div class="flex items-center gap-2 text-fg-muted text-xs uppercase tracking-wide mb-3">
             <Clock size="14" />
             <span>Uptime</span>
@@ -115,7 +115,7 @@
           <div class="text-2xl font-mono font-semibold text-fg-primary truncate">{snapshot.uptime}</div>
         </div>
 
-        <div class="p-5 rounded-lg bg-bg-surface border border-border-default">
+        <div class="p-5 bg-bg-surface border border-border-default">
           <div class="flex items-center gap-2 text-fg-muted text-xs uppercase tracking-wide mb-3">
             <Activity size="14" />
             <span>Polling</span>
@@ -130,7 +130,7 @@
       </div>
 
       {#if error}
-        <div class="mt-4 max-w-6xl p-3 rounded-md bg-fg-warning/10 border border-fg-warning/30 text-fg-warning text-xs">
+        <div class="mt-4 max-w-6xl p-3 bg-fg-warning/10 border border-fg-warning/30 text-fg-warning text-xs">
           Last refresh failed: {error}. Showing the most recent successful snapshot.
         </div>
       {/if}

@@ -229,8 +229,8 @@
       onclick={() => scrollToPage(currentPage - 1)}
       disabled={currentPage <= 1}
       aria-label="Previous page"
-      class="inline-flex items-center justify-center w-8 h-8 rounded
-             hover:bg-bg-hover hover:text-fg-accent disabled:opacity-50 disabled:hover:bg-transparent transition-colors"
+      class="inline-flex items-center justify-center w-8 h-8 
+ hover:bg-bg-hover hover:text-fg-accent disabled:opacity-50 disabled:hover:bg-transparent transition-colors"
     >
       <ChevronLeft size="16" />
     </button>
@@ -242,7 +242,7 @@
         max={pageCount}
         value={currentPage}
         onkeydown={onPageInput}
-        class="w-12 h-7 px-1 rounded border border-border-default bg-bg-base text-center text-xs"
+        class="w-12 h-7 px-1 border border-border-default bg-bg-base text-center text-xs"
       />
       <span class="text-fg-muted">/ {pageCount}</span>
     </div>
@@ -252,8 +252,8 @@
       onclick={() => scrollToPage(currentPage + 1)}
       disabled={currentPage >= pageCount}
       aria-label="Next page"
-      class="inline-flex items-center justify-center w-8 h-8 rounded
-             hover:bg-bg-hover hover:text-fg-accent disabled:opacity-50 disabled:hover:bg-transparent transition-colors"
+      class="inline-flex items-center justify-center w-8 h-8 
+ hover:bg-bg-hover hover:text-fg-accent disabled:opacity-50 disabled:hover:bg-transparent transition-colors"
     >
       <ChevronRight size="16" />
     </button>
@@ -264,8 +264,8 @@
       type="button"
       onclick={zoomOut}
       aria-label="Zoom out"
-      class="hidden md:inline-flex items-center justify-center w-8 h-8 rounded
-             hover:bg-bg-hover hover:text-fg-accent transition-colors"
+      class="hidden md:inline-flex items-center justify-center w-8 h-8 
+ hover:bg-bg-hover hover:text-fg-accent transition-colors"
     >
       <ZoomOut size="16" />
     </button>
@@ -274,8 +274,8 @@
       type="button"
       onclick={zoomIn}
       aria-label="Zoom in"
-      class="hidden md:inline-flex items-center justify-center w-8 h-8 rounded
-             hover:bg-bg-hover hover:text-fg-accent transition-colors"
+      class="hidden md:inline-flex items-center justify-center w-8 h-8 
+ hover:bg-bg-hover hover:text-fg-accent transition-colors"
     >
       <ZoomIn size="16" />
     </button>
@@ -283,8 +283,8 @@
       type="button"
       onclick={fitWidth}
       aria-label="Fit width"
-      class="hidden md:inline-flex items-center justify-center w-8 h-8 rounded
-             hover:bg-bg-hover hover:text-fg-accent transition-colors"
+      class="hidden md:inline-flex items-center justify-center w-8 h-8 
+ hover:bg-bg-hover hover:text-fg-accent transition-colors"
     >
       <Maximize2 size="16" />
     </button>
@@ -296,8 +296,8 @@
       target="_blank"
       rel="noopener"
       aria-label="Download PDF"
-      class="hidden md:inline-flex items-center justify-center w-8 h-8 rounded
-             hover:bg-bg-hover hover:text-fg-accent transition-colors"
+      class="hidden md:inline-flex items-center justify-center w-8 h-8 
+ hover:bg-bg-hover hover:text-fg-accent transition-colors"
     >
       <Download size="16" />
     </a>
@@ -313,15 +313,15 @@
           }}
           aria-label="More PDF actions"
           aria-expanded={zoomMenuOpen}
-          class="inline-flex items-center justify-center w-8 h-8 rounded
-                 hover:bg-bg-hover hover:text-fg-accent transition-colors"
+          class="inline-flex items-center justify-center w-8 h-8 
+ hover:bg-bg-hover hover:text-fg-accent transition-colors"
         >
           <MoreHorizontal size="16" />
         </button>
         {#if zoomMenuOpen}
           <div
-            class="absolute right-0 top-full mt-1 py-1 min-w-[180px] rounded-md
-                   bg-bg-elevated border border-border-default shadow-lg z-30"
+            class="absolute right-0 top-full mt-1 py-1 min-w-[180px] 
+ bg-bg-elevated border border-border-default shadow-lg z-30"
             role="menu"
           >
             <button

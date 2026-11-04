@@ -176,7 +176,7 @@
     <span class="text-fg-muted">{language}</span>
     <button
       type="button"
-      class="ml-auto inline-flex items-center gap-1.5 px-2 h-7 rounded text-fg-primary hover:bg-bg-hover disabled:opacity-50"
+      class="ml-auto inline-flex items-center gap-1.5 px-2 h-7 text-fg-primary hover:bg-bg-hover disabled:opacity-50"
       onclick={save}
       disabled={saving}
       aria-label="Save (Ctrl+S)"

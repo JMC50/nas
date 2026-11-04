@@ -21,7 +21,7 @@
 >
   <button
     type="button"
-    class="flex items-center gap-3 min-w-0 max-w-[60%] hover:bg-bg-hover px-2 h-full rounded transition-colors text-left"
+    class="flex items-center gap-3 min-w-0 max-w-[60%] hover:bg-bg-hover px-2 h-full transition-colors text-left"
     onclick={() => ui.toggleUploadsPanel()}
     aria-label="Open uploads panel"
   >
@@ -30,7 +30,7 @@
       <span class="truncate">
         {uploads.active.length} uploading · {formatBytes(uploads.uploadedBytes)} / {formatBytes(uploads.totalBytes)}
       </span>
-      <div class="w-24 h-1 rounded-full bg-bg-elevated overflow-hidden shrink-0">
+      <div class="w-24 h-1 bg-bg-elevated overflow-hidden shrink-0">
         <div
           class="h-full bg-accent transition-[width] duration-200"
           style="width: {percentDisplay}%;"

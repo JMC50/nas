@@ -37,6 +37,6 @@
     {disabled}
     {required}
     oninput={handle}
-    class="w-full px-3 h-9 rounded-md bg-bg-elevated border border-border-default text-fg-primary text-sm focus:border-border-focus outline-none disabled:opacity-60"
+    class="w-full px-3 h-9 bg-bg-elevated border border-border-default text-fg-primary text-sm focus:border-border-focus outline-none disabled:opacity-60"
   />
 </div>

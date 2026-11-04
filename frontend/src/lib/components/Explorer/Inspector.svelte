@@ -75,7 +75,7 @@
 {#if entry}
   {@const Icon = iconFor(entry)}
   <aside
-    class="fixed inset-x-0 bottom-0 top-auto max-h-[70dvh] w-full rounded-t-lg border-t border-border-default pb-[env(safe-area-inset-bottom)] md:top-12 md:right-0 md:inset-x-auto md:bottom-7 md:max-h-none md:w-[360px] md:rounded-none md:border-t-0 md:border-l md:pb-0 bg-bg-surface z-40 flex flex-col shadow-[0_0_24px_rgba(0,0,0,0.4)] {dragStartY === null ? 'transition-transform duration-150' : ''}"
+    class="fixed inset-x-0 bottom-0 top-auto max-h-[70dvh] w-full border-t border-border-default pb-[env(safe-area-inset-bottom)] md:top-12 md:right-0 md:inset-x-auto md:bottom-7 md:max-h-none md:w-[360px] md:rounded-none md:border-t-0 md:border-l md:pb-0 bg-bg-surface z-40 flex flex-col shadow-[0_0_24px_rgba(0,0,0,0.4)] {dragStartY === null ? 'transition-transform duration-150' : ''}"
     style="transform: translateY({dragOffsetY}px);"
   >
     <!--
@@ -94,13 +94,13 @@
       onpointerup={endDrag}
       onpointercancel={endDrag}
     >
-      <div class="w-12 h-1 bg-fg-muted/40 rounded-full mx-auto"></div>
+      <div class="w-12 h-1 bg-fg-muted/40 mx-auto"></div>
     </div>
     <header class="h-10 flex items-center justify-between px-3 border-b border-border-default">
       <span class="text-sm font-semibold text-fg-primary">File details</span>
       <button
         type="button"
-        class="w-7 h-7 inline-flex items-center justify-center rounded text-fg-muted hover:text-fg-primary hover:bg-bg-hover"
+        class="w-7 h-7 inline-flex items-center justify-center text-fg-muted hover:text-fg-primary hover:bg-bg-hover"
         onclick={onClose}
         aria-label="Close file details"
       >

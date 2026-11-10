@@ -1,0 +1,87 @@
+package config
+
+import (
+	"net/url"
+	"os"
+	"slices"
+	"strings"
+)
+
+// OIDCConfig is used only when AUTH_TYPE=oidc.
+type OIDCConfig struct {
+	Issuer       string
+	ClientID     string
+	ClientSecret string
+	RedirectURI  string
+	IDPHint      string
+	Scopes       []string
+	GroupsClaim  string
+	MemberGroup  string
+	AdminGroup   string
+	LogoutURL    string
+}
+
+func loadOIDC() OIDCConfig {
+	return OIDCConfig{
+		Issuer:       getEnv("OIDC_ISSUER", ""),
+		ClientID:     getSecret("OIDC_CLIENT_ID", ""),
+		ClientSecret: getSecret("OIDC_CLIENT_SECRET", ""),
+		RedirectURI:  getEnv("OIDC_REDIRECT_URI", ""),
+		IDPHint:      getEnv("OIDC_IDP_HINT", ""),
+		Scopes:       strings.Fields(getEnvNonEmpty("OIDC_SCOPES", "openid profile email groups")),
+		GroupsClaim:  getEnvNonEmpty("OIDC_GROUPS_CLAIM", "groups"),
+		MemberGroup:  getEnvNonEmpty("OIDC_MEMBER_GROUP", "nas_member"),
+		AdminGroup:   getEnvNonEmpty("OIDC_ADMIN_GROUP", "nas_admin"),
+		LogoutURL:    getEnv("OIDC_LOGOUT_URL", ""),
+	}
+}
+
+// problems names settings only. It never includes a value, because the list goes to the startup log.
+func (o OIDCConfig) problems() []string {
+	var problems []string
+	if missing := o.missing(); len(missing) > 0 {
+		problems = append(problems, "AUTH_TYPE=oidc requires "+strings.Join(missing, ", "))
+	}
+	addresses := [][2]string{
+		{"OIDC_ISSUER", o.Issuer},
+		{"OIDC_REDIRECT_URI", o.RedirectURI},
+		{"OIDC_LOGOUT_URL", o.LogoutURL},
+	}
+	for _, setting := range addresses {
+		if setting[1] != "" && !isHTTPURL(setting[1]) {
+			problems = append(problems, setting[0]+" must be an absolute http or https URL")
+		}
+	}
+	if !slices.Contains(o.Scopes, "openid") {
+		problems = append(problems, "OIDC_SCOPES must include openid")
+	}
+	return problems
+}
+
+func (o OIDCConfig) missing() []string {
+	required := [][2]string{
+		{"OIDC_ISSUER", o.Issuer},
+		{"OIDC_CLIENT_ID", o.ClientID},
+		{"OIDC_CLIENT_SECRET", o.ClientSecret},
+		{"OIDC_REDIRECT_URI", o.RedirectURI},
+	}
+	var missing []string
+	for _, setting := range required {
+		if setting[1] == "" {
+			missing = append(missing, setting[0])
+		}
+	}
+	return missing
+}
+
+func isHTTPURL(value string) bool {
+	parsed, err := url.Parse(value)
+	return err == nil && (parsed.Scheme == "http" || parsed.Scheme == "https") && parsed.Host != ""
+}
+
+func getEnvNonEmpty(key, def string) string {
+	if v := os.Getenv(key); v != "" {
+		return v
+	}
+	return def
+}

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"log/slog"
 	"os"
+	"path/filepath"
 	"runtime"
 	"testing"
 
@@ -129,4 +130,84 @@ func TestWarnEscapingPaths(t *testing.T) {
 			}
 		})
 	}
+}
+
+func setOIDCEnv(t *testing.T) {
+	t.Helper()
+	t.Setenv("AUTH_TYPE", "oidc")
+	t.Setenv("OIDC_ISSUER", "https://login.example/auth/v1")
+	t.Setenv("OIDC_CLIENT_ID", "nas")
+	t.Setenv("OIDC_CLIENT_SECRET", "client-secret")
+	t.Setenv("OIDC_REDIRECT_URI", "https://nas.example/auth/oidc/callback")
+}
+
+func TestLoadFromEnv_OIDCSettingsAreIgnoredOutsideOIDCMode(t *testing.T) {
+	cfg, err := LoadFromEnv()
+	require.NoError(t, err)
+	require.Equal(t, AuthTypeBoth, cfg.AuthType)
+	require.Empty(t, cfg.OIDC.Issuer)
+
+	for _, authType := range []string{"local", "oauth", "both"} {
+		t.Setenv("AUTH_TYPE", authType)
+		t.Setenv("OIDC_ISSUER", "not a url")
+		t.Setenv("OIDC_SCOPES", "profile")
+		_, err := LoadFromEnv()
+		require.NoError(t, err, authType)
+	}
+}
+
+func TestLoadFromEnv_OIDCNamesMissingSettings(t *testing.T) {
+	t.Setenv("AUTH_TYPE", "oidc")
+	_, err := LoadFromEnv()
+	require.ErrorContains(t, err, "AUTH_TYPE=oidc requires OIDC_ISSUER, OIDC_CLIENT_ID, OIDC_CLIENT_SECRET, OIDC_REDIRECT_URI")
+
+	t.Setenv("OIDC_ISSUER", "https://login.example/auth/v1")
+	t.Setenv("OIDC_CLIENT_ID", "nas")
+	_, err = LoadFromEnv()
+	require.ErrorContains(t, err, "AUTH_TYPE=oidc requires OIDC_CLIENT_SECRET, OIDC_REDIRECT_URI")
+	require.NotContains(t, err.Error(), "OIDC_ISSUER")
+}
+
+func TestLoadFromEnv_OIDCDefaults(t *testing.T) {
+	setOIDCEnv(t)
+	t.Setenv("OIDC_MEMBER_GROUP", "")
+	cfg, err := LoadFromEnv()
+	require.NoError(t, err)
+	require.Equal(t, AuthTypeOIDC, cfg.AuthType)
+	require.Equal(t, []string{"openid", "profile", "email", "groups"}, cfg.OIDC.Scopes)
+	require.Equal(t, "groups", cfg.OIDC.GroupsClaim)
+	require.Equal(t, "nas_member", cfg.OIDC.MemberGroup)
+	require.Equal(t, "nas_admin", cfg.OIDC.AdminGroup)
+	require.Empty(t, cfg.OIDC.IDPHint)
+	require.Empty(t, cfg.OIDC.LogoutURL)
+}
+
+func TestLoadFromEnv_OIDCRejectsInvalidValues(t *testing.T) {
+	for key, value := range map[string]string{
+		"OIDC_ISSUER":       "login.example",
+		"OIDC_REDIRECT_URI": "/auth/oidc/callback",
+		"OIDC_LOGOUT_URL":   "javascript:alert(1)",
+		"OIDC_SCOPES":       "profile email",
+	} {
+		t.Run(key, func(t *testing.T) {
+			setOIDCEnv(t)
+			t.Setenv(key, value)
+			_, err := LoadFromEnv()
+			require.ErrorContains(t, err, key)
+			require.NotContains(t, err.Error(), "client-secret")
+		})
+	}
+}
+
+func TestLoadFromEnv_OIDCClientSecretFromFile(t *testing.T) {
+	setOIDCEnv(t)
+	t.Setenv("OIDC_CLIENT_SECRET", "")
+	path := filepath.Join(t.TempDir(), "secret")
+	require.NoError(t, os.WriteFile(path, []byte("secret-from-file\n"), 0o600))
+	t.Setenv("OIDC_CLIENT_SECRET_FILE", path)
+
+	cfg, err := LoadFromEnv()
+	require.NoError(t, err)
+	require.Equal(t, "secret-from-file", cfg.OIDC.ClientSecret)
+	require.NotContains(t, cfg.String(), "secret-from-file")
 }

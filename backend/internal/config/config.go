@@ -16,6 +16,7 @@ const (
 	AuthTypeOAuth AuthType = "oauth"
 	AuthTypeLocal AuthType = "local"
 	AuthTypeBoth  AuthType = "both"
+	AuthTypeOIDC  AuthType = "oidc"
 )
 
 type PasswordRequirements struct {
@@ -43,6 +44,8 @@ type Config struct {
 	GoogleClientID      string
 	GoogleClientSecret  string
 	GoogleRedirectURI   string
+
+	OIDC OIDCConfig
 
 	NASDataDir      string
 	NASAdminDataDir string
@@ -86,6 +89,8 @@ func LoadFromEnv() (*Config, error) {
 	c.GoogleClientID = getSecret("GOOGLE_CLIENT_ID", "")
 	c.GoogleClientSecret = getSecret("GOOGLE_CLIENT_SECRET", "")
 	c.GoogleRedirectURI = getEnv("GOOGLE_REDIRECT_URI", "")
+
+	c.OIDC = loadOIDC()
 
 	c.NASDataDir = getEnv("NAS_DATA_DIR", "")
 	c.NASAdminDataDir = getEnv("NAS_ADMIN_DATA_DIR", "")
@@ -131,6 +136,9 @@ func (c *Config) validate() error {
 		if c.AdminPassword == "" {
 			errs = append(errs, "ADMIN_PASSWORD required in production")
 		}
+	}
+	if c.AuthType == AuthTypeOIDC {
+		errs = append(errs, c.OIDC.problems()...)
 	}
 	if len(errs) > 0 {
 		return errors.New(strings.Join(errs, "; "))

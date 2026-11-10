@@ -111,7 +111,7 @@ def write_links(version):
 def main():
     text, mark_box, path_element, fill, commands = read_source()
     shapes = polygons(commands)
-    version = hashlib.sha256(text.encode("utf-8")).hexdigest()[:8]
+    version = hashlib.sha256(text.replace("\r\n", "\n").encode("utf-8")).hexdigest()[:8]
 
     write_svg(path_element, mark_box)
     render(32, mark_box, fill, shapes, rounded=True).save(STATIC / "favicon-32.png", optimize=True)

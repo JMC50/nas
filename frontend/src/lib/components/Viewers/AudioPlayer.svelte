@@ -118,9 +118,9 @@
   });
 </script>
 
-<div bind:this={playerRoot} class="flex flex-col h-full w-full bg-bg-base items-center justify-center p-8">
+<div bind:this={playerRoot} class="flex flex-col h-full w-full bg-bg-base items-center justify-center p-gutter">
   <div class="w-full max-w-[360px] flex flex-col items-center gap-6">
-    <h2 class="text-lg font-sans text-fg-primary truncate w-full text-center" title={name}>
+    <h2 class="text-lg font-semibold text-fg-primary truncate w-full text-center" title={name}>
       {name}
     </h2>
 
@@ -128,10 +128,9 @@
       type="button"
       onclick={toggle}
       aria-label={playing ? "Pause" : "Play"}
-      class="w-24 h-24 bg-accent text-accent-fg
+      class="size-24 rounded-panel bg-accent text-accent-fg
  flex items-center justify-center
- hover:bg-accent-hover transition-colors
- shadow-lg"
+ hover:bg-accent-hover active:bg-accent-muted transition-colors"
     >
       {#if playing}
         <Pause size="40" fill="currentColor" />
@@ -158,11 +157,10 @@
       <!-- svelte-ignore a11y_no_static_element_interactions -->
       <div
         onclick={seek}
-        class="relative h-1.5 bg-bg-hover cursor-pointer
- hover:h-2 transition-all"
+        class="relative h-2 rounded-full overflow-hidden bg-bg-overlay cursor-pointer"
       >
         <div
-          class="absolute top-0 left-0 h-full bg-bg-selected"
+          class="absolute top-0 left-0 h-full bg-border-strong/50"
           style="width: {bufferedRatio * 100}%"
         ></div>
         <div
@@ -170,7 +168,7 @@
           style="width: {playedRatio * 100}%"
         ></div>
       </div>
-      <div class="flex justify-between font-mono text-xs text-fg-secondary tabular-nums">
+      <div class="flex justify-between text-xs text-fg-secondary tabular-nums">
         <span>{formatTime(currentTime)}</span>
         <span>{formatTime(duration)}</span>
       </div>
@@ -182,8 +180,7 @@
         type="button"
         onclick={toggleMute}
         aria-label={muted ? "Unmute" : "Mute"}
-        class="inline-flex items-center justify-center w-8 h-8 
- text-fg-muted hover:bg-bg-hover hover:text-fg-accent transition-colors"
+        class="sg-btn sg-btn-ghost sg-btn-icon"
       >
         <VolumeIcon size="16" />
       </button>
@@ -191,7 +188,7 @@
       <!-- svelte-ignore a11y_no_static_element_interactions -->
       <div
         onclick={setVolume}
-        class="flex-1 relative h-1.5 bg-bg-hover cursor-pointer"
+        class="flex-1 relative h-2 rounded-full overflow-hidden bg-bg-overlay cursor-pointer"
       >
         <div
           class="absolute top-0 left-0 h-full bg-fg-secondary"

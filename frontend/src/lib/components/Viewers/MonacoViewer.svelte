@@ -55,7 +55,7 @@
   import { tabs } from "$lib/store/tabs.svelte";
   import { notifications } from "$lib/store/notifications.svelte";
   import { ui } from "$lib/store/ui.svelte";
-  import { GRUVBOX_DARK_THEME } from "$lib/components/Viewers/monaco-theme";
+  import { SIGNAL_THEME } from "$lib/components/Viewers/monaco-theme";
   import Save from "lucide-svelte/icons/save";
 
   interface Props {
@@ -89,14 +89,14 @@
     monaco: typeof import("monaco-editor"),
     value: string,
   ): import("monaco-editor").editor.IStandaloneCodeEditor {
-    monaco.editor.defineTheme("gruvbox-dark", GRUVBOX_DARK_THEME);
+    monaco.editor.defineTheme("signal", SIGNAL_THEME);
     return monaco.editor.create(container, {
       value,
       language,
-      theme: "gruvbox-dark",
+      theme: "signal",
       automaticLayout: true,
-      fontSize: 13,
-      fontFamily: "'JetBrains Mono', ui-monospace, monospace",
+      fontSize: 14,
+      fontFamily: "'JetBrains Mono', 'Wanted Sans Variable', ui-monospace, monospace",
       // Minimap clutters narrow viewports; word-wrap prevents the horizontal
       // scrolling that makes code unreadable on a 375px-wide phone.
       minimap: { enabled: !ui.isMobile },
@@ -171,23 +171,23 @@
 </script>
 
 <div class="flex flex-col h-full w-full bg-bg-base">
-  <div class="flex items-center gap-3 px-3 h-9 border-b border-border-default text-xs text-fg-secondary">
-    <span class="truncate">{name}</span>
-    <span class="text-fg-muted">{language}</span>
+  <div class="sg-viewer-bar gap-3">
+    <span class="min-w-0 truncate text-fg-primary font-semibold" title={name}>{name}</span>
+    <span class="sg-chip font-mono text-fg-muted">{language}</span>
     <button
       type="button"
-      class="ml-auto inline-flex items-center gap-1.5 px-2 h-7 text-fg-primary hover:bg-bg-hover disabled:opacity-50"
+      class="ml-auto sg-btn"
       onclick={save}
       disabled={saving}
       aria-label="Save (Ctrl+S)"
     >
-      <Save size="12" />
+      <Save size="16" />
       <span>{saving ? "Saving…" : "Save"}</span>
     </button>
   </div>
   <div class="flex-1 relative">
     {#if loading}
-      <div class="absolute inset-0 flex items-center justify-center text-fg-muted text-xs">
+      <div class="absolute inset-0 flex items-center justify-center text-fg-muted text-sm" role="status">
         Loading editor…
       </div>
     {/if}

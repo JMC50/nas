@@ -242,9 +242,9 @@
   <!-- top bar (filename) -->
   <div
     class="absolute top-0 left-0 right-0 h-9 px-4 flex items-center
- bg-gradient-to-b from-bg-overlay/80 to-transparent
- text-fg-secondary text-xs font-mono z-10 pointer-events-none
- transition-opacity duration-200 ease-smooth
+ bg-gradient-to-b from-bg-base/80 to-transparent
+ text-fg-primary text-sm z-10 pointer-events-none
+ transition-opacity duration-120 ease-snap
  {controlsVisible ? 'opacity-100' : 'opacity-0'}"
   >
     <span class="truncate">{name}</span>
@@ -274,15 +274,15 @@
     <div
       class="absolute inset-0 z-30 flex flex-col items-center justify-center gap-3 bg-bg-base/95 text-fg-primary px-6 text-center"
     >
-      <div class="text-sm font-medium">Browser cannot play this format</div>
-      <div class="text-xs text-fg-muted max-w-md">
+      <div class="text-md font-semibold">Browser cannot play this format</div>
+      <div class="text-sm text-fg-secondary max-w-md">
         Container or codec is not supported natively (common for .avi, .mkv, .mov).
         Download to play in a local media player.
       </div>
       <a
         href={downloadUrl}
         download={name}
-        class="inline-flex items-center gap-2 h-9 px-4 bg-accent text-accent-fg text-sm font-medium hover:bg-accent/90 transition-colors"
+        class="sg-btn sg-btn-primary max-w-full"
       >
         Download {name}
       </a>
@@ -296,9 +296,9 @@
       onclick={toggle}
       aria-label="Play"
       class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2
- w-24 h-24 bg-bg-overlay/70 backdrop-blur-sm
+ size-20 rounded-full bg-bg-overlay/90 border border-border-default
  text-fg-primary flex items-center justify-center
- hover:bg-bg-overlay/90 hover:text-fg-accent transition-colors z-20"
+ hover:bg-bg-overlay hover:text-fg-accent transition-colors z-20"
     >
       <Play size="40" fill="currentColor" />
     </button>

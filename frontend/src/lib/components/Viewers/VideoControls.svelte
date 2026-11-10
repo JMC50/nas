@@ -83,10 +83,10 @@
 
 <!-- bottom controls bar -->
 <div
-  class="absolute bottom-0 left-0 right-0 px-4 pb-2 pt-3 flex flex-col gap-1
- bg-bg-overlay/80 backdrop-blur-sm
+  class="absolute bottom-0 left-0 right-0 px-3 pb-1.5 pt-3 flex flex-col gap-1
+ bg-bg-overlay/90 border-t border-border-default
  text-fg-primary z-10
- transition-opacity duration-200 ease-smooth
+ transition-opacity duration-120 ease-snap
  {controlsVisible ? 'opacity-100' : 'opacity-0 pointer-events-none'}"
 >
   <!-- scrubber -->
@@ -94,35 +94,33 @@
   <!-- svelte-ignore a11y_no_static_element_interactions -->
   <div
     onclick={onSeek}
-    class="relative h-1.5 bg-bg-hover cursor-pointer group/scrub
- hover:h-2 transition-all"
+    class="relative h-2 rounded-full bg-bg-hover cursor-pointer group/scrub"
   >
     <!-- buffered -->
     <div
-      class="absolute top-0 left-0 h-full bg-bg-selected"
+      class="absolute top-0 left-0 h-full rounded-full bg-border-strong/50"
       style="width: {bufferedRatio * 100}%"
     ></div>
     <!-- played -->
     <div
-      class="absolute top-0 left-0 h-full bg-accent"
+      class="absolute top-0 left-0 h-full rounded-full bg-accent"
       style="width: {playedRatio * 100}%"
     ></div>
     <!-- thumb -->
     <div
-      class="absolute top-1/2 -translate-x-1/2 -translate-y-1/2 w-2.5 h-2.5 bg-accent
+      class="absolute top-1/2 -translate-x-1/2 -translate-y-1/2 size-3 rounded-full bg-accent
  opacity-0 group-hover/scrub:opacity-100 transition-opacity"
       style="left: {playedRatio * 100}%"
     ></div>
   </div>
 
   <!-- controls row -->
-  <div class="flex items-center gap-2 h-9">
+  <div class="flex items-center gap-1 min-h-9">
     <button
       type="button"
       onclick={onToggle}
       aria-label={playing ? "Pause" : "Play"}
-      class="inline-flex items-center justify-center w-9 h-9 
- hover:bg-bg-hover hover:text-fg-accent transition-colors"
+      class="sg-btn sg-btn-ghost sg-btn-icon"
     >
       {#if playing}
         <Pause size="18" />
@@ -131,18 +129,17 @@
       {/if}
     </button>
 
-    <span class="font-mono text-xs text-fg-secondary tabular-nums">
+    <span class="px-1 text-xs text-fg-secondary tabular-nums whitespace-nowrap">
       {formatTime(currentTime)} / {formatTime(duration)}
     </span>
 
     <!-- volume control (button + slide-out slider) -->
-    <div class="group/vol flex items-center">
+    <div class="flex items-center">
       <button
         type="button"
         onclick={onToggleMute}
         aria-label={muted ? "Unmute" : "Mute"}
-        class="inline-flex items-center justify-center w-9 h-9 
- hover:bg-bg-hover hover:text-fg-accent transition-colors"
+        class="sg-btn sg-btn-ghost sg-btn-icon"
       >
         <VolumeIcon size="18" />
       </button>
@@ -150,9 +147,7 @@
       <!-- svelte-ignore a11y_no_static_element_interactions -->
       <div
         onclick={onSetVolume}
-        class="relative h-1.5 bg-bg-hover cursor-pointer
- w-0 group-hover/vol:w-20 ml-0 group-hover/vol:ml-2
- transition-all overflow-hidden"
+        class="hidden md:block relative h-2 w-20 ml-1 rounded-full bg-bg-hover cursor-pointer overflow-hidden"
       >
         <div
           class="absolute top-0 left-0 h-full bg-fg-secondary"
@@ -170,25 +165,23 @@
         type="button"
         onclick={onToggleSpeedMenu}
         aria-label="Playback speed"
-        class="inline-flex items-center justify-center min-w-9 h-9 px-2 
- font-mono text-xs tabular-nums
- hover:bg-bg-hover hover:text-fg-accent transition-colors"
+        aria-expanded={speedMenuOpen}
+        class="sg-btn sg-btn-ghost tabular-nums"
       >
         {speed}×
       </button>
       {#if speedMenuOpen}
         <div
-          class="absolute bottom-full right-0 mb-2 py-1 
- bg-bg-elevated border border-border-default
- shadow-lg z-30 min-w-[72px]"
+          class="absolute bottom-full right-0 mb-2 z-30 sg-menu min-w-[96px] animate-pop origin-bottom-right"
+          role="menu"
         >
           {#each SPEEDS as rate (rate)}
             <button
               type="button"
               onclick={() => onSetSpeed(rate)}
-              class="w-full px-3 py-1.5 text-xs font-mono tabular-nums text-left
- hover:bg-bg-hover transition-colors
- {speed === rate ? 'text-fg-accent' : 'text-fg-primary'}"
+              class="sg-menu-item tabular-nums {speed === rate ? 'font-semibold text-fg-accent' : ''}"
+              role="menuitemradio"
+              aria-checked={speed === rate}
             >
               {rate}×
             </button>
@@ -202,8 +195,7 @@
         type="button"
         onclick={onTogglePip}
         aria-label="Picture in Picture"
-        class="hidden md:inline-flex items-center justify-center w-9 h-9 
- hover:bg-bg-hover hover:text-fg-accent transition-colors"
+        class="hidden md:inline-flex sg-btn sg-btn-ghost sg-btn-icon"
       >
         <PictureInPicture2 size="18" />
       </button>
@@ -220,28 +212,23 @@
           }}
           aria-label="More controls"
           aria-expanded={moreOpen}
-          class="inline-flex items-center justify-center w-9 h-9 
- hover:bg-bg-hover hover:text-fg-accent transition-colors"
+          class="sg-btn sg-btn-ghost sg-btn-icon"
         >
           <MoreHorizontal size="18" />
         </button>
         {#if moreOpen}
           <div
-            class="absolute bottom-full right-0 mb-2 py-1 
- bg-bg-elevated border border-border-default
- shadow-lg z-30 min-w-[140px]"
+            class="absolute bottom-full right-0 mb-2 z-30 sg-menu min-w-[180px] animate-pop origin-bottom-right"
             role="menu"
           >
-            <div class="px-3 py-1 text-[10px] uppercase tracking-wide text-fg-muted font-mono">
+            <div class="px-2.5 pt-1 pb-1.5 text-xs font-semibold text-fg-muted">
               Speed
             </div>
             {#each SPEEDS as rate (rate)}
               <button
                 type="button"
                 onclick={() => pickSpeed(rate)}
-                class="w-full px-3 py-1.5 text-xs font-mono tabular-nums text-left
- hover:bg-bg-hover transition-colors
- {speed === rate ? 'text-fg-accent' : 'text-fg-primary'}"
+                class="sg-menu-item tabular-nums {speed === rate ? 'font-semibold text-fg-accent' : ''}"
                 role="menuitemradio"
                 aria-checked={speed === rate}
               >
@@ -249,15 +236,14 @@
               </button>
             {/each}
             {#if pipSupported}
-              <div class="my-1 border-t border-border-default"></div>
+              <div class="sg-menu-sep" role="separator"></div>
               <button
                 type="button"
                 onclick={pickPip}
-                class="w-full flex items-center gap-2 px-3 py-1.5 text-xs text-left
- text-fg-primary hover:bg-bg-hover transition-colors"
+                class="sg-menu-item"
                 role="menuitem"
               >
-                <PictureInPicture2 size="14" class="text-fg-muted shrink-0" />
+                <PictureInPicture2 size="16" />
                 <span>Picture in Picture</span>
               </button>
             {/if}
@@ -270,8 +256,7 @@
       type="button"
       onclick={onToggleFullscreen}
       aria-label={isFullscreen ? "Exit fullscreen" : "Fullscreen"}
-      class="inline-flex items-center justify-center w-9 h-9 
- hover:bg-bg-hover hover:text-fg-accent transition-colors"
+      class="sg-btn sg-btn-ghost sg-btn-icon"
     >
       {#if isFullscreen}
         <Minimize size="18" />

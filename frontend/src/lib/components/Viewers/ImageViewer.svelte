@@ -29,40 +29,40 @@
 </script>
 
 <div class="flex flex-col h-full w-full bg-bg-base">
-  <div class="flex items-center gap-2 px-3 h-9 border-b border-border-default text-xs text-fg-muted">
+  <div class="sg-viewer-bar">
     <button
       type="button"
-      class="inline-flex items-center justify-center w-7 h-7 hover:bg-bg-hover"
+      class="sg-btn sg-btn-ghost sg-btn-icon"
       onclick={zoomOut}
       aria-label="Zoom out"
     >
-      <ZoomOut size="14" />
+      <ZoomOut size="16" />
     </button>
-    <span class="font-mono w-12 text-center">{Math.round(zoom * 100)}%</span>
+    <span class="w-12 text-center tabular-nums">{Math.round(zoom * 100)}%</span>
     <button
       type="button"
-      class="inline-flex items-center justify-center w-7 h-7 hover:bg-bg-hover"
+      class="sg-btn sg-btn-ghost sg-btn-icon"
       onclick={zoomIn}
       aria-label="Zoom in"
     >
-      <ZoomIn size="14" />
+      <ZoomIn size="16" />
     </button>
     <button
       type="button"
-      class="inline-flex items-center justify-center w-7 h-7 hover:bg-bg-hover"
+      class="sg-btn sg-btn-ghost sg-btn-icon"
       onclick={zoomReset}
       aria-label="Reset zoom"
     >
-      <RefreshCcw size="14" />
+      <RefreshCcw size="16" />
     </button>
-    <span class="ml-auto truncate text-fg-secondary">{name}</span>
+    <span class="ml-auto min-w-0 truncate text-fg-primary font-semibold" title={name}>{name}</span>
   </div>
   <div class="flex-1 overflow-auto flex items-center justify-center">
     <img
       src={imageUrl}
       alt={name}
-      style="transform: scale({zoom}); transform-origin: center; transition: transform 100ms ease;"
-      class="max-w-none"
+      style="transform: scale({zoom}); transform-origin: center;"
+      class="max-w-none transition-transform duration-100 ease-snap"
     />
   </div>
 </div>

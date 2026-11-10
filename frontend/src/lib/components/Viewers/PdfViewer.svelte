@@ -219,30 +219,30 @@
 </script>
 
 <div class="flex flex-col h-full w-full bg-bg-base">
-  <div class="flex items-center gap-2 px-3 h-10 border-b border-border-default bg-bg-overlay text-xs text-fg-secondary">
-    <span class="truncate max-w-[40%]">{name}</span>
+  <div class="sg-viewer-bar">
+    <span class="truncate min-w-0 max-w-[40%] text-fg-primary font-semibold" title={name}>{name}</span>
 
-    <span class="text-fg-muted">|</span>
+    <span class="sg-viewer-sep" aria-hidden="true"></span>
 
     <button
       type="button"
       onclick={() => scrollToPage(currentPage - 1)}
       disabled={currentPage <= 1}
       aria-label="Previous page"
-      class="inline-flex items-center justify-center w-8 h-8 
- hover:bg-bg-hover hover:text-fg-accent disabled:opacity-50 disabled:hover:bg-transparent transition-colors"
+      class="sg-btn sg-btn-ghost sg-btn-icon"
     >
       <ChevronLeft size="16" />
     </button>
 
-    <div class="flex items-center gap-1 font-mono tabular-nums">
+    <div class="flex items-center gap-1.5 tabular-nums">
       <input
         type="number"
         min="1"
         max={pageCount}
         value={currentPage}
         onkeydown={onPageInput}
-        class="w-12 h-7 px-1 border border-border-default bg-bg-base text-center text-xs"
+        aria-label="Page number"
+        class="sg-input w-16 text-center tabular-nums"
       />
       <span class="text-fg-muted">/ {pageCount}</span>
     </div>
@@ -252,30 +252,27 @@
       onclick={() => scrollToPage(currentPage + 1)}
       disabled={currentPage >= pageCount}
       aria-label="Next page"
-      class="inline-flex items-center justify-center w-8 h-8 
- hover:bg-bg-hover hover:text-fg-accent disabled:opacity-50 disabled:hover:bg-transparent transition-colors"
+      class="sg-btn sg-btn-ghost sg-btn-icon"
     >
       <ChevronRight size="16" />
     </button>
 
-    <span class="hidden md:inline text-fg-muted">|</span>
+    <span class="hidden md:block sg-viewer-sep" aria-hidden="true"></span>
 
     <button
       type="button"
       onclick={zoomOut}
       aria-label="Zoom out"
-      class="hidden md:inline-flex items-center justify-center w-8 h-8 
- hover:bg-bg-hover hover:text-fg-accent transition-colors"
+      class="hidden md:inline-flex sg-btn sg-btn-ghost sg-btn-icon"
     >
       <ZoomOut size="16" />
     </button>
-    <span class="hidden md:inline font-mono tabular-nums w-12 text-center">{Math.round(scale * 100)}%</span>
+    <span class="hidden md:inline tabular-nums w-12 text-center">{Math.round(scale * 100)}%</span>
     <button
       type="button"
       onclick={zoomIn}
       aria-label="Zoom in"
-      class="hidden md:inline-flex items-center justify-center w-8 h-8 
- hover:bg-bg-hover hover:text-fg-accent transition-colors"
+      class="hidden md:inline-flex sg-btn sg-btn-ghost sg-btn-icon"
     >
       <ZoomIn size="16" />
     </button>
@@ -283,21 +280,19 @@
       type="button"
       onclick={fitWidth}
       aria-label="Fit width"
-      class="hidden md:inline-flex items-center justify-center w-8 h-8 
- hover:bg-bg-hover hover:text-fg-accent transition-colors"
+      class="hidden md:inline-flex sg-btn sg-btn-ghost sg-btn-icon"
     >
       <Maximize2 size="16" />
     </button>
 
-    <span class="hidden md:inline text-fg-muted">|</span>
+    <span class="hidden md:block sg-viewer-sep" aria-hidden="true"></span>
     <a
       href={pdfUrl}
       download={name}
       target="_blank"
       rel="noopener"
       aria-label="Download PDF"
-      class="hidden md:inline-flex items-center justify-center w-8 h-8 
- hover:bg-bg-hover hover:text-fg-accent transition-colors"
+      class="hidden md:inline-flex sg-btn sg-btn-ghost sg-btn-icon"
     >
       <Download size="16" />
     </a>
@@ -313,55 +308,53 @@
           }}
           aria-label="More PDF actions"
           aria-expanded={zoomMenuOpen}
-          class="inline-flex items-center justify-center w-8 h-8 
- hover:bg-bg-hover hover:text-fg-accent transition-colors"
+          class="sg-btn sg-btn-ghost sg-btn-icon"
         >
           <MoreHorizontal size="16" />
         </button>
         {#if zoomMenuOpen}
           <div
-            class="absolute right-0 top-full mt-1 py-1 min-w-[180px] 
- bg-bg-elevated border border-border-default shadow-lg z-30"
+            class="absolute right-0 top-full mt-1 z-30 sg-menu animate-pop origin-top-right"
             role="menu"
           >
             <button
               type="button"
               onclick={pickZoomOut}
-              class="w-full flex items-center gap-2 px-3 h-9 text-left text-xs text-fg-primary hover:bg-bg-hover transition-colors"
+              class="sg-menu-item"
               role="menuitem"
             >
-              <ZoomOut size="14" class="text-fg-muted shrink-0" />
+              <ZoomOut size="16" />
               <span>Zoom out</span>
-              <span class="ml-auto font-mono tabular-nums text-fg-muted">{Math.round(scale * 100)}%</span>
+              <span class="ml-auto tabular-nums text-fg-muted">{Math.round(scale * 100)}%</span>
             </button>
             <button
               type="button"
               onclick={pickZoomIn}
-              class="w-full flex items-center gap-2 px-3 h-9 text-left text-xs text-fg-primary hover:bg-bg-hover transition-colors"
+              class="sg-menu-item"
               role="menuitem"
             >
-              <ZoomIn size="14" class="text-fg-muted shrink-0" />
+              <ZoomIn size="16" />
               <span>Zoom in</span>
             </button>
             <button
               type="button"
               onclick={pickFitWidth}
-              class="w-full flex items-center gap-2 px-3 h-9 text-left text-xs text-fg-primary hover:bg-bg-hover transition-colors"
+              class="sg-menu-item"
               role="menuitem"
             >
-              <Maximize2 size="14" class="text-fg-muted shrink-0" />
+              <Maximize2 size="16" />
               <span>Fit width</span>
             </button>
-            <div class="my-1 border-t border-border-default"></div>
+            <div class="sg-menu-sep" role="separator"></div>
             <a
               href={pdfUrl}
               download={name}
               target="_blank"
               rel="noopener"
-              class="w-full flex items-center gap-2 px-3 h-9 text-left text-xs text-fg-primary hover:bg-bg-hover transition-colors"
+              class="sg-menu-item"
               role="menuitem"
             >
-              <Download size="14" class="text-fg-muted shrink-0" />
+              <Download size="16" />
               <span>Download</span>
             </a>
           </div>
@@ -369,14 +362,14 @@
       </div>
     {/if}
 
-    <span class="ml-auto text-fg-muted">{loading ? "Loading…" : ""}</span>
+    <span class="ml-auto text-xs text-fg-muted" role="status">{loading ? "Loading…" : ""}</span>
   </div>
   <div class="flex-1 overflow-auto p-4 flex flex-col items-center gap-4">
     {#each Array(pageCount) as _, i (i)}
       <canvas
         bind:this={canvases[i]}
         data-page={i + 1}
-        class="bg-bg-elevated shadow-lg"
+        class="max-w-full bg-bg-elevated rounded-chip shadow-overlay"
       ></canvas>
     {/each}
   </div>

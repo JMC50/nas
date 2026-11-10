@@ -151,8 +151,9 @@
                     <p class="sm:hidden mt-1">
                       <span class="sg-chip {STATUS_TEXT[link.status]}">{STATUS_LABEL[link.status]}</span>
                     </p>
-                    <p class="md:hidden text-xs text-fg-muted">
-                      Expires {shortTime(link.expiresAt)}<span class="sm:hidden"> · {downloadsText(link.downloadCount)}</span>
+                    <p class="md:hidden flex flex-wrap gap-x-2 text-xs text-fg-muted">
+                      <span>Expires <span class="whitespace-nowrap">{shortTime(link.expiresAt)}</span></span>
+                      <span class="sm:hidden">{downloadsText(link.downloadCount)}</span>
                     </p>
                     {#if showsAll}
                       <p class="lg:hidden truncate text-xs text-fg-muted">By {link.creatorName || link.creatorId}</p>

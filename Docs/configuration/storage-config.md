@@ -111,6 +111,16 @@ DATA_PATH/
     └── extracts/         # ZIP extraction workspace
 ```
 
+### Symbolic Links and Public Download Links
+
+Public download links (`/d/<token>`) open files through a Go `os.Root` that is fixed to the user data folder. These rules apply to link downloads only:
+
+- A relative symbolic link is followed when its target stays inside the user data folder.
+- An absolute symbolic link is never followed, even when it points inside the user data folder. Replace it with a relative link (for example `ln -s ../photos/a.jpg a.jpg`) if it must work in a download link.
+- A symbolic link to a target outside the user data folder is never followed.
+- A link to such a target answers 404. In a folder ZIP, the entry is left out.
+- A folder ZIP also leaves out folders reached through a symbolic link, FIFOs, devices, and names that contain a backslash.
+
 ### Path Validation
 
 The application validates paths on startup:

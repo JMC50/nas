@@ -91,84 +91,86 @@
   }
 </script>
 
-<main class="min-h-screen flex items-center justify-center bg-bg-base p-6">
-  <div class="w-full max-w-md bg-bg-surface border border-border-default p-6">
-    <div class="flex items-center gap-2 mb-6">
-      <Logo />
-      <span class="text-base font-semibold text-fg-primary tracking-tight">NAS</span>
+<main class="min-h-full flex flex-col items-center justify-center px-gutter py-10">
+  <div class="w-full max-w-[400px]">
+    <div class="flex items-center gap-2 mb-5">
+      <Logo size={26} />
+      <span class="text-lg font-bold text-fg-primary">NAS</span>
     </div>
 
-    <h1 class="text-base font-semibold text-fg-primary mb-1">
-      {mode === "login" ? "Sign in" : "Create account"}
-    </h1>
-    <p class="text-xs text-fg-muted mb-5">
-      {mode === "login" ? "Use your ID and password to continue." : "Pick an ID and password to register."}
-    </p>
+    <div class="sg-panel p-5 sm:p-6">
+      <h1 class="text-lg font-semibold text-fg-primary">
+        {mode === "login" ? "Sign in" : "Create account"}
+      </h1>
+      <p class="text-sm text-fg-secondary mt-1 mb-5">
+        {mode === "login" ? "Use your ID and password to continue." : "Pick an ID and password to register."}
+      </p>
 
-    {#if !authConfig}
-      <div class="text-xs text-fg-muted">Loading configuration…</div>
-    {:else if !authConfig.oauthEnabled && !authConfig.localAuthEnabled}
-      <div class="p-3 bg-fg-warning/10 border border-fg-warning/30 text-fg-warning text-xs">
-        No authentication methods enabled.
-      </div>
-    {:else}
-      {#if authConfig.oauthEnabled}
-        <SignInOptions
-          discordEnabled={authConfig.discordEnabled}
-          discordUrl={authConfig.discordLoginUrl}
-          googleEnabled={authConfig.googleEnabled}
-          googleUrl={authConfig.googleLoginUrl}
-          localEnabled={false}
-          onLocal={() => {}}
-        />
-        {#if authConfig.localAuthEnabled}
-          <div class="flex items-center gap-3 my-4 text-xs text-fg-muted">
-            <div class="flex-1 h-px bg-border-default"></div>
-            <span>or</span>
-            <div class="flex-1 h-px bg-border-default"></div>
-          </div>
-        {/if}
-      {/if}
-
-      {#if authConfig.localAuthEnabled}
+      {#if !authConfig}
         {#if error}
-          <div class="mb-4 p-3 bg-fg-danger/10 border border-fg-danger/30 text-fg-danger text-xs">{error}</div>
+          <div class="p-3 rounded-control border border-fg-danger/45 text-fg-danger text-sm" role="alert">{error}</div>
+        {:else}
+          <div class="text-sm text-fg-muted" role="status">Loading configuration…</div>
+        {/if}
+      {:else if !authConfig.oauthEnabled && !authConfig.localAuthEnabled}
+        <div class="p-3 rounded-control border border-fg-warning/45 text-fg-warning text-sm" role="alert">
+          No authentication methods enabled.
+        </div>
+      {:else}
+        {#if authConfig.oauthEnabled}
+          <SignInOptions
+            discordEnabled={authConfig.discordEnabled}
+            discordUrl={authConfig.discordLoginUrl}
+            googleEnabled={authConfig.googleEnabled}
+            googleUrl={authConfig.googleLoginUrl}
+            localEnabled={false}
+            onLocal={() => {}}
+          />
+          {#if authConfig.localAuthEnabled}
+            <div class="flex items-center gap-3 my-5 text-xs text-fg-muted">
+              <div class="flex-1 h-px bg-border-default"></div>
+              <span>or</span>
+              <div class="flex-1 h-px bg-border-default"></div>
+            </div>
+          {/if}
         {/if}
 
-        <form class="space-y-3" onsubmit={submit}>
-          <TextField id="userId" label="User ID" value={userId} placeholder="your-id" disabled={loading} required onInput={(v) => (userId = v)} />
-
-          {#if mode === "register"}
-            <TextField id="username" label="Username" value={username} placeholder="Display name" disabled={loading} required onInput={(v) => (username = v)} />
-            <TextField id="krname-reg" label="Korean name (optional)" value={koreanName} placeholder="홍길동" disabled={loading} onInput={(v) => (koreanName = v)} />
+        {#if authConfig.localAuthEnabled}
+          {#if error}
+            <div class="mb-4 p-3 rounded-control border border-fg-danger/45 text-fg-danger text-sm" role="alert">{error}</div>
           {/if}
 
-          <TextField id="password" label="Password" type="password" value={password} disabled={loading} required onInput={(v) => (password = v)} />
+          <form class="flex flex-col gap-3" onsubmit={submit}>
+            <TextField id="userId" label="User ID" value={userId} placeholder="your-id" disabled={loading} required autocomplete="username" invalid={!!error} onInput={(v) => (userId = v)} />
 
-          {#if mode === "register"}
-            <TextField id="confirmPassword" label="Confirm password" type="password" value={confirmPassword} disabled={loading} required onInput={(v) => (confirmPassword = v)} />
-            <PasswordRules rules={authConfig.passwordRequirements} />
-          {/if}
-
-          <button
-            type="submit"
-            class="w-full h-10 inline-flex items-center justify-center gap-2 bg-accent text-accent-fg text-sm font-semibold hover:bg-accent-hover transition-colors disabled:opacity-60"
-            disabled={loading}
-          >
-            {#if mode === "login"}
-              <LogIn size="14" />
-              {loading ? "Signing in…" : "Sign in"}
-            {:else}
-              <UserPlus size="14" />
-              {loading ? "Creating…" : "Create account"}
+            {#if mode === "register"}
+              <TextField id="username" label="Username" value={username} placeholder="Display name" disabled={loading} required autocomplete="off" onInput={(v) => (username = v)} />
+              <TextField id="krname-reg" label="Korean name (optional)" value={koreanName} placeholder="홍길동" disabled={loading} autocomplete="name" onInput={(v) => (koreanName = v)} />
             {/if}
-          </button>
 
-          <button type="button" class="w-full text-xs text-fg-muted hover:text-fg-link mt-2 transition-colors" onclick={switchMode}>
-            {mode === "login" ? "Need an account? Register" : "Already registered? Sign in"}
-          </button>
-        </form>
+            <TextField id="password" label="Password" type="password" value={password} disabled={loading} required autocomplete={mode === "login" ? "current-password" : "new-password"} invalid={!!error} onInput={(v) => (password = v)} />
+
+            {#if mode === "register"}
+              <TextField id="confirmPassword" label="Confirm password" type="password" value={confirmPassword} disabled={loading} required autocomplete="new-password" onInput={(v) => (confirmPassword = v)} />
+              <PasswordRules rules={authConfig.passwordRequirements} />
+            {/if}
+
+            <button type="submit" class="mt-1 sg-btn sg-btn-primary sg-btn-block" disabled={loading}>
+              {#if mode === "login"}
+                <LogIn size="16" />
+                {loading ? "Signing in…" : "Sign in"}
+              {:else}
+                <UserPlus size="16" />
+                {loading ? "Creating…" : "Create account"}
+              {/if}
+            </button>
+
+            <button type="button" class="self-center sg-btn sg-btn-ghost" onclick={switchMode}>
+              {mode === "login" ? "Need an account? Register" : "Already registered? Sign in"}
+            </button>
+          </form>
+        {/if}
       {/if}
-    {/if}
+    </div>
   </div>
 </main>

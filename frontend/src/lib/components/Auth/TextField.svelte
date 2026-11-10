@@ -7,6 +7,8 @@
     placeholder?: string;
     disabled?: boolean;
     required?: boolean;
+    autocomplete?: HTMLInputElement["autocomplete"];
+    invalid?: boolean;
     onInput: (next: string) => void;
   }
 
@@ -18,6 +20,8 @@
     placeholder = "",
     disabled = false,
     required = false,
+    autocomplete = undefined,
+    invalid = false,
     onInput,
   }: Props = $props();
 
@@ -28,7 +32,7 @@
 </script>
 
 <div>
-  <label for={id} class="block text-[11px] text-fg-muted mb-1">{label}</label>
+  <label for={id} class="sg-label">{label}</label>
   <input
     {id}
     {type}
@@ -36,7 +40,9 @@
     {placeholder}
     {disabled}
     {required}
+    {autocomplete}
+    aria-invalid={invalid || undefined}
     oninput={handle}
-    class="w-full px-3 h-9 bg-bg-elevated border border-border-default text-fg-primary text-sm focus:border-border-focus outline-none disabled:opacity-60"
+    class="sg-input"
   />
 </div>

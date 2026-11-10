@@ -30,34 +30,22 @@
   }
 </script>
 
-<div class="space-y-2">
+<div class="flex flex-col gap-2">
   {#if discordEnabled}
-    <button
-      type="button"
-      class="w-full flex items-center justify-center gap-2.5 h-10 bg-bg-elevated border border-border-strong text-fg-primary text-sm font-medium hover:bg-bg-overlay transition-colors"
-      onclick={goDiscord}
-    >
-      <DiscordIcon size={16} />
+    <button type="button" class="sg-btn sg-btn-block" onclick={goDiscord}>
+      <DiscordIcon size={20} class="text-brand-discord" />
       Continue with Discord
     </button>
   {/if}
   {#if googleEnabled}
-    <button
-      type="button"
-      class="w-full flex items-center justify-center gap-2.5 h-10 bg-bg-elevated border border-border-strong text-fg-primary text-sm font-medium hover:bg-bg-overlay transition-colors"
-      onclick={goGoogle}
-    >
-      <GoogleIcon size={16} />
+    <button type="button" class="sg-btn sg-btn-block" onclick={goGoogle}>
+      <GoogleIcon size={20} />
       Continue with Google
     </button>
   {/if}
   {#if localEnabled}
-    <button
-      type="button"
-      class="w-full flex items-center justify-center gap-2 h-10 bg-accent text-accent-fg text-sm font-semibold hover:bg-accent-hover transition-colors"
-      onclick={onLocal}
-    >
-      <KeyRound size="14" />
+    <button type="button" class="sg-btn sg-btn-primary sg-btn-block" onclick={onLocal}>
+      <KeyRound size="16" />
       ID / Password
     </button>
   {/if}

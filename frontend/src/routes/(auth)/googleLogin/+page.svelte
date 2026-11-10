@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Logo from "$lib/components/Logo.svelte";
   import { onMount } from "svelte";
   import { useAuth } from "$lib/store/store";
   import { auth } from "$lib/store/auth.svelte";
@@ -115,49 +116,48 @@
   }
 </script>
 
-<main class="min-h-screen flex items-center justify-center bg-bg-base p-6">
-  <div class="w-full max-w-md bg-bg-surface border border-border-default p-6 shadow-[0_4px_12px_rgba(0,0,0,0.4)]">
-    {#if error}
-      <div class="mb-4 p-3 bg-fg-danger/10 border border-fg-danger/30 text-fg-danger text-sm">
-        {error}
-      </div>
-    {/if}
+<main class="min-h-full flex flex-col items-center justify-center px-gutter py-10">
+  <div class="w-full max-w-[400px]">
+    <div class="flex items-center gap-2 mb-5">
+      <Logo size={26} />
+      <span class="text-lg font-bold text-fg-primary">NAS</span>
+    </div>
 
-    {#if !registering && !error}
-      <div class="text-lg text-fg-primary font-semibold mb-2">Signing you in…</div>
-      <div class="text-sm text-fg-muted">Verifying with Google.</div>
-    {:else if registering}
-      <h1 class="text-xl text-fg-primary font-semibold mb-2">Welcome!</h1>
-      <p class="text-sm text-fg-muted mb-4">Before logging in, please enter your Korean name.</p>
+    <div class="sg-panel p-5 sm:p-6">
+      {#if error}
+        <div class="mb-4 p-3 rounded-control border border-fg-danger/45 text-fg-danger text-sm" role="alert">
+          {error}
+        </div>
+      {/if}
 
-      <div class="space-y-3 mb-4">
-        <div>
-          <div class="text-xs text-fg-muted mb-1">Email</div>
-          <input type="text" value={saveData.email} readonly class="w-full px-3 h-9 bg-bg-elevated border border-border-default text-fg-disabled text-sm" />
+      {#if !registering && !error}
+        <div role="status">
+          <h1 class="text-lg font-semibold text-fg-primary">Signing you in…</h1>
+          <p class="text-sm text-fg-secondary mt-1">Verifying with Google.</p>
         </div>
-        <div>
-          <div class="text-xs text-fg-muted mb-1">Name</div>
-          <input type="text" value={saveData.global_name} readonly class="w-full px-3 h-9 bg-bg-elevated border border-border-default text-fg-disabled text-sm" />
-        </div>
-        <div>
-          <label for="krname-input" class="block text-xs text-fg-muted mb-1">Korean Name</label>
-          <input
-            id="krname-input"
-            type="text"
-            bind:value={koreanName}
-            placeholder="홍길동"
-            class="w-full px-3 h-9 bg-bg-elevated border border-border-default text-fg-primary text-sm focus:border-border-focus outline-none"
-          />
-        </div>
-      </div>
+      {:else if registering}
+        <h1 class="text-lg font-semibold text-fg-primary">Welcome!</h1>
+        <p class="text-sm text-fg-secondary mt-1 mb-5">Before logging in, please enter your Korean name.</p>
 
-      <button
-        type="button"
-        class="w-full h-10 bg-accent text-accent-fg font-semibold hover:bg-accent-hover transition-colors"
-        onclick={register}
-      >
-        Complete Registration
-      </button>
-    {/if}
+        <div class="flex flex-col gap-3 mb-5">
+          <div>
+            <label for="google-first" class="sg-label">Email</label>
+            <input id="google-first" type="text" value={saveData.email} readonly class="sg-input" />
+          </div>
+          <div>
+            <label for="google-second" class="sg-label">Name</label>
+            <input id="google-second" type="text" value={saveData.global_name} readonly class="sg-input" />
+          </div>
+          <div>
+            <label for="krname" class="sg-label">Korean name</label>
+            <input id="krname" type="text" bind:value={koreanName} placeholder="홍길동" autocomplete="name" class="sg-input" />
+          </div>
+        </div>
+
+        <button type="button" class="sg-btn sg-btn-primary sg-btn-block" onclick={register}>
+          Complete Registration
+        </button>
+      {/if}
+    </div>
   </div>
 </main>

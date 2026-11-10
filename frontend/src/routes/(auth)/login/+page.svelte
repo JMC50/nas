@@ -106,54 +106,48 @@
   }
 </script>
 
-<main class="min-h-screen flex items-center justify-center bg-bg-base p-6">
-  <div class="w-full max-w-md bg-bg-surface border border-border-default p-6">
-    <div class="flex items-center gap-2 mb-6">
-      <Logo />
-      <span class="text-base font-semibold text-fg-primary tracking-tight">NAS</span>
+<main class="min-h-full flex flex-col items-center justify-center px-gutter py-10">
+  <div class="w-full max-w-[400px]">
+    <div class="flex items-center gap-2 mb-5">
+      <Logo size={26} />
+      <span class="text-lg font-bold text-fg-primary">NAS</span>
     </div>
 
-    {#if error}
-      <div class="mb-4 p-3 bg-fg-danger/10 border border-fg-danger/30 text-fg-danger text-sm">
-        {error}
-      </div>
-    {/if}
-
-    {#if !registering && !error}
-      <div class="text-sm font-semibold text-fg-primary mb-1">Signing you in…</div>
-      <div class="text-xs text-fg-muted">Verifying with Discord.</div>
-    {:else if registering}
-      <h1 class="text-base font-semibold text-fg-primary mb-1">One more step</h1>
-      <p class="text-xs text-fg-muted mb-4">Enter your Korean name to finish registration.</p>
-
-      <div class="space-y-3 mb-4">
-        <div>
-          <div class="text-[11px] text-fg-muted mb-1">Username</div>
-          <input type="text" value={saveData.username} readonly class="w-full px-3 h-9 bg-bg-elevated border border-border-default text-fg-disabled text-sm" />
+    <div class="sg-panel p-5 sm:p-6">
+      {#if error}
+        <div class="mb-4 p-3 rounded-control border border-fg-danger/45 text-fg-danger text-sm" role="alert">
+          {error}
         </div>
-        <div>
-          <div class="text-[11px] text-fg-muted mb-1">Display name</div>
-          <input type="text" value={saveData.global_name} readonly class="w-full px-3 h-9 bg-bg-elevated border border-border-default text-fg-disabled text-sm" />
-        </div>
-        <div>
-          <label for="krname" class="block text-[11px] text-fg-muted mb-1">Korean name</label>
-          <input
-            id="krname"
-            type="text"
-            bind:value={koreanName}
-            placeholder="홍길동"
-            class="w-full px-3 h-9 bg-bg-elevated border border-border-default text-fg-primary text-sm focus:border-border-focus outline-none"
-          />
-        </div>
-      </div>
+      {/if}
 
-      <button
-        type="button"
-        class="w-full h-10 bg-accent text-accent-fg text-sm font-semibold hover:bg-accent-hover transition-colors"
-        onclick={register}
-      >
-        Complete registration
-      </button>
-    {/if}
+      {#if !registering && !error}
+        <div role="status">
+          <h1 class="text-lg font-semibold text-fg-primary">Signing you in…</h1>
+          <p class="text-sm text-fg-secondary mt-1">Verifying with Discord.</p>
+        </div>
+      {:else if registering}
+        <h1 class="text-lg font-semibold text-fg-primary">One more step</h1>
+        <p class="text-sm text-fg-secondary mt-1 mb-5">Enter your Korean name to finish registration.</p>
+
+        <div class="flex flex-col gap-3 mb-5">
+          <div>
+            <label for="discord-first" class="sg-label">Username</label>
+            <input id="discord-first" type="text" value={saveData.username} readonly class="sg-input" />
+          </div>
+          <div>
+            <label for="discord-second" class="sg-label">Display name</label>
+            <input id="discord-second" type="text" value={saveData.global_name} readonly class="sg-input" />
+          </div>
+          <div>
+            <label for="krname" class="sg-label">Korean name</label>
+            <input id="krname" type="text" bind:value={koreanName} placeholder="홍길동" autocomplete="name" class="sg-input" />
+          </div>
+        </div>
+
+        <button type="button" class="sg-btn sg-btn-primary sg-btn-block" onclick={register}>
+          Complete registration
+        </button>
+      {/if}
+    </div>
   </div>
 </main>

@@ -1,14 +1,14 @@
 # 시험용 NAS
 
-이 폴더는 포크 이미지를 운영 NAS와 떨어진 곳에서 확인하는 시험용 NAS를 띄웁니다. 시험용 NAS는 `127.0.0.1`에만 묶이고, 이 폴더의 `data/`만 씁니다. 운영 NAS의 `/home/anxi/nas/data`는 읽지도 쓰지도 않습니다.
+이 폴더는 새로 빌드한 이미지를 운영 NAS와 떨어진 곳에서 확인하는 시험용 NAS를 띄웁니다. 시험용 NAS는 `127.0.0.1`에만 묶이고, 이 폴더의 `data/`만 씁니다. 운영 NAS의 데이터 폴더는 읽지도 쓰지도 않습니다.
 
 ## 실행
 
 ```bash
 cd deploy/staging
-./up.sh nas-signal:<커밋>          # 127.0.0.1:7778 에 시험용 NAS 시작
+./up.sh nas:<커밋>                 # 127.0.0.1:7778 에 시험용 NAS 시작
 python3 -I seed.py                  # 시험 계정, 시험 파일, 시험 활동 기록
-docker rm -f nas-signal-staging     # 끄기
+docker rm -f nas-staging            # 끄기
 ```
 
 다른 포트를 쓰려면 `STAGING_PORT=7779 ./up.sh ...`처럼 환경 변수를 줍니다. 저장소 밖에서 돌릴 때는 `NAS_TESTDATA`로 `backend/tests/testdata` 위치를 알려 줍니다.

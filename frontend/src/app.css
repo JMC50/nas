@@ -1,6 +1,5 @@
 @import "tailwindcss";
 
-/* Signal: Gitea 테마(arcyn-homelab gitea/custom theme-signal.css)와 같은 토큰 값과 같은 글꼴 파일임 */
 @font-face {
     font-family: "Wanted Sans Variable";
     src: url("/fonts/WantedSansVariable.woff2") format("woff2");
@@ -117,7 +116,6 @@
         margin: 0;
         font-size: var(--text-sm);
         line-height: 1.5;
-        /* 소유자 요청: 본문 굵기 550 이상 */
         font-weight: 550;
         word-break: keep-all;
         overflow-wrap: anywhere;

@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 # 시험용 NAS를 127.0.0.1에만 띄움. 운영 데이터와 떨어진 이 폴더의 data/ 를 씀
-# 사용: ./up.sh <이미지>   예: ./up.sh nas-signal:abc1234
+# 사용: ./up.sh <이미지>   예: ./up.sh nas:abc1234
 set -euo pipefail
 cd "$(dirname "$0")"
 IMAGE=${1:?usage: up.sh <image>}
-NAME=${STAGING_NAME:-nas-signal-staging}
+NAME=${STAGING_NAME:-nas-staging}
 PORT=${STAGING_PORT:-7778}
 RUN=$PWD/run
 umask 077

@@ -101,7 +101,7 @@
 </script>
 
 <div
-  class="h-10 pointer-coarse:h-11 flex items-stretch gap-1 pl-1 pr-1 overflow-x-auto bg-bg-base border-b border-border-default [scrollbar-width:none]"
+  class="h-10 pointer-coarse:h-11 pointer-coarse:box-content flex items-stretch gap-1 pl-1 pr-1 overflow-x-auto bg-bg-base border-b border-border-default [scrollbar-width:none]"
   role="tablist"
   aria-label="Open tabs"
 >

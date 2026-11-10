@@ -59,7 +59,7 @@ func NewRouter(cfg *config.Config, conn *sql.DB) http.Handler {
 	if err != nil {
 		log.Fatalf("office handlers init: %v", err)
 	}
-	requireToken := auth.RequireToken(cfg.PrivateKey)
+	requireToken := auth.RequireToken(cfg, conn)
 
 	// Public root + health.
 	// When FRONTEND_DIR is configured, serve the SPA index at /. Otherwise return

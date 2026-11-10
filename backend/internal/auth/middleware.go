@@ -3,9 +3,11 @@ package auth
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"net/http"
 	"strings"
 
+	"github.com/JMC50/nas/internal/config"
 	"github.com/JMC50/nas/internal/db"
 )
 
@@ -38,7 +40,7 @@ func ClaimsFromContext(ctx context.Context) *NodeCompatClaims {
 // RequireToken parses + verifies the JWT and attaches claims to context.
 // Returns 401 (not 500) on missing/invalid token — matches REST conventions, departs
 // from legacy's `res.status(500).end("wtf is this token")` which was a defect.
-func RequireToken(secret string) func(http.Handler) http.Handler {
+func RequireToken(cfg *config.Config, conn *sql.DB) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			raw := ExtractToken(r)
@@ -46,9 +48,13 @@ func RequireToken(secret string) func(http.Handler) http.Handler {
 				http.Error(w, "token required", http.StatusUnauthorized)
 				return
 			}
-			claims, err := ParseToken(raw, secret)
-			if err != nil {
+			claims, err := Authenticate(cfg, conn, raw)
+			if errors.Is(err, ErrInvalidToken) {
 				http.Error(w, "invalid token", http.StatusUnauthorized)
+				return
+			}
+			if err != nil {
+				http.Error(w, "token check failed", http.StatusInternalServerError)
 				return
 			}
 			ctx := context.WithValue(r.Context(), ctxClaims, claims)

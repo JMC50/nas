@@ -142,7 +142,7 @@ func (h *Handlers) InsertLog(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "invalid body", http.StatusBadRequest)
 		return
 	}
-	claims, err := auth.ParseToken(req.Token, h.Config.PrivateKey)
+	claims, err := auth.Authenticate(h.Config, h.DB, req.Token)
 	if err != nil {
 		http.Error(w, "invalid token", http.StatusUnauthorized)
 		return

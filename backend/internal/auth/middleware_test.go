@@ -7,8 +7,11 @@ import (
 
 	"github.com/stretchr/testify/require"
 
+	"github.com/JMC50/nas/internal/config"
 	"github.com/JMC50/nas/internal/db"
 )
+
+var testConfig = &config.Config{PrivateKey: "secret", AuthType: config.AuthTypeBoth}
 
 func TestExtractToken_QueryParamPriority(t *testing.T) {
 	req := httptest.NewRequest("GET", "/?token=fromquery", nil)
@@ -28,7 +31,7 @@ func TestExtractToken_NoneReturnsEmpty(t *testing.T) {
 }
 
 func TestRequireToken_RejectsMissing(t *testing.T) {
-	handler := RequireToken("secret")(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	handler := RequireToken(testConfig, setupTestDBForAuth(t))(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 	}))
 	req := httptest.NewRequest("GET", "/", nil)
@@ -42,7 +45,7 @@ func TestRequireToken_AttachesClaims(t *testing.T) {
 	require.NoError(t, err)
 
 	var got string
-	handler := RequireToken("secret")(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	handler := RequireToken(testConfig, setupTestDBForAuth(t))(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		got = ClaimsFromContext(r.Context()).UserID
 		w.WriteHeader(http.StatusOK)
 	}))
@@ -62,7 +65,7 @@ func TestRequireIntent_AllowsWhenGranted(t *testing.T) {
 	token, err := IssueToken("alice", "secret")
 	require.NoError(t, err)
 
-	chain := RequireToken("secret")(RequireIntent(conn, IntentUpload)(
+	chain := RequireToken(testConfig, conn)(RequireIntent(conn, IntentUpload)(
 		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusOK)
 		}),
@@ -81,7 +84,7 @@ func TestRequireIntent_BlocksWhenMissing(t *testing.T) {
 	token, err := IssueToken("bob", "secret")
 	require.NoError(t, err)
 
-	chain := RequireToken("secret")(RequireIntent(conn, IntentDelete)(
+	chain := RequireToken(testConfig, conn)(RequireIntent(conn, IntentDelete)(
 		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			t.Fatal("handler must not be called")
 		}),

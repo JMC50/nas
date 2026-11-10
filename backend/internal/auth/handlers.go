@@ -216,7 +216,7 @@ func (h *Handlers) ChangePassword(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, http.StatusUnauthorized, authResponse{Message: "Token required"})
 		return
 	}
-	claims, err := ParseToken(raw, h.Config.PrivateKey)
+	claims, err := Authenticate(h.Config, h.DB, raw)
 	if err != nil {
 		writeJSON(w, http.StatusUnauthorized, authResponse{Message: "Invalid token"})
 		return

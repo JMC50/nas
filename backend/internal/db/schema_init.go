@@ -17,7 +17,8 @@ CREATE TABLE IF NOT EXISTS users (
 	global_name TEXT,
 	krname TEXT,
 	password TEXT,
-	auth_type TEXT
+	auth_type TEXT,
+	tokens_valid_after INTEGER
 );
 CREATE TABLE IF NOT EXISTS user_intents (
 	id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -62,11 +63,26 @@ CREATE TABLE IF NOT EXISTS share_links (
 CREATE INDEX IF NOT EXISTS idx_share_links_user ON share_links(user_id);
 `
 
-// InitSchema runs CREATE TABLE IF NOT EXISTS for the required tables.
+// InitSchema runs CREATE TABLE IF NOT EXISTS for the required tables, then adds
+// the columns that an older database does not have yet.
 // Safe to call on a populated DB — existing rows are preserved.
 func InitSchema(conn *sql.DB) error {
 	if _, err := conn.Exec(schemaDDL); err != nil {
 		return fmt.Errorf("create tables: %w", err)
+	}
+	return addColumn(conn, "users", "tokens_valid_after", "INTEGER")
+}
+
+func addColumn(conn *sql.DB, table, column, columnType string) error {
+	columns, err := tableColumns(conn, table)
+	if err != nil {
+		return fmt.Errorf("introspect %s: %w", table, err)
+	}
+	if _, ok := columns[column]; ok {
+		return nil
+	}
+	if _, err := conn.Exec(fmt.Sprintf("ALTER TABLE %s ADD COLUMN %s %s", table, column, columnType)); err != nil {
+		return fmt.Errorf("add column %s.%s: %w", table, column, err)
 	}
 	return nil
 }

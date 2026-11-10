@@ -17,7 +17,7 @@ type tableSchema struct {
 // Column types intentionally NOT verified — bcryptjs hashes were stored as TEXT
 // and remain TEXT under Go bcrypt. If a future migration changes types, update this slice.
 var requiredSchema = []tableSchema{
-	{"users", []string{"id", "userId", "username", "global_name", "krname", "password", "auth_type"}},
+	{"users", []string{"id", "userId", "username", "global_name", "krname", "password", "auth_type", "tokens_valid_after"}},
 	{"user_intents", []string{"id", "user_id", "intent"}},
 	{"log", []string{"id", "activity", "description", "user_id", "time", "loc"}},
 	{"server_settings", []string{"key", "value"}},

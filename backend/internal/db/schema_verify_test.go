@@ -15,7 +15,8 @@ const fullSchema = `
 		global_name TEXT,
 		krname TEXT,
 		password TEXT,
-		auth_type TEXT
+		auth_type TEXT,
+		tokens_valid_after INTEGER
 	);
 	CREATE TABLE user_intents (
 		id INTEGER PRIMARY KEY AUTOINCREMENT,

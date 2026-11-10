@@ -61,7 +61,7 @@ func (h *Handlers) preCreateHook(hook tusd.HookEvent) (tusd.HTTPResponse, tusd.F
 			tusd.NewError("ERR_UNAUTHORIZED", "token required", http.StatusUnauthorized)
 	}
 	token := authHeader[7:]
-	claims, err := auth.ParseToken(token, h.Config.PrivateKey)
+	claims, err := auth.Authenticate(h.Config, h.DB, token)
 	if err != nil {
 		return tusd.HTTPResponse{}, tusd.FileInfoChanges{},
 			tusd.NewError("ERR_UNAUTHORIZED", "invalid token", http.StatusUnauthorized)

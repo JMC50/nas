@@ -1,11 +1,15 @@
 package auth
 
 import (
+	"database/sql"
 	"errors"
 	"fmt"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
+
+	"github.com/JMC50/nas/internal/config"
+	"github.com/JMC50/nas/internal/db"
 )
 
 // tokenLifetimeMs matches Node legacy: 7 days in milliseconds (Date.now() + 7d).
@@ -18,16 +22,24 @@ const tokenLifetimeMs int64 = 7 * 24 * 60 * 60 * 1000
 //
 // expires_in is milliseconds-since-epoch, NOT the standard JWT `exp` (seconds).
 // Manual expiry check required at verify time.
+//
+// issued_at uses the same unit. Tokens from before v0.7.0 do not have it.
 type NodeCompatClaims struct {
-	UserID    string `json:"userId"`
-	ExpiresIn int64  `json:"expires_in"`
+	UserID     string `json:"userId"`
+	ExpiresIn  int64  `json:"expires_in"`
+	IssuedAtMs int64  `json:"issued_at,omitempty"`
 	jwt.RegisteredClaims
 }
 
+// ErrInvalidToken is returned by Authenticate for a token that must not be accepted.
+var ErrInvalidToken = errors.New("invalid token")
+
 func IssueToken(userID, secret string) (string, error) {
+	now := time.Now().UnixMilli()
 	claims := NodeCompatClaims{
-		UserID:    userID,
-		ExpiresIn: time.Now().UnixMilli() + tokenLifetimeMs,
+		UserID:     userID,
+		ExpiresIn:  now + tokenLifetimeMs,
+		IssuedAtMs: now,
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	signed, err := token.SignedString([]byte(secret))
@@ -55,6 +67,30 @@ func ParseToken(raw, secret string) (*NodeCompatClaims, error) {
 	}
 	if claims.ExpiresIn > 0 && time.Now().UnixMilli() >= claims.ExpiresIn {
 		return nil, errors.New("token expired")
+	}
+	return claims, nil
+}
+
+// Authenticate runs ParseToken and then rejects a token that was issued before
+// the user's tokens_valid_after time. Any other error is a failed lookup.
+func Authenticate(cfg *config.Config, conn *sql.DB, raw string) (*NodeCompatClaims, error) {
+	claims, err := ParseToken(raw, cfg.PrivateKey)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %v", ErrInvalidToken, err)
+	}
+	validAfter, found, err := db.TokensValidAfter(conn, claims.UserID)
+	if err != nil {
+		return nil, err
+	}
+	if !found {
+		// oidc 모드에서는 지워진 사용자의 토큰을 받지 않음. 다른 모드는 통과시키고 권한 확인에 맡김
+		if cfg.AuthType == config.AuthTypeOIDC {
+			return nil, fmt.Errorf("%w: user removed", ErrInvalidToken)
+		}
+		return claims, nil
+	}
+	if claims.IssuedAtMs < validAfter {
+		return nil, fmt.Errorf("%w: issued before tokens_valid_after", ErrInvalidToken)
 	}
 	return claims, nil
 }

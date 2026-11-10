@@ -144,7 +144,7 @@
     <div class="flex items-end justify-center gap-1 h-8">
       {#each [1, 2, 3, 4, 5] as i (i)}
         <span
-          class="block w-1.5 h-full bg-accent origin-bottom"
+          class="eq-bar block w-1.5 h-full bg-accent origin-bottom"
           style="animation: equalize-{i} {0.5 + i * 0.1}s ease-in-out infinite;
                  animation-play-state: {playing ? 'running' : 'paused'};
                  transform: scaleY({playing ? 1 : 0.3});"

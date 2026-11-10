@@ -185,6 +185,17 @@ html.light {
     }
 }
 
+@media (prefers-reduced-motion: reduce) {
+    .animate-pulse,
+    .eq-bar {
+        animation: none !important;
+    }
+    .transition-transform,
+    .transition-\[width\] {
+        transition: none;
+    }
+}
+
 /* ─────────────────────────────────────────────────────────────────
    `.h-app` — full viewport height for the (app) layout root.
    Uses `100dvh` so iOS Safari's collapsing URL bar doesn't clip the

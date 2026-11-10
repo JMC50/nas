@@ -64,6 +64,21 @@
   function stopRowLongPress(event: PointerEvent) {
     event.stopPropagation();
   }
+
+  function onRowKey(event: KeyboardEvent, entry: FolderEntry) {
+    if (event.target !== event.currentTarget) return;
+    if (event.key === "Enter") {
+      event.preventDefault();
+      onOpen(entry, { newTab: entry.isFolder && (event.ctrlKey || event.metaKey) });
+    } else if (event.key === " ") {
+      event.preventDefault();
+      onSelect(new MouseEvent("click", { ctrlKey: event.ctrlKey, metaKey: event.metaKey, shiftKey: event.shiftKey }), entry);
+    } else if (event.key === "ContextMenu" || (event.shiftKey && event.key === "F10")) {
+      event.preventDefault();
+      const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
+      onMenu(new MouseEvent("contextmenu", { clientX: rect.left + 24, clientY: rect.bottom }), entry);
+    }
+  }
 </script>
 
 <!--
@@ -88,7 +103,7 @@
       {@const isDropTarget = entry.isFolder && dropTargetName === entry.name}
       <tr
         data-entry-name={entry.name}
-        class="border-b border-border-default/40 hover:bg-bg-hover cursor-pointer {isDropTarget
+        class="border-b border-border-default/40 hover:bg-bg-hover cursor-pointer focus-visible:outline-offset-[-2px] {isDropTarget
  ? 'ring-1 ring-inset ring-accent bg-bg-elevated'
  : ''} {isSelected ? 'ring-1 ring-inset ring-accent bg-bg-elevated' : ''}"
         draggable={!ui.isMobile}
@@ -108,6 +123,9 @@
         }}
         oncontextmenu={(event) => onMenu(event, entry)}
         onclick={(event) => onSelect(event, entry)}
+        onkeydown={(event) => onRowKey(event, entry)}
+        tabindex="0"
+        aria-selected={isSelected}
       >
         <td class="px-6 py-1.5">
           <div class="flex items-center gap-2 min-w-0">

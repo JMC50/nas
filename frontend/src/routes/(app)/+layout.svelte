@@ -31,7 +31,7 @@
 </script>
 
 <div
-  class="grid grid-rows-[48px_minmax(0,1fr)_28px] grid-cols-[minmax(0,1fr)] lg:grid-rows-[minmax(0,1fr)_28px] lg:grid-cols-[64px_minmax(0,1fr)] h-app w-screen bg-bg-base"
+  class="grid grid-rows-[48px_minmax(0,1fr)_auto] grid-cols-[minmax(0,1fr)] lg:grid-rows-[minmax(0,1fr)_auto] lg:grid-cols-[64px_minmax(0,1fr)] h-app w-screen bg-bg-base"
 >
   <Header />
   <VerticalNav />

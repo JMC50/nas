@@ -101,7 +101,7 @@
 </script>
 
 <div
-  class="h-10 flex items-stretch gap-1 pl-1 pr-1 overflow-x-auto bg-bg-base border-b border-border-default [scrollbar-width:none]"
+  class="h-10 pointer-coarse:h-11 flex items-stretch gap-1 pl-1 pr-1 overflow-x-auto bg-bg-base border-b border-border-default [scrollbar-width:none]"
   role="tablist"
   aria-label="Open tabs"
 >
@@ -144,7 +144,7 @@
   {/each}
   <button
     type="button"
-    class="sg-btn sg-btn-ghost sg-btn-icon self-center shrink-0"
+    class="sg-btn sg-btn-ghost sg-btn-icon self-center shrink-0 focus-visible:outline-offset-[-2px]"
     onclick={openNewTab}
     aria-label="New explorer tab"
     title="New explorer tab (clone current location)"
@@ -216,10 +216,14 @@
     outline-offset: -2px;
   }
   @media (pointer: coarse) {
+    .tab {
+      min-width: 136px;
+      padding-right: 0;
+    }
     .tab-close {
       opacity: 1;
-      width: 32px;
-      height: 32px;
+      width: 44px;
+      height: 44px;
     }
   }
 </style>

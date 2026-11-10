@@ -22,7 +22,7 @@
 </script>
 
 <div
-  class="fixed z-[70] right-gutter bottom-9 lg:bottom-10 w-[min(380px,calc(100vw-2*var(--spacing-gutter)))] flex flex-col gap-2 pointer-events-none"
+  class="fixed z-[70] right-gutter bottom-9 pointer-coarse:bottom-13 lg:bottom-10 lg:pointer-coarse:bottom-13 w-[min(380px,calc(100vw-2*var(--spacing-gutter)))] flex flex-col gap-2 pointer-events-none"
   role="status"
   aria-live="polite"
 >

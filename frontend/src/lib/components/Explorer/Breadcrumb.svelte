@@ -117,10 +117,10 @@
   }
   @media (pointer: coarse) {
     .crumb {
-      min-height: 36px;
+      min-height: 44px;
     }
     .crumb.is-current {
-      line-height: 36px;
+      line-height: 44px;
     }
   }
 </style>

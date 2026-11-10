@@ -75,7 +75,7 @@
 {#if entry}
   {@const Icon = iconFor(entry)}
   <aside
-    class="fixed inset-x-0 bottom-0 top-auto max-h-[70dvh] w-full rounded-t-panel border-t border-border-default pb-[env(safe-area-inset-bottom)] animate-sheet md:animate-fade md:top-12 lg:top-0 md:right-0 md:inset-x-auto md:bottom-7 md:max-h-none md:w-[360px] md:rounded-none md:border-t-0 md:border-l md:pb-0 bg-bg-surface z-40 flex flex-col shadow-overlay {dragStartY === null ? 'transition-transform duration-150' : ''}"
+    class="fixed inset-x-0 bottom-0 top-auto max-h-[70dvh] w-full rounded-t-panel border-t border-border-default pb-[env(safe-area-inset-bottom)] animate-sheet md:animate-fade md:top-12 lg:top-0 md:right-0 md:inset-x-auto md:bottom-7 md:pointer-coarse:bottom-11 md:max-h-none md:w-[360px] md:rounded-none md:border-t-0 md:border-l md:pb-0 bg-bg-surface z-40 flex flex-col shadow-overlay {dragStartY === null ? 'transition-transform duration-150' : ''}"
     style="transform: translateY({dragOffsetY}px);"
     aria-label="File details"
   >

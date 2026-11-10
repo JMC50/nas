@@ -16,7 +16,7 @@
 </script>
 
 <footer
-  class="row-start-3 col-start-1 lg:row-start-2 lg:col-start-2 h-7 min-w-0 flex items-center justify-between gap-3 pl-1 pr-3 text-xs text-fg-muted border-t border-border-default bg-bg-surface"
+  class="row-start-3 col-start-1 lg:row-start-2 lg:col-start-2 h-7 pointer-coarse:h-11 min-w-0 flex items-center justify-between gap-3 pl-1 pr-3 text-xs text-fg-muted border-t border-border-default bg-bg-surface"
 >
   <button
     type="button"

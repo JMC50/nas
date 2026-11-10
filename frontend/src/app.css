@@ -163,6 +163,11 @@
     summary {
         cursor: pointer;
     }
+
+    /* 스크롤 영역 끝의 조작에 초점이 가도 고리가 잘리지 않게 여백을 두고 스크롤함 */
+    :where(a, button, input, select, textarea, summary, [tabindex]) {
+        scroll-margin-block: 8px;
+    }
 }
 
 @layer components {
@@ -404,6 +409,7 @@
         border-radius: var(--radius-seg);
     }
     .sg-seg-btn {
+        position: relative;
         display: inline-flex;
         align-items: center;
         justify-content: center;
@@ -490,6 +496,7 @@
 
 @media (pointer: coarse) {
     .sg-btn {
+        min-width: 44px;
         min-height: 44px;
     }
     .sg-btn-icon {
@@ -502,8 +509,14 @@
         min-height: 44px;
     }
     .sg-seg-btn {
-        min-width: 40px;
+        min-width: 44px;
         min-height: 38px;
+    }
+    /* 세그먼트 칸은 테두리와 안쪽 여백 3px까지 누를 수 있게 넓혀 44px을 채움 */
+    .sg-seg-btn::before {
+        content: "";
+        position: absolute;
+        inset: -3px 0;
     }
 }
 

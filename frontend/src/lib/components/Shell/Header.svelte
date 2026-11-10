@@ -48,7 +48,7 @@
       <Search size="18" />
     </button>
     {#if auth.isAuthenticated}
-      <button type="button" class="sg-btn sg-btn-ghost gap-2 px-1.5 md:pr-2.5" onclick={openAccount} aria-label="Open account">
+      <button type="button" class="sg-btn sg-btn-ghost gap-2 px-2.5" onclick={openAccount} aria-label="Open account">
         <span class="grid place-items-center size-6 rounded-control bg-fg-info text-accent-fg text-xs font-bold" aria-hidden="true">
           {name.slice(0, 1).toUpperCase()}
         </span>

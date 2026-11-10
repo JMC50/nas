@@ -48,45 +48,79 @@
 </script>
 
 <nav
-  class="flex items-center gap-1 h-8 px-6 text-xs text-fg-muted border-b border-border-default bg-bg-base"
+  class="flex items-center gap-0.5 min-h-9 px-2 md:px-gutter overflow-x-auto text-sm text-fg-secondary border-b border-border-default bg-bg-base [scrollbar-width:none]"
+  aria-label="Folder path"
 >
   <button
     type="button"
-    class="inline-flex items-center gap-1 px-1.5 h-6 hover:bg-bg-hover hover:text-fg-primary transition-colors {dropTarget ===
- -1
- ? 'bg-bg-elevated text-fg-accent ring-1 ring-accent'
- : ''}"
+    class="crumb {dropTarget === -1 ? 'is-drop' : ''}"
     onclick={onRoot}
     ondragover={rootDragOver}
     ondragleave={dragLeave}
     ondrop={rootDrop}
   >
-    <HomeIcon size="12" />
+    <HomeIcon size="14" />
     <span>root</span>
   </button>
   {#each loc as segment, index (index)}
-    <ChevronRight size="11" class="text-fg-disabled shrink-0" />
+    <ChevronRight size="14" class="text-fg-muted shrink-0" />
     {#if index === loc.length - 1}
-      <span
-        class="inline-flex items-center px-1.5 h-6 bg-bg-elevated text-fg-accent font-medium truncate"
-        aria-current="page"
-      >
-        {segment}
-      </span>
+      <span class="crumb is-current" aria-current="page" title={segment}>{segment}</span>
     {:else}
       <button
         type="button"
-        class="px-1.5 h-6 hover:bg-bg-hover hover:text-fg-primary transition-colors truncate {dropTarget ===
- index
- ? 'bg-bg-elevated text-fg-accent ring-1 ring-accent'
- : ''}"
+        class="crumb {dropTarget === index ? 'is-drop' : ''}"
         onclick={() => onGoto(index)}
         ondragover={(event) => segmentDragOver(event, index)}
         ondragleave={dragLeave}
         ondrop={(event) => segmentDrop(event, index)}
+        title={segment}
       >
-        {segment}
+        <span class="truncate">{segment}</span>
       </button>
     {/if}
   {/each}
 </nav>
+
+<style>
+  .crumb {
+    display: inline-flex;
+    flex-shrink: 0;
+    align-items: center;
+    gap: 6px;
+    max-width: 240px;
+    min-height: 28px;
+    padding: 0 6px;
+    border-radius: var(--radius-chip);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    transition: background-color 70ms var(--ease-snap), color 70ms var(--ease-snap);
+  }
+  button.crumb:hover {
+    background: var(--color-bg-hover);
+    color: var(--color-fg-primary);
+  }
+  .crumb:focus-visible {
+    outline-offset: -2px;
+  }
+  .crumb.is-current {
+    display: block;
+    line-height: 28px;
+    color: var(--color-fg-primary);
+    font-weight: 650;
+  }
+  .crumb.is-drop {
+    background: var(--color-bg-selected);
+    color: var(--color-accent);
+    box-shadow: inset 0 0 0 1px var(--color-accent);
+  }
+  @media (pointer: coarse) {
+    .crumb {
+      min-height: 36px;
+    }
+    .crumb.is-current {
+      line-height: 36px;
+    }
+  }
+</style>

@@ -75,8 +75,9 @@
 {#if entry}
   {@const Icon = iconFor(entry)}
   <aside
-    class="fixed inset-x-0 bottom-0 top-auto max-h-[70dvh] w-full border-t border-border-default pb-[env(safe-area-inset-bottom)] md:top-12 md:right-0 md:inset-x-auto md:bottom-7 md:max-h-none md:w-[360px] md:rounded-none md:border-t-0 md:border-l md:pb-0 bg-bg-surface z-40 flex flex-col shadow-[0_0_24px_rgba(0,0,0,0.4)] {dragStartY === null ? 'transition-transform duration-150' : ''}"
+    class="fixed inset-x-0 bottom-0 top-auto max-h-[70dvh] w-full rounded-t-panel border-t border-border-default pb-[env(safe-area-inset-bottom)] animate-sheet md:animate-fade md:top-12 lg:top-0 md:right-0 md:inset-x-auto md:bottom-7 md:max-h-none md:w-[360px] md:rounded-none md:border-t-0 md:border-l md:pb-0 bg-bg-surface z-40 flex flex-col shadow-overlay {dragStartY === null ? 'transition-transform duration-150' : ''}"
     style="transform: translateY({dragOffsetY}px);"
+    aria-label="File details"
   >
     <!--
       Drag handle. Purely visual affordance for touch users — no ARIA role:
@@ -94,51 +95,38 @@
       onpointerup={endDrag}
       onpointercancel={endDrag}
     >
-      <div class="w-12 h-1 bg-fg-muted/40 mx-auto"></div>
+      <div class="w-10 h-1 rounded-full bg-border-strong mx-auto"></div>
     </div>
-    <header class="h-10 flex items-center justify-between px-3 border-b border-border-default">
-      <span class="text-sm font-semibold text-fg-primary">File details</span>
+    <header class="min-h-12 flex items-center justify-between gap-2 pl-4 pr-2 border-b border-border-default">
+      <h2 class="text-md font-semibold text-fg-primary">File details</h2>
       <button
         type="button"
-        class="w-7 h-7 inline-flex items-center justify-center text-fg-muted hover:text-fg-primary hover:bg-bg-hover"
+        class="sg-btn sg-btn-ghost sg-btn-icon"
         onclick={onClose}
         aria-label="Close file details"
       >
-        <X size="14" />
+        <X size="18" />
       </button>
     </header>
 
-    <div class="flex-1 overflow-y-auto">
-      <div class="h-8 px-3 flex items-center gap-2 text-xs">
-        <Icon size="14" class={entry.isFolder ? "text-accent" : "text-fg-secondary"} />
-        <span class="font-mono text-fg-primary truncate" title={entry.name}>
-          {entry.name}
+    <div class="flex-1 overflow-y-auto p-4 flex flex-col gap-4">
+      <div class="flex items-center gap-3 min-w-0">
+        <span class="grid place-items-center size-10 shrink-0 rounded-control bg-bg-elevated">
+          <Icon size="20" class={entry.isFolder ? "text-fg-secondary" : "text-fg-muted"} />
         </span>
+        <span class="text-sm font-semibold text-fg-primary truncate" title={entry.name}>{entry.name}</span>
       </div>
 
-      <div class="h-8 px-3 flex items-center gap-2 text-xs">
-        <span class="w-20 text-fg-muted">Type</span>
-        <span class="font-mono text-fg-primary truncate">{typeLabel}</span>
-      </div>
-
-      <div class="h-8 px-3 flex items-center gap-2 text-xs">
-        <span class="w-20 text-fg-muted">Size</span>
-        <span class="font-mono text-fg-primary truncate">{sizeLabel}</span>
-      </div>
-
-      <div class="h-8 px-3 flex items-center gap-2 text-xs">
-        <span class="w-20 text-fg-muted">Modified</span>
-        <span class="font-mono text-fg-primary truncate">
-          {formatFullTime(entry.modifiedAt)}
-        </span>
-      </div>
-
-      <div class="h-8 px-3 flex items-center gap-2 text-xs">
-        <span class="w-20 text-fg-muted">Path</span>
-        <span class="font-mono text-fg-primary truncate" title={fullPath}>
-          {fullPath}
-        </span>
-      </div>
+      <dl class="grid grid-cols-[88px_minmax(0,1fr)] gap-x-3 gap-y-2.5 text-sm">
+        <dt class="text-fg-muted">Type</dt>
+        <dd class="text-fg-primary truncate">{typeLabel}</dd>
+        <dt class="text-fg-muted">Size</dt>
+        <dd class="text-fg-primary tabular-nums truncate">{sizeLabel}</dd>
+        <dt class="text-fg-muted">Modified</dt>
+        <dd class="text-fg-primary tabular-nums truncate">{formatFullTime(entry.modifiedAt)}</dd>
+        <dt class="text-fg-muted">Path</dt>
+        <dd class="font-mono text-xs leading-5 text-fg-secondary break-all">{fullPath}</dd>
+      </dl>
     </div>
   </aside>
 {/if}

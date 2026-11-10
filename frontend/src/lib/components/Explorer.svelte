@@ -6,6 +6,8 @@
   import UploadIcon from "lucide-svelte/icons/upload";
   import FolderUp from "lucide-svelte/icons/folder-up";
   import RefreshCw from "lucide-svelte/icons/refresh-cw";
+  import Search from "lucide-svelte/icons/search";
+  import FolderOpen from "lucide-svelte/icons/folder-open";
   import { files } from "$lib/store/files.svelte";
   import { tabs } from "$lib/store/tabs.svelte";
   import { ui } from "$lib/store/ui.svelte";
@@ -558,10 +560,10 @@
     onDropToSegment={(event, index) => onDropOnLoc(event, loc.slice(0, index + 1))}
   />
 
-  <div class="h-8 flex items-center gap-2 px-6 border-b border-border-default bg-bg-base">
-    <Folder size="14" class="text-accent shrink-0" />
-    <span class="text-xs font-medium text-fg-primary truncate">{folderName}</span>
-    <span class="ml-auto text-xs text-fg-muted font-mono shrink-0">
+  <div class="h-10 flex items-center gap-2 px-gutter border-b border-border-default bg-bg-base">
+    <Folder size="16" class="text-fg-secondary shrink-0" />
+    <h2 class="text-sm font-semibold text-fg-primary truncate min-w-0">{folderName}</h2>
+    <span class="ml-auto shrink-0 text-xs text-fg-muted tabular-nums">
       {sorted.length} {sorted.length === 1 ? "item" : "items"}
     </span>
   </div>
@@ -572,26 +574,26 @@
       users have a way to cancel/delete without a right-click menu.
     -->
     <div
-      class="h-10 flex items-center gap-2 px-3 border-b border-border-default bg-bg-elevated"
+      class="flex items-center gap-2 px-2 py-1 border-b border-border-default bg-bg-selected shadow-[inset_2px_0_0_var(--color-accent)]"
     >
       <button
         type="button"
-        class="w-7 h-7 inline-flex items-center justify-center text-fg-muted hover:text-fg-primary hover:bg-bg-hover"
+        class="sg-btn sg-btn-ghost sg-btn-icon"
         onclick={() => updateSelection([])}
         aria-label="Cancel selection"
       >
-        <X size="14" />
+        <X size="18" />
       </button>
-      <span class="text-xs text-fg-primary">
+      <span class="text-sm font-semibold text-fg-primary tabular-nums">
         {selection.length} selected
       </span>
       <button
         type="button"
-        class="ml-auto h-7 inline-flex items-center gap-1 px-2 text-xs text-fg-danger hover:bg-bg-hover"
+        class="ml-auto sg-btn sg-btn-danger"
         onclick={deleteSelected}
         aria-label="Delete selected"
       >
-        <Trash2 size="12" />
+        <Trash2 size="16" />
         Delete
       </button>
     </div>
@@ -624,12 +626,20 @@
         onGranted={refresh}
       />
     {:else if errorMessage}
-      <div class="p-6 text-sm text-fg-danger">Failed to load: {errorMessage}</div>
+      <div class="m-gutter p-3 rounded-panel border border-fg-danger/45 text-sm text-fg-danger" role="alert">Failed to load: {errorMessage}</div>
     {:else if loading && entries.length === 0}
-      <div class="p-6 text-sm text-fg-muted">Loading…</div>
+      <div class="px-gutter py-6 text-sm text-fg-muted" role="status">Loading…</div>
     {:else if sorted.length === 0}
-      <div class="p-12 text-center text-sm text-fg-muted">
-        {searchQuery ? "No matches in this folder." : "Folder is empty."}
+      <div class="flex flex-col items-center gap-2 px-gutter py-16 text-center">
+        {#if searchQuery}
+          <Search size="28" class="text-fg-muted" />
+          <p class="text-sm font-semibold text-fg-primary">No matches in this folder.</p>
+          <p class="text-xs text-fg-muted">Try a shorter name, or search all files with Ctrl P.</p>
+        {:else}
+          <FolderOpen size="28" class="text-fg-muted" />
+          <p class="text-sm font-semibold text-fg-primary">Folder is empty.</p>
+          <p class="text-xs text-fg-muted">Drop files here, or use Upload.</p>
+        {/if}
       </div>
     {:else if files.viewMode === "grid"}
       <FileGrid
@@ -660,7 +670,7 @@
       {@const width = Math.abs(marquee.x1 - marquee.x0)}
       {@const height = Math.abs(marquee.y1 - marquee.y0)}
       <div
-        class="absolute pointer-events-none border border-accent bg-accent/10"
+        class="absolute pointer-events-none rounded-chip border border-accent bg-accent/10"
         style="left:{left}px;top:{top}px;width:{width}px;height:{height}px"
       ></div>
     {/if}
@@ -710,6 +720,7 @@
       updateSelection(setSingle(target.name));
       hideMenu();
     }}
+    onClose={hideMenu}
   />
 {/if}
 
@@ -717,45 +728,45 @@
   <!-- Empty-area context menu: appears when the user right-clicks the
        file canvas anywhere except on an entry. Folder-level actions only. -->
   <div
-    class="fixed z-50 min-w-[180px] py-1 bg-bg-overlay border border-border-strong shadow-[0_4px_16px_rgba(0,0,0,0.5)]"
-    style="left: {bgMenuX}px; top: {bgMenuY}px;"
+    class="fixed z-50 sg-menu animate-pop origin-top-left"
+    style="left: {Math.min(bgMenuX, ui.viewportWidth - 216)}px; top: {Math.min(bgMenuY, ui.viewportHeight - 190)}px;"
     role="menu"
   >
     <button
       type="button"
-      class="w-full flex items-center gap-2 px-3 h-8 text-xs text-fg-primary hover:bg-bg-hover text-left"
+      class="sg-menu-item"
       role="menuitem"
       onclick={() => { newFolder(); hideBackgroundMenu(); }}
     >
-      <Folder size="12" />
+      <Folder size="16" />
       New folder
     </button>
     <button
       type="button"
-      class="w-full flex items-center gap-2 px-3 h-8 text-xs text-fg-primary hover:bg-bg-hover text-left"
+      class="sg-menu-item"
       role="menuitem"
       onclick={() => { fileInputEl?.click(); hideBackgroundMenu(); }}
     >
-      <UploadIcon size="12" />
+      <UploadIcon size="16" />
       Upload files
     </button>
     <button
       type="button"
-      class="w-full flex items-center gap-2 px-3 h-8 text-xs text-fg-primary hover:bg-bg-hover text-left"
+      class="sg-menu-item"
       role="menuitem"
       onclick={() => { folderInputEl?.click(); hideBackgroundMenu(); }}
     >
-      <FolderUp size="12" />
+      <FolderUp size="16" />
       Upload folder
     </button>
-    <div class="h-px bg-border-default mx-1 my-1"></div>
+    <div class="sg-menu-sep" role="separator"></div>
     <button
       type="button"
-      class="w-full flex items-center gap-2 px-3 h-8 text-xs text-fg-primary hover:bg-bg-hover text-left"
+      class="sg-menu-item"
       role="menuitem"
       onclick={() => { refresh(); hideBackgroundMenu(); }}
     >
-      <RefreshCw size="12" />
+      <RefreshCw size="16" />
       Refresh
     </button>
   </div>

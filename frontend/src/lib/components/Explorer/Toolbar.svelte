@@ -60,92 +60,78 @@
   }
 </script>
 
-{#snippet searchInput()}
-  <Search size="13" class="text-fg-muted shrink-0" />
-  <input
-    type="search"
-    name="folder-q"
-    autocomplete="off"
-    autocorrect="off"
-    spellcheck="false"
-    value={searchQuery}
-    oninput={handleInput}
-    placeholder="Search current folder…"
-    class="flex-1 bg-transparent text-xs text-fg-primary placeholder:text-fg-muted outline-none min-w-0"
-  />
+{#snippet searchInput(id: string)}
+  <label for={id} class="sr-only">Search current folder</label>
+  <div class="relative flex-1 min-w-0">
+    <Search size="16" class="absolute left-2.5 top-1/2 -translate-y-1/2 text-fg-muted pointer-events-none" />
+    <input
+      {id}
+      type="search"
+      name="folder-q"
+      autocomplete="off"
+      autocorrect="off"
+      spellcheck="false"
+      value={searchQuery}
+      oninput={handleInput}
+      placeholder="Search current folder…"
+      class="sg-input sg-input-icon"
+    />
+  </div>
 {/snippet}
 
-<header class="flex items-center gap-1.5 md:gap-2 px-3 md:px-6 h-12 border-b border-border-default bg-bg-surface">
+<header class="flex items-center gap-1.5 md:gap-2 px-2 md:px-gutter min-h-12 py-1 border-b border-border-default bg-bg-surface">
   <button
     type="button"
-    class="inline-flex items-center justify-center w-8 h-8 text-fg-muted hover:text-fg-primary hover:bg-bg-hover disabled:opacity-40 disabled:hover:bg-transparent transition-colors {upDropActive
- ? 'bg-bg-elevated text-fg-accent ring-1 ring-accent'
- : ''}"
+    class="sg-btn sg-btn-ghost sg-btn-icon {upDropActive ? 'drop-target' : ''}"
     onclick={onUp}
     disabled={loc.length === 0}
     aria-label="Up one directory"
+    title={loc.length === 0 ? "Already at the top folder" : "Up one directory"}
     ondragover={onUpDragOver}
     ondragleave={onUpDragLeave}
     ondrop={onUpDrop}
   >
-    <ArrowUp size="16" />
+    <ArrowUp size="18" />
   </button>
 
-  <button
-    type="button"
-    class="inline-flex items-center justify-center w-8 h-8 md:w-auto md:gap-1.5 md:px-2.5 text-fg-primary hover:bg-bg-hover text-xs font-medium transition-colors"
-    onclick={onUpload}
-    aria-label="Upload"
-  >
-    <FilePlus size="14" />
+  <button type="button" class="sg-btn sg-btn-primary" onclick={onUpload} aria-label="Upload">
+    <FilePlus size="16" />
     <span class="hidden md:inline">Upload</span>
   </button>
 
-  <button
-    type="button"
-    class="hidden md:inline-flex items-center gap-1.5 h-8 px-2.5 text-fg-primary hover:bg-bg-hover text-xs font-medium transition-colors"
-    onclick={onUploadFolder}
-  >
-    <FolderUp size="14" />
+  <button type="button" class="hidden md:inline-flex sg-btn" onclick={onUploadFolder}>
+    <FolderUp size="16" />
     <span>Upload folder</span>
   </button>
 
-  <button
-    type="button"
-    class="hidden md:inline-flex items-center gap-1.5 h-8 px-2.5 text-fg-primary hover:bg-bg-hover text-xs font-medium transition-colors"
-    onclick={onNewFolder}
-  >
-    <FolderPlus size="14" />
+  <button type="button" class="hidden md:inline-flex sg-btn" onclick={onNewFolder}>
+    <FolderPlus size="16" />
     <span>New folder</span>
   </button>
 
-  <div
-    class="hidden md:flex items-center gap-1.5 ml-2 h-8 px-2.5 bg-bg-elevated flex-1 min-w-0 max-w-md"
-  >
-    {@render searchInput()}
+  <div class="hidden md:flex flex-1 min-w-0 max-w-md ml-2">
+    {@render searchInput("folder-q-desktop")}
   </div>
 
   <div class="ml-auto flex items-center gap-1.5 md:gap-2">
-    <div class="flex items-center gap-0.5 p-0.5 bg-bg-elevated">
+    <div class="sg-seg" role="group" aria-label="File view">
       <button
         type="button"
-        class="inline-flex items-center justify-center w-7 h-7 {files.viewMode === 'grid'
- ? 'bg-accent text-accent-fg'
- : 'text-fg-muted hover:text-fg-primary'}"
-        onclick={() => files.setViewMode('grid')}
+        class="sg-seg-btn"
+        onclick={() => files.setViewMode("grid")}
         aria-label="Grid view"
+        aria-pressed={files.viewMode === "grid"}
       >
-        <LayoutGrid size="13" />
+        <LayoutGrid size="16" />
       </button>
       <button
         type="button"
-        class="inline-flex items-center justify-center w-7 h-7 {files.viewMode === 'list'
- ? 'bg-accent text-accent-fg'
- : 'text-fg-muted hover:text-fg-primary'}"
-        onclick={() => files.setViewMode('list')}
+        class="sg-seg-btn"
+        onclick={() => files.setViewMode("list")}
         aria-label="List view"
+        aria-pressed={files.viewMode === "list"}
       >
-        <LayoutList size="13" />
+        <LayoutList size="16" />
       </button>
     </div>
 
@@ -160,9 +146,15 @@
 </header>
 
 {#if searchOpen}
-  <div class="md:hidden flex items-center gap-1.5 h-9 px-3 border-b border-border-default bg-bg-surface">
-    <div class="flex items-center gap-1.5 h-8 px-2.5 bg-bg-elevated flex-1 min-w-0">
-      {@render searchInput()}
-    </div>
+  <div class="md:hidden flex items-center px-2 py-1.5 border-b border-border-default bg-bg-surface">
+    {@render searchInput("folder-q-mobile")}
   </div>
 {/if}
+
+<style>
+  .drop-target {
+    background: var(--color-bg-selected);
+    color: var(--color-accent);
+    box-shadow: inset 0 0 0 1px var(--color-accent);
+  }
+</style>

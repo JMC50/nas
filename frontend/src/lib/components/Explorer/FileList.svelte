@@ -85,15 +85,14 @@
   data-marquee-canvas="false" stops marquee pointerdown trigger from firing on
   table rows — only blank-area mousedowns inside the canvas start a marquee.
 -->
-<table class="w-full text-sm" data-marquee-canvas="false">
+<table class="w-full text-sm table-fixed" data-marquee-canvas="false">
   <thead>
     <tr class="text-xs text-fg-muted border-b border-border-default">
-      <th class="text-left font-normal px-6 py-2">Name</th>
-      <th class="text-left font-normal px-6 py-2 w-24">Type</th>
-      <th class="text-right font-normal px-6 py-2 w-20 font-mono">Size</th>
-      <th class="text-left font-normal px-6 py-2 w-32">Modified</th>
-      <!-- Kebab column header — empty label, mobile-only width reservation. -->
-      <th class="md:hidden w-10" aria-hidden="true"></th>
+      <th scope="col" class="text-left font-semibold pl-gutter pr-3 h-8">Name</th>
+      <th scope="col" class="hidden md:table-cell text-left font-semibold px-3 w-24">Type</th>
+      <th scope="col" class="text-right font-semibold px-3 w-24">Size</th>
+      <th scope="col" class="hidden sm:table-cell text-left font-semibold px-3 w-32 lg:pr-gutter">Modified</th>
+      <th class="md:hidden w-12" aria-hidden="true"></th>
     </tr>
   </thead>
   <tbody>
@@ -103,9 +102,7 @@
       {@const isDropTarget = entry.isFolder && dropTargetName === entry.name}
       <tr
         data-entry-name={entry.name}
-        class="border-b border-border-default/40 hover:bg-bg-hover cursor-pointer focus-visible:outline-offset-[-2px] {isDropTarget
- ? 'ring-1 ring-inset ring-accent bg-bg-elevated'
- : ''} {isSelected ? 'ring-1 ring-inset ring-accent bg-bg-elevated' : ''}"
+        class="row {isSelected ? 'is-selected' : ''} {isDropTarget ? 'is-drop' : ''}"
         draggable={!ui.isMobile}
         use:dragEntry={{
           entry,
@@ -127,22 +124,19 @@
         tabindex="0"
         aria-selected={isSelected}
       >
-        <td class="px-6 py-1.5">
-          <div class="flex items-center gap-2 min-w-0">
-            <Icon size="14" class={entry.isFolder ? "text-accent" : "text-fg-secondary"} />
-            <span class="truncate text-fg-primary">{entry.name}</span>
+        <td class="pl-gutter pr-3">
+          <div class="flex items-center gap-3 min-w-0">
+            <Icon size="16" class="shrink-0 {entry.isFolder ? 'text-fg-secondary' : 'text-fg-muted'}" />
+            <span class="truncate text-fg-primary" title={entry.name}>{entry.name}</span>
           </div>
         </td>
-        <td class="px-6 py-1.5 text-xs text-fg-muted">
+        <td class="hidden md:table-cell px-3 text-xs text-fg-muted truncate">
           {entry.isFolder ? "Folder" : entry.extensions || "file"}
         </td>
-        <td class="px-6 py-1.5 text-xs text-fg-muted font-mono text-right">
+        <td class="px-3 text-xs text-fg-muted text-right tabular-nums whitespace-nowrap">
           {entry.isFolder ? "—" : formatBytes(entry.size)}
         </td>
-        <td
-          class="px-6 py-1.5 text-xs text-fg-muted"
-          title={formatFullTime(entry.modifiedAt)}
-        >
+        <td class="hidden sm:table-cell px-3 lg:pr-gutter text-xs text-fg-muted whitespace-nowrap" title={formatFullTime(entry.modifiedAt)}>
           {formatRelTime(entry.modifiedAt)}
         </td>
         <!--
@@ -150,18 +144,46 @@
           already invokes the context menu. data-marquee-canvas inherited as
           "false" from the parent <table>, so the kebab cannot start a marquee.
         -->
-        <td class="md:hidden px-2 py-1.5 text-right">
+        <td class="md:hidden pr-1 text-right">
           <button
             type="button"
-            class="inline-flex items-center justify-center w-8 h-8 text-fg-muted hover:text-fg-primary hover:bg-bg-hover"
+            class="sg-btn sg-btn-ghost sg-btn-icon"
             onpointerdown={stopRowLongPress}
             onclick={(event) => onKebab(event, entry)}
             aria-label="More actions for {entry.name}"
           >
-            <MoreVertical size="16" />
+            <MoreVertical size="18" />
           </button>
         </td>
       </tr>
     {/each}
   </tbody>
 </table>
+
+<style>
+  .row {
+    height: 36px;
+    border-bottom: 1px solid var(--color-border-default);
+    cursor: pointer;
+    transition: background-color 70ms var(--ease-snap);
+  }
+  .row:hover {
+    background: var(--color-bg-hover);
+  }
+  .row:focus-visible {
+    outline-offset: -2px;
+  }
+  .row.is-selected {
+    background: var(--color-bg-selected);
+    box-shadow: inset 2px 0 0 var(--color-accent);
+  }
+  .row.is-drop {
+    background: var(--color-bg-selected);
+    box-shadow: inset 0 0 0 1px var(--color-accent);
+  }
+  @media (pointer: coarse) {
+    .row {
+      height: 48px;
+    }
+  }
+</style>

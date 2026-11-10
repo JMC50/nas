@@ -64,7 +64,7 @@
   entries — only blank-area mousedowns inside the canvas start a marquee.
 -->
 <div
-  class="grid grid-cols-[repeat(auto-fill,minmax(120px,1fr))] gap-2 p-6"
+  class="grid grid-cols-[repeat(auto-fill,minmax(112px,1fr))] gap-2 p-3 md:p-gutter"
   data-marquee-canvas="false"
 >
   {#each entries as entry (entry.name)}
@@ -74,9 +74,7 @@
     <button
       type="button"
       data-entry-name={entry.name}
-      class="group flex flex-col items-center gap-1.5 p-3 text-fg-primary hover:bg-bg-hover transition-colors focus-visible:outline-2 focus-visible:outline-border-focus {isDropTarget
- ? 'ring-1 ring-accent bg-bg-elevated'
- : ''} {isSelected ? 'ring-1 ring-accent bg-bg-elevated' : ''}"
+      class="tile {isSelected ? 'is-selected' : ''} {isDropTarget ? 'is-drop' : ''}"
       draggable={!ui.isMobile}
       use:dragEntry={{
         entry,
@@ -96,9 +94,35 @@
       onkeydown={(event) => onKey(event, entry)}
       onclick={(event) => onSelect(event, entry)}
       title={titleFor(entry)}
+      aria-pressed={isSelected}
     >
-      <Icon size="32" class={entry.isFolder ? "text-accent" : "text-fg-secondary"} />
-      <span class="text-xs truncate w-full text-center">{entry.name}</span>
+      <Icon size="32" class={entry.isFolder ? "text-fg-secondary" : "text-fg-muted"} />
+      <span class="text-xs w-full text-center truncate">{entry.name}</span>
     </button>
   {/each}
 </div>
+
+<style>
+  .tile {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    min-height: 100px;
+    padding: 14px 8px 10px;
+    border-radius: var(--radius-panel);
+    color: var(--color-fg-primary);
+    transition: background-color 70ms var(--ease-snap);
+  }
+  .tile:hover {
+    background: var(--color-bg-hover);
+  }
+  .tile.is-selected {
+    background: var(--color-bg-selected);
+    box-shadow: inset 0 0 0 1px var(--color-accent);
+  }
+  .tile.is-drop {
+    background: var(--color-bg-selected);
+    box-shadow: inset 0 0 0 1px var(--color-accent);
+  }
+</style>

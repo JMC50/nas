@@ -31,6 +31,7 @@
     // this entry. Desktop has shift/ctrl-click + drag-marquee for the same
     // purpose, so the item is hidden at md+ viewport.
     onSelect: () => void;
+    onClose: () => void;
   }
 
   let {
@@ -45,93 +46,130 @@
     onDelete,
     onInspect,
     onSelect,
+    onClose,
   }: Props = $props();
+
+  let menuEl: HTMLDivElement | undefined = $state();
+  let size = $state({ width: 0, height: 0 });
+  const left = $derived(Math.max(8, Math.min(x, ui.viewportWidth - size.width - 8)));
+  const top = $derived(Math.max(8, Math.min(y, ui.viewportHeight - size.height - 8)));
+
+  function onMenuKey(event: KeyboardEvent) {
+    if (event.key === "Escape") {
+      event.preventDefault();
+      event.stopPropagation();
+      onClose();
+      return;
+    }
+    if (event.key !== "ArrowDown" && event.key !== "ArrowUp") return;
+    event.preventDefault();
+    const items = Array.from(menuEl?.querySelectorAll<HTMLElement>('[role="menuitem"]') ?? []);
+    const index = items.indexOf(document.activeElement as HTMLElement);
+    const step = event.key === "ArrowDown" ? 1 : -1;
+    items[(index + step + items.length) % items.length]?.focus();
+  }
+
+  $effect(() => {
+    if (!menuEl) return;
+    size = { width: menuEl.offsetWidth, height: menuEl.offsetHeight };
+    menuEl.querySelector<HTMLElement>('[role="menuitem"]')?.focus({ preventScroll: true });
+  });
 </script>
 
+{#if ui.isMobile}
+  <div class="fixed inset-0 z-40 bg-black/55 animate-fade" aria-hidden="true"></div>
+{/if}
 <div
-  class="fixed z-50 min-w-[160px] py-1 bg-bg-overlay border border-border-strong shadow-[0_4px_16px_rgba(0,0,0,0.5)]"
-  style="left: {x}px; top: {y}px;"
+  bind:this={menuEl}
+  class="fixed z-50 sg-menu {ui.isMobile ? 'inset-x-0 bottom-0 sg-menu-sheet animate-sheet' : 'animate-pop origin-top-left'}"
+  style={ui.isMobile ? "" : `left: ${left}px; top: ${top}px;`}
   role="menu"
+  tabindex="-1"
+  aria-label="Actions for {target.name}"
+  onkeydown={onMenuKey}
 >
+  {#if ui.isMobile}
+    <div class="px-2.5 pt-1 pb-2 text-xs text-fg-muted truncate">{target.name}</div>
+  {/if}
   <button
     type="button"
-    class="w-full flex items-center gap-2 px-3 h-8 text-xs text-fg-primary hover:bg-bg-hover text-left"
+    class="sg-menu-item"
     onclick={onOpen}
     role="menuitem"
   >
     {#if target.isFolder}
-      <FolderOpen size="12" />
+      <FolderOpen size="16" />
     {:else}
-      <FileText size="12" />
+      <FileText size="16" />
     {/if}
     Open
   </button>
   {#if ui.isMobile}
     <button
       type="button"
-      class="w-full flex items-center gap-2 px-3 h-8 text-xs text-fg-primary hover:bg-bg-hover text-left"
+      class="sg-menu-item"
       onclick={onSelect}
       role="menuitem"
     >
-      <CheckSquare size="12" />
+      <CheckSquare size="16" />
       Select
     </button>
   {/if}
   {#if target.isFolder}
     <button
       type="button"
-      class="w-full flex items-center gap-2 px-3 h-8 text-xs text-fg-primary hover:bg-bg-hover text-left"
+      class="sg-menu-item"
       onclick={onOpenNewTab}
       role="menuitem"
     >
-      <ExternalLink size="12" />
+      <ExternalLink size="16" />
       Open in new tab
     </button>
   {/if}
   <button
     type="button"
-    class="w-full flex items-center gap-2 px-3 h-8 text-xs text-fg-primary hover:bg-bg-hover text-left"
+    class="sg-menu-item"
     onclick={onDownload}
     role="menuitem"
   >
-    <DownloadIcon size="12" />
+    <DownloadIcon size="16" />
     Download
   </button>
   <button
     type="button"
-    class="w-full flex items-center gap-2 px-3 h-8 text-xs text-fg-primary hover:bg-bg-hover text-left"
+    class="sg-menu-item"
     onclick={onRename}
     role="menuitem"
   >
-    <Pencil size="12" />
+    <Pencil size="16" />
     Rename
   </button>
   <button
     type="button"
-    class="w-full flex items-center gap-2 px-3 h-8 text-xs text-fg-primary hover:bg-bg-hover text-left"
+    class="sg-menu-item"
     onclick={onCopy}
     role="menuitem"
   >
-    <Copy size="12" />
+    <Copy size="16" />
     Copy
   </button>
-  <div class="h-px bg-border-default mx-1 my-1"></div>
+  <div class="sg-menu-sep" role="separator"></div>
   <button
     type="button"
-    class="w-full flex items-center gap-2 px-3 h-8 text-xs text-fg-primary hover:bg-bg-hover text-left"
+    class="sg-menu-item"
     onclick={onInspect}
     role="menuitem"
   >
-    <Info size="12" />
+    <Info size="16" />
     Details
   </button>
   <button
     type="button"
-    class="w-full flex items-center gap-2 px-3 h-8 text-xs text-fg-danger hover:bg-bg-hover text-left"
+    class="sg-menu-item sg-menu-item-danger"
     onclick={onDelete}
     role="menuitem"
   >
-    <Trash2 size="12" />
+    <Trash2 size="16" />
     Delete
   </button>
 </div>

@@ -9,6 +9,7 @@
   import { claimAdmin } from "$lib/auth-actions";
   import SignInOptions from "$lib/components/Auth/SignInOptions.svelte";
   import LinkedAccounts from "$lib/components/LinkedAccounts.svelte";
+  import { signOutAddress } from "$lib/oidc";
   import type { Intent } from "$lib/types";
 
   const ALL_INTENTS: Intent[] = [
@@ -23,7 +24,7 @@
   ];
 
   interface AuthConfig {
-    authType: "oauth" | "local" | "both";
+    authType: "oauth" | "local" | "both" | "oidc";
     localAuthEnabled: boolean;
     discordEnabled: boolean;
     discordLoginUrl: string;
@@ -66,10 +67,10 @@
     location.href = "/localLogin";
   }
 
-  function logout() {
+  async function logout() {
     auth.clear();
     const baseUrl = `${window.location.protocol}//${window.location.host}/`;
-    window.location.replace(baseUrl);
+    window.location.replace(await signOutAddress(baseUrl));
   }
 
   async function requestAdmin() {
@@ -132,7 +133,9 @@
           </button>
         </div>
 
-        <LinkedAccounts />
+        {#if authConfig?.authType !== "oidc"}
+          <LinkedAccounts />
+        {/if}
 
         <div class="sg-panel p-4">
           <div class="flex items-center justify-between gap-3 mb-4">

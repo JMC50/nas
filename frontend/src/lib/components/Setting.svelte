@@ -6,9 +6,11 @@
   import ServerSection from "$lib/components/Settings/Server.svelte";
   import About from "$lib/components/Settings/About.svelte";
   import { auth } from "$lib/store/auth.svelte";
+  import { oidcAddresses } from "$lib/oidc";
 
   let isAdmin = $state(false);
-  const showSecurity = $derived(auth.isAuthenticated);
+  let passwordless = $state(false);
+  const showSecurity = $derived(auth.isAuthenticated && !passwordless);
 
   async function checkAdmin() {
     if (!auth.token) {
@@ -28,7 +30,10 @@
     }
   }
 
-  onMount(checkAdmin);
+  onMount(async () => {
+    checkAdmin();
+    passwordless = (await oidcAddresses()) !== null;
+  });
 </script>
 
 <section class="flex flex-col h-full bg-bg-base overflow-hidden">

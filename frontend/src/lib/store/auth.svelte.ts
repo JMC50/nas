@@ -6,6 +6,10 @@
 import { get } from "svelte/store";
 import { useAuth, Logout } from "./store";
 import type { AuthUser } from "$lib/types";
+import { oidcAddresses } from "$lib/oidc";
+
+const SIGN_IN_AGAIN_KEY = "nas.oidc.signInAgain";
+const SIGN_IN_AGAIN_GAP_MS = 60_000;
 
 const EMPTY: AuthUser = {
   userId: "",
@@ -47,6 +51,7 @@ class AuthStore {
       const response = await fetch(`/server/checkAdmin?token=${encodeURIComponent(this.token)}`);
       if (!response.ok) {
         this.isAdmin = false;
+        if (response.status === 401) await this.signInAgain();
         return;
       }
       const data = await response.json();
@@ -55,6 +60,19 @@ class AuthStore {
       console.warn("checkAdmin failed", cause);
       this.isAdmin = false;
     }
+  }
+
+  // In single sign-on mode a rejected token is replaced by a new sign-in.
+  // A second rejection within a minute stops at the signed-out page, so a
+  // server that rejects every new token cannot cause a redirect loop.
+  private async signInAgain() {
+    const oidc = await oidcAddresses();
+    if (!oidc) return;
+    this.clear();
+    const last = Number(sessionStorage.getItem(SIGN_IN_AGAIN_KEY) ?? 0);
+    sessionStorage.setItem(SIGN_IN_AGAIN_KEY, String(Date.now()));
+    const looping = Date.now() - last < SIGN_IN_AGAIN_GAP_MS;
+    window.location.replace(looping ? "/localLogin?signedout=1" : oidc.loginUrl);
   }
 }
 

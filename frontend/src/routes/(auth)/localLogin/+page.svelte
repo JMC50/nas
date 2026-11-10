@@ -18,7 +18,7 @@
   }
 
   interface AuthConfig {
-    authType: "oauth" | "local" | "both";
+    authType: "oauth" | "local" | "both" | "oidc";
     localAuthEnabled: boolean;
     discordEnabled: boolean;
     discordLoginUrl: string;
@@ -26,12 +26,14 @@
     googleLoginUrl: string;
     oauthEnabled: boolean;
     passwordRequirements: Rules;
+    oidcLoginUrl?: string;
   }
 
   let authConfig: AuthConfig | null = $state(null);
   let mode: "login" | "register" = $state("login");
   let loading = $state(false);
   let error = $state("");
+  let signedOut = $state(false);
 
   let userId = $state("");
   let username = $state("");
@@ -45,6 +47,10 @@
       authConfig = await response.json();
     } catch (cause) {
       error = `Failed to load config: ${(cause as Error).message}`;
+    }
+    if (authConfig?.authType === "oidc") {
+      signedOut = new URLSearchParams(location.search).has("signedout");
+      if (!signedOut && authConfig.oidcLoginUrl) location.replace(authConfig.oidcLoginUrl);
     }
   });
 
@@ -100,11 +106,30 @@
     </div>
 
     <div class="sg-panel p-5 sm:p-6">
+      {#if authConfig?.authType === "oidc"}
+        {#if signedOut}
+          <h1 class="text-lg font-semibold text-fg-primary">Signed out</h1>
+          <p class="text-sm text-fg-secondary mt-1 mb-5">Your NAS session has ended.</p>
+          <a href={authConfig.oidcLoginUrl} class="sg-btn sg-btn-primary sg-btn-block">
+            <LogIn size="16" />
+            Sign in
+          </a>
+        {:else}
+          <div role="status">
+            <h1 class="text-lg font-semibold text-fg-primary">Signing you in…</h1>
+            <p class="text-sm text-fg-secondary mt-1">Opening single sign-on.</p>
+          </div>
+        {/if}
+      {:else}
       <h1 class="text-lg font-semibold text-fg-primary">
         {mode === "login" ? "Sign in" : "Create account"}
       </h1>
       <p class="text-sm text-fg-secondary mt-1 mb-5">
-        {mode === "login" ? "Use your ID and password to continue." : "Pick an ID and password to register."}
+        {#if authConfig}
+          {mode === "login" ? "Use your ID and password to continue." : "Pick an ID and password to register."}
+        {:else}
+          &nbsp;
+        {/if}
       </p>
 
       {#if !authConfig}
@@ -169,6 +194,7 @@
             </button>
           </form>
         {/if}
+      {/if}
       {/if}
     </div>
   </div>

@@ -13,6 +13,7 @@ import secrets
 import shutil
 import struct
 import sys
+import time
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -229,8 +230,6 @@ def seed_activity(tokens):
     kinds = ["UPLOAD", "DOWNLOAD", "VIEW", "OPEN", "RENAME", "DELETE", "COPY"]
     weights = [6, 5, 8, 6, 2, 1, 2]
     names = ["발표 자료.pptx", "설명서.pdf", "바다.png", "main.go", "시험 음원 440Hz.wav", "예산표 2026.xlsx", "메모.txt"]
-    import time
-
     now = int(time.time() * 1000)
     for _ in range(140):
         user = rng.choice(["owner", "owner", "member", "longname"])

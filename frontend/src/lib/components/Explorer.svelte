@@ -213,11 +213,11 @@
 
   // 파일 하나는 그대로 받고, 폴더나 여러 항목은 서버가 zip 하나로 묶어 보냄
   async function download(targets: FolderEntry[]) {
-    if (targets.length === 0 || zipPending) return;
     if (targets.length === 1 && !targets[0].isFolder) {
       saveFrom(downloadUrl(loc, targets[0]), targets[0].name);
       return;
     }
+    if (targets.length === 0 || zipPending) return;
     zipPending = true;
     try {
       const zip = await prepareZip(loc, targets);
@@ -633,7 +633,7 @@
   {#if ui.isMobile && selection.length > 0}
     <!--
       Mobile selection-mode bar. Appears when 1+ entries selected on mobile so
-      users have a way to cancel/delete without a right-click menu.
+      users have a way to cancel/download/delete without a right-click menu.
     -->
     <div
       class="flex items-center gap-2 px-2 py-1 border-b border-border-default bg-bg-selected shadow-[inset_2px_0_0_var(--color-accent)]"

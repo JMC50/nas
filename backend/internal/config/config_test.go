@@ -29,6 +29,24 @@ func TestLoadFromEnv_RequiredFields(t *testing.T) {
 	require.Equal(t, 7777, cfg.Port)
 }
 
+func TestLoadFromEnv_ZipDownloadLimits(t *testing.T) {
+	cfg, err := LoadFromEnv()
+	require.NoError(t, err)
+	require.Equal(t, 20000, cfg.ZipDownloadMaxFiles)
+	require.Equal(t, int64(50)<<30, cfg.ZipDownloadMaxBytes)
+
+	t.Setenv("ZIP_DOWNLOAD_MAX_FILES", "0")
+	t.Setenv("ZIP_DOWNLOAD_MAX_SIZE", "2gb")
+	cfg, err = LoadFromEnv()
+	require.NoError(t, err)
+	require.Equal(t, 0, cfg.ZipDownloadMaxFiles)
+	require.Equal(t, int64(2)<<30, cfg.ZipDownloadMaxBytes)
+
+	t.Setenv("ZIP_DOWNLOAD_MAX_SIZE", "lots")
+	_, err = LoadFromEnv()
+	require.ErrorContains(t, err, "ZIP_DOWNLOAD_MAX_SIZE")
+}
+
 func TestLoadFromEnv_ProductionRequiresSecrets(t *testing.T) {
 	t.Setenv("NODE_ENV", "production")
 	os.Unsetenv("PRIVATE_KEY")

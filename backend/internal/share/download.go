@@ -82,7 +82,8 @@ func (h *Handlers) openShared(token string) (*sharedTarget, error) {
 
 func (h *Handlers) serveFolder(guard *streamGuard, target *sharedTarget) {
 	h.recordDownload(target.link, target.creatorID)
-	if err := streamFolder(guard, target.root, target.rel, target.link.Name); err != nil {
+	items := []zipItem{{rel: target.rel, name: target.link.Name}}
+	if err := streamZip(guard, target.root, items, target.link.Name+".zip", zipLimits{}); err != nil {
 		slog.Warn("share folder zip stopped", "link", target.link.ID, "err", err)
 		// 끝맺지 않은 zip을 정상 응답처럼 마치지 않도록 연결을 끊음
 		panic(http.ErrAbortHandler)

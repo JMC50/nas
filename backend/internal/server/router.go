@@ -143,6 +143,10 @@ func NewRouter(cfg *config.Config, conn *sql.DB) http.Handler {
 		r.Delete("/share-links/{id}", shareHandlers.Revoke)
 	})
 
+	// 고른 파일과 폴더를 zip 하나로 받음. POST가 경로를 검사해 짧은 수명의 주소를 내주고 GET이 그 주소로 zip을 보냄
+	addFileRoute(r, "POST", "/zip-downloads", auth.IntentDownload, requireToken, conn, shareHandlers.PrepareZip)
+	addFileRoute(r, "GET", "/zip-downloads/{id}", auth.IntentDownload, requireToken, conn, shareHandlers.DownloadZip)
+
 	// Legacy upload wrappers (raw body stream)
 	addFileRoute(r, "POST", "/input", auth.IntentUpload, requireToken, conn, uploadHandlers.LegacyInput)
 	addFileRoute(r, "POST", "/inputZip", auth.IntentUpload, requireToken, conn, uploadHandlers.LegacyInputZip)

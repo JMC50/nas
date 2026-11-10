@@ -10,32 +10,50 @@ const (
 	maxZipStreams        = 3
 	maxStreamsPerLink    = 4
 	maxZipStreamsPerLink = 1
-	recordInterval       = time.Minute
-	retryAfterSeconds    = "30"
+	// 로그인한 사용자의 zip은 공개 링크와 자리를 따로 씀
+	maxBundleStreams        = 3
+	maxBundleStreamsPerUser = 2
+	recordInterval          = time.Minute
+	retryAfterSeconds       = "30"
 )
 
-// zip은 폴더 순회와 압축이 무거워 서버 전체에서 동시에 maxZipStreams개만 보냄.
-// 링크 하나가 서버 전체 zip 자리를 다 차지하지 못하게 폴더 링크는 링크마다 maxZipStreamsPerLink개만 받음
+// zip은 폴더 순회와 압축이 무거워 서버 전체에서 동시에 zipSlots 크기만큼만 보냄.
+// 링크나 사용자 하나가 그 자리를 다 차지하지 못하게 키마다 zipPerKey개만 받음
 type limiter struct {
-	zipSlots chan struct{}
-	mu       sync.Mutex
-	perLink  map[int64]int
-	recorded map[int64]time.Time
+	zipSlots  chan struct{}
+	zipPerKey int
+	mu        sync.Mutex
+	perLink   map[int64]int
+	recorded  map[int64]time.Time
 }
 
-func newLimiter() *limiter {
+func newLimiter(zipStreams, zipStreamsPerKey int) *limiter {
 	return &limiter{
-		zipSlots: make(chan struct{}, maxZipStreams),
-		perLink:  map[int64]int{},
-		recorded: map[int64]time.Time{},
+		zipSlots:  make(chan struct{}, zipStreams),
+		zipPerKey: zipStreamsPerKey,
+		perLink:   map[int64]int{},
+		recorded:  map[int64]time.Time{},
 	}
+}
+
+// zipBusy는 자리를 잡지 않고 지금 zip을 받을 수 없는 이유만 HTTP 상태 코드로 돌려줌. 받을 수 있으면 0
+func (l *limiter) zipBusy(key int64) int {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	if l.perLink[key] >= l.zipPerKey {
+		return http.StatusTooManyRequests
+	}
+	if len(l.zipSlots) == cap(l.zipSlots) {
+		return http.StatusServiceUnavailable
+	}
+	return 0
 }
 
 // 자리가 없으면 0이 아닌 HTTP 상태 코드를 돌려줌. 자리를 얻었으면 끝날 때 release를 불러야 함
 func (l *limiter) acquire(linkID int64, folder bool) (release func(), status int) {
 	limit := maxStreamsPerLink
 	if folder {
-		limit = maxZipStreamsPerLink
+		limit = l.zipPerKey
 	}
 	l.mu.Lock()
 	if l.perLink[linkID] >= limit {

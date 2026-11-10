@@ -55,6 +55,10 @@ type Config struct {
 	MaxFileSizeBytes     int64
 	MediaLibraryLimit    int
 
+	// 로그인한 사용자가 zip 하나로 받을 수 있는 항목 수(파일과 폴더)와 원본 크기 합. 0은 제한 없음
+	ZipDownloadMaxFiles int
+	ZipDownloadMaxBytes int64
+
 	// Version is the app version string loaded from the repo-root VERSION
 	// file at startup (see ResolvePaths). Falls back to "0.0.0-unknown" if
 	// the file is missing — production builds should always provide it via
@@ -104,6 +108,12 @@ func LoadFromEnv() (*Config, error) {
 	}
 	c.MaxFileSizeBytes = maxSize
 	c.MediaLibraryLimit = getEnvInt("MEDIA_LIB_LIMIT", 5000)
+	c.ZipDownloadMaxFiles = getEnvInt("ZIP_DOWNLOAD_MAX_FILES", 20000)
+	zipSize, err := parseSize(getEnv("ZIP_DOWNLOAD_MAX_SIZE", "50gb"))
+	if err != nil {
+		return nil, fmt.Errorf("ZIP_DOWNLOAD_MAX_SIZE: %w", err)
+	}
+	c.ZipDownloadMaxBytes = zipSize
 
 	if err := c.validate(); err != nil {
 		return nil, err

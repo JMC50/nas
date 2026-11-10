@@ -24,10 +24,19 @@ type Handlers struct {
 	Config *config.Config
 	DB     *sql.DB
 	limits *limiter
+
+	bundleLimits  *limiter
+	bundleTickets *ticketStore
 }
 
 func NewHandlers(cfg *config.Config, conn *sql.DB) *Handlers {
-	return &Handlers{Config: cfg, DB: conn, limits: newLimiter()}
+	return &Handlers{
+		Config:        cfg,
+		DB:            conn,
+		limits:        newLimiter(maxZipStreams, maxZipStreamsPerLink),
+		bundleLimits:  newLimiter(maxBundleStreams, maxBundleStreamsPerUser),
+		bundleTickets: newTicketStore(),
+	}
 }
 
 var expiryChoices = map[string]time.Duration{

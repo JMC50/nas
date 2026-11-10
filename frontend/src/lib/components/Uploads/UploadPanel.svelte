@@ -51,13 +51,13 @@
       </button>
     </header>
 
-    <ul class="flex-1 overflow-y-auto p-2 flex flex-col gap-2">
+    <ul class="flex-1 overflow-y-auto">
       {#if uploads.list.length === 0}
         <li class="text-sm text-fg-muted text-center py-10">No uploads yet.</li>
       {/if}
 
       {#each uploads.list as upload (upload.id)}
-        <li class="p-3 rounded-panel border border-border-default bg-bg-base">
+        <li class="px-4 py-3 border-b border-border-default">
           <div class="flex items-center gap-2">
             <span class="text-sm font-semibold truncate flex-1 min-w-0 text-fg-primary" title={upload.filename}>
               {upload.filename}

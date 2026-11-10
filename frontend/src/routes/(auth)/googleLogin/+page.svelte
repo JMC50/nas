@@ -1,5 +1,6 @@
 <script lang="ts">
   import Logo from "$lib/components/Logo.svelte";
+  import AlertCircle from "lucide-svelte/icons/alert-circle";
   import { onMount } from "svelte";
   import { useAuth } from "$lib/store/store";
   import { auth } from "$lib/store/auth.svelte";
@@ -125,9 +126,13 @@
 
     <div class="sg-panel p-5 sm:p-6">
       {#if error}
-        <div class="mb-4 p-3 rounded-control border border-fg-danger/45 text-fg-danger text-sm" role="alert">
-          {error}
-        </div>
+        <p class="flex items-start gap-2 text-sm text-fg-danger" role="alert">
+          <AlertCircle size="16" class="mt-0.5 shrink-0" />
+          <span>{error}</span>
+        </p>
+        {#if !registering}
+          <a href="/localLogin" class="mt-5 sg-btn sg-btn-block">Back to sign in</a>
+        {/if}
       {/if}
 
       {#if !registering && !error}
@@ -136,7 +141,7 @@
           <p class="text-sm text-fg-secondary mt-1">Verifying with Google.</p>
         </div>
       {:else if registering}
-        <h1 class="text-lg font-semibold text-fg-primary">Welcome!</h1>
+        <h1 class="text-lg font-semibold text-fg-primary {error ? 'mt-5' : ''}">Welcome!</h1>
         <p class="text-sm text-fg-secondary mt-1 mb-5">Before logging in, please enter your Korean name.</p>
 
         <div class="flex flex-col gap-3 mb-5">

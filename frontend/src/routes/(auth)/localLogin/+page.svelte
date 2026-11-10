@@ -3,6 +3,7 @@
   import { onMount } from "svelte";
   import LogIn from "lucide-svelte/icons/log-in";
   import UserPlus from "lucide-svelte/icons/user-plus";
+  import AlertCircle from "lucide-svelte/icons/alert-circle";
   import TextField from "$lib/components/Auth/TextField.svelte";
   import PasswordRules from "$lib/components/Auth/PasswordRules.svelte";
   import SignInOptions from "$lib/components/Auth/SignInOptions.svelte";
@@ -108,14 +109,12 @@
 
       {#if !authConfig}
         {#if error}
-          <div class="p-3 rounded-control border border-fg-danger/45 text-fg-danger text-sm" role="alert">{error}</div>
+          <p class="flex items-start gap-2 text-sm text-fg-danger" role="alert"><AlertCircle size="16" class="mt-0.5 shrink-0" /><span>{error}</span></p>
         {:else}
           <div class="text-sm text-fg-muted" role="status">Loading configuration…</div>
         {/if}
       {:else if !authConfig.oauthEnabled && !authConfig.localAuthEnabled}
-        <div class="p-3 rounded-control border border-fg-warning/45 text-fg-warning text-sm" role="alert">
-          No authentication methods enabled.
-        </div>
+        <p class="flex items-start gap-2 text-sm text-fg-warning" role="alert"><AlertCircle size="16" class="mt-0.5 shrink-0" /><span>No authentication methods enabled.</span></p>
       {:else}
         {#if authConfig.oauthEnabled}
           <SignInOptions
@@ -137,7 +136,7 @@
 
         {#if authConfig.localAuthEnabled}
           {#if error}
-            <div class="mb-4 p-3 rounded-control border border-fg-danger/45 text-fg-danger text-sm" role="alert">{error}</div>
+            <p class="mb-4 flex items-start gap-2 text-sm text-fg-danger" role="alert"><AlertCircle size="16" class="mt-0.5 shrink-0" /><span>{error}</span></p>
           {/if}
 
           <form class="flex flex-col gap-3" onsubmit={submit}>

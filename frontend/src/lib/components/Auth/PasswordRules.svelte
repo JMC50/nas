@@ -14,7 +14,7 @@
   let { rules }: Props = $props();
 </script>
 
-<div class="p-3 rounded-control border border-border-default bg-bg-base">
+<div>
   <div class="text-xs font-semibold text-fg-secondary mb-1.5">Password requirements</div>
   <ul class="text-xs text-fg-secondary flex flex-col gap-1 list-disc pl-4 marker:text-fg-muted">
     <li>At least {rules.minLength} characters</li>

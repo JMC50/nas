@@ -68,6 +68,7 @@ cd frontend && npm install && npm run dev
 | Area | What |
 |------|------|
 | **File operations** | Browse, upload, download, copy, move, rename, delete, zip/unzip |
+| **Zip downloads** | Select several items or a folder and download them as one zip (drag selection, Ctrl/Shift click, Ctrl+A). Folder structure and non-ASCII names are kept. Limits: `ZIP_DOWNLOAD_MAX_FILES` (default 20000), `ZIP_DOWNLOAD_MAX_SIZE` (default 50 GB) |
 | **Resumable uploads** | [tus protocol](https://tus.io) via `tusd/v2` · per-file cap `MAX_FILE_SIZE` (50 GB default) |
 | **In-browser editor** | Monaco with a Gruvbox theme for inline editing of text and code |
 | **Media viewers** | Video, audio, image, PDF, Office documents — no download round-trip |

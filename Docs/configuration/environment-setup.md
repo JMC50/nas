@@ -179,6 +179,10 @@ MAX_FILE_SIZE=50gb                      # Maximum upload size
 ALLOWED_EXTENSIONS=*                    # File type filter (* = all types)
 ENABLE_STREAMING=true                   # Enable media streaming
 
+# Zip Download Limits (several items or a folder as one zip, 0 = no limit)
+ZIP_DOWNLOAD_MAX_FILES=20000            # Maximum files and folders in one zip
+ZIP_DOWNLOAD_MAX_SIZE=50gb              # Maximum total size before compression
+
 # Advanced Storage Settings
 TEMP_DIR=/tmp/nas                       # Temporary files directory
 UPLOAD_TIMEOUT=300000                   # Upload timeout in milliseconds
@@ -739,6 +743,8 @@ echo "✅ Configuration test completed"
 | | JWT_EXPIRY | string | 24h | Token expiration |
 | **Storage** | DATA_PATH | string | auto | Storage base path |
 | | MAX_FILE_SIZE | string | 50gb | Upload size limit |
+| | ZIP_DOWNLOAD_MAX_FILES | number | 20000 | Files and folders in one zip download (0 = no limit) |
+| | ZIP_DOWNLOAD_MAX_SIZE | string | 50gb | Total size of one zip download before compression (0 = no limit) |
 | | ALLOWED_EXTENSIONS | string | * | File type filter |
 | **Security** | CORS_ORIGIN | string | * | CORS allowed origins |
 | | PASSWORD_MIN_LENGTH | number | 8 | Min password length |

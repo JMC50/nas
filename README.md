@@ -68,6 +68,7 @@ cd frontend && npm install && npm run dev
 | 영역 | 내용 |
 |------|------|
 | **파일 관리** | 폴더 탐색, 업/다운로드, 복사·이동·이름변경·삭제, ZIP 압축/해제 |
+| **묶어서 내려받기** | 여러 항목이나 폴더를 고르면 zip 하나로 받음(드래그 선택, Ctrl/Shift 클릭, Ctrl+A). 폴더 구조와 한글 이름 유지. 한도는 `ZIP_DOWNLOAD_MAX_FILES`(기본 20000), `ZIP_DOWNLOAD_MAX_SIZE`(기본 50 GB) |
 | **재개 가능한 업로드** | [tus 프로토콜](https://tus.io) (`tusd/v2`) · 단일 파일 상한 `MAX_FILE_SIZE` (기본 50 GB) |
 | **인라인 에디터** | Monaco 에디터 + Gruvbox 테마. 텍스트·코드·설정 파일 그 자리에서 편집 |
 | **미디어 뷰어** | 영상·음악·이미지·PDF·Office 문서, 별도 다운로드 없이 재생/미리보기 |

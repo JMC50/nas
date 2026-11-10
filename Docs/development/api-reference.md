@@ -176,6 +176,60 @@ GET /download?token=jwt_token&loc=/path/to/file&name=filename
 - `Content-Disposition`: attachment; filename="filename"
 - `Content-Range`: For partial content requests
 
+### Download Several Items as One Zip
+
+The browser downloads a zip in two steps. The first request sends the selection in a JSON body, so a long list does not depend on the URL length. The second request is a plain `GET`, so the browser saves the stream with its normal download progress. Both requests need a valid token and the `DOWNLOAD` intent.
+
+```http
+POST /zip-downloads
+Authorization: Bearer jwt_token
+Content-Type: application/json
+
+{
+  "items": [
+    { "loc": "/photos", "name": "2026" },
+    { "loc": "/photos", "name": "cover.png" }
+  ]
+}
+```
+
+**Response:**
+```json
+{
+  "path": "/zip-downloads/<id>",
+  "name": "photos.zip",
+  "entries": 42,
+  "bytes": 123456789
+}
+```
+
+```http
+GET /zip-downloads/<id>?token=jwt_token
+```
+
+**Response:** `application/zip` stream with `Content-Disposition: attachment`. The stream has no `Content-Length` and does not support range requests.
+
+**Rules:**
+- An item is a file or a folder. Each name must not be empty, `.`, `..`, or contain `/` or `\`.
+- The address is valid for 2 minutes and only for the user who made it. Another user gets 404.
+- Entry names start at the selected item. Folder structure and empty folders are kept. Names are stored as UTF-8.
+- If two selected items have the same name, the later one gets a suffix such as `report (2).txt`.
+- The file name is `<item>.zip` for one item, `<folder>.zip` for several items from one folder, and `nas-download.zip` otherwise.
+- Symbolic links follow the rules in [Storage Configuration](../configuration/storage-config.md#symbolic-links-and-public-download-links).
+- One user can run 2 zip downloads at the same time. The server runs 3 at the same time.
+- The stream stops when the client disconnects, when the client reads nothing for 30 seconds, or when the user loses the `DOWNLOAD` intent.
+
+**Errors of the first request:**
+
+| Status | Meaning |
+|--------|---------|
+| 400 | Invalid body, empty `items`, or an invalid name |
+| 401 / 403 | No valid token, or no `DOWNLOAD` intent |
+| 404 | An item does not exist, or it is outside the data folder |
+| 413 | Over a limit. Body: `{"error": "too_many_entries", "limit": 20000}` or `{"error": "too_large", "limit": 53687091200}`. See `ZIP_DOWNLOAD_MAX_FILES` and `ZIP_DOWNLOAD_MAX_SIZE` |
+| 429 | The user already runs 2 zip downloads (`Retry-After: 30`) |
+| 503 | The server already runs 3 zip downloads (`Retry-After: 30`) |
+
 ### Read Text File
 ```http
 GET /getTextFile?token=jwt_token&loc=/path/to/file&name=filename

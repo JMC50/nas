@@ -21,6 +21,7 @@ import (
 	"github.com/JMC50/nas/internal/db"
 	"github.com/JMC50/nas/internal/files"
 	"github.com/JMC50/nas/internal/office"
+	"github.com/JMC50/nas/internal/share"
 	"github.com/JMC50/nas/internal/stream"
 	"github.com/JMC50/nas/internal/system"
 	"github.com/JMC50/nas/internal/upload"
@@ -51,6 +52,7 @@ func NewRouter(cfg *config.Config, conn *sql.DB) http.Handler {
 	fileHandlers := &files.Handlers{Config: cfg, DB: conn}
 	streamHandlers := &stream.Handlers{Config: cfg, DB: conn}
 	uploadHandlers := &upload.Handlers{Config: cfg, DB: conn}
+	shareHandlers := &share.Handlers{Config: cfg, DB: conn}
 	archiveTracker := archive.NewTracker(1 * time.Hour)
 	archiveHandlers := &archive.Handlers{Config: cfg, DB: conn, Tracker: archiveTracker}
 	officeHandlers, err := office.NewHandlers(cfg, conn)
@@ -131,6 +133,15 @@ func NewRouter(cfg *config.Config, conn *sql.DB) http.Handler {
 	addFileRoute(r, "GET", "/download", auth.IntentDownload, requireToken, conn, streamHandlers.Download)
 	addFileRoute(r, "GET", "/getOfficePdf", auth.IntentOpen, requireToken, conn, officeHandlers.GetOfficePdf)
 	r.Get("/img", streamHandlers.Img) // bundled icons — no auth (matches legacy)
+
+	// 공개 다운로드 링크. 처리기가 받을 때마다 링크와 만든 사람의 권한을 다시 확인함
+	r.Get("/d/{token}", shareHandlers.Download)
+	addFileRoute(r, "POST", "/share-links", auth.IntentDownload, requireToken, conn, shareHandlers.Create)
+	r.Group(func(r chi.Router) {
+		r.Use(requireToken)
+		r.Get("/share-links", shareHandlers.List)
+		r.Delete("/share-links/{id}", shareHandlers.Revoke)
+	})
 
 	// Legacy upload wrappers (raw body stream)
 	addFileRoute(r, "POST", "/input", auth.IntentUpload, requireToken, conn, uploadHandlers.LegacyInput)

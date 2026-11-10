@@ -43,6 +43,19 @@ const fullSchema = `
 		PRIMARY KEY (provider, external_id),
 		FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 	);
+	CREATE TABLE share_links (
+		id INTEGER PRIMARY KEY AUTOINCREMENT,
+		token_hash TEXT UNIQUE NOT NULL,
+		user_id INTEGER NOT NULL,
+		loc TEXT NOT NULL,
+		name TEXT NOT NULL,
+		is_folder INTEGER NOT NULL DEFAULT 0,
+		created_at INTEGER NOT NULL,
+		expires_at INTEGER NOT NULL,
+		revoked_at INTEGER,
+		download_count INTEGER NOT NULL DEFAULT 0,
+		last_download_at INTEGER
+	);
 `
 
 func TestVerifySchema_AcceptsCurrentSchema(t *testing.T) {

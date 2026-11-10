@@ -22,6 +22,7 @@ var requiredSchema = []tableSchema{
 	{"log", []string{"id", "activity", "description", "user_id", "time", "loc"}},
 	{"server_settings", []string{"key", "value"}},
 	{"user_identities", []string{"user_id", "provider", "external_id"}},
+	{"share_links", []string{"id", "token_hash", "user_id", "loc", "name", "is_folder", "created_at", "expires_at", "revoked_at", "download_count", "last_download_at"}},
 }
 
 func VerifySchema(conn *sql.DB) error {

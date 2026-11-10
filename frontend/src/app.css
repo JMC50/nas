@@ -253,7 +253,7 @@
     }
     .sg-input {
         width: 100%;
-        min-height: 36px;
+        min-height: 32px;
         padding: 0 10px;
         background: var(--color-bg-inset);
         border: 1px solid var(--color-border-strong);
@@ -276,6 +276,9 @@
     }
     .sg-input-icon {
         padding-left: 32px;
+    }
+    .sg-input-form {
+        min-height: 40px;
     }
 
     .sg-panel {

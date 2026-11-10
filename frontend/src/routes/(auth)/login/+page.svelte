@@ -137,15 +137,15 @@
         <div class="flex flex-col gap-3 mb-5">
           <div>
             <label for="discord-first" class="sg-label">Username</label>
-            <input id="discord-first" type="text" value={saveData.username} readonly class="sg-input" />
+            <input id="discord-first" type="text" value={saveData.username} readonly class="sg-input sg-input-form" />
           </div>
           <div>
             <label for="discord-second" class="sg-label">Display name</label>
-            <input id="discord-second" type="text" value={saveData.global_name} readonly class="sg-input" />
+            <input id="discord-second" type="text" value={saveData.global_name} readonly class="sg-input sg-input-form" />
           </div>
           <div>
             <label for="krname" class="sg-label">Korean name</label>
-            <input id="krname" type="text" bind:value={koreanName} placeholder="홍길동" autocomplete="name" class="sg-input" />
+            <input id="krname" type="text" bind:value={koreanName} placeholder="홍길동" autocomplete="name" class="sg-input sg-input-form" />
           </div>
         </div>
 

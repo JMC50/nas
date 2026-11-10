@@ -26,12 +26,12 @@
     aria-expanded={ui.uploadsPanelOpen}
   >
     {#if uploads.hasActive}
-      <Upload size="13" class="text-fg-accent shrink-0" />
+      <Upload size="13" class="text-fg-info shrink-0" />
       <span class="truncate">
         {uploads.active.length} uploading · {formatBytes(uploads.uploadedBytes)} / {formatBytes(uploads.totalBytes)}
       </span>
       <span class="hidden md:block w-24 h-1 rounded-full bg-bg-overlay overflow-hidden shrink-0" aria-hidden="true">
-        <span class="block h-full bg-accent" style="width: {percentDisplay}%;"></span>
+        <span class="block h-full bg-fg-info" style="width: {percentDisplay}%;"></span>
       </span>
       <span class="tabular-nums shrink-0">{percentDisplay}%</span>
     {:else if uploads.failed.length > 0}

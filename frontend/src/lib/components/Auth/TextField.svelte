@@ -43,6 +43,6 @@
     {autocomplete}
     aria-invalid={invalid || undefined}
     oninput={handle}
-    class="sg-input"
+    class="sg-input sg-input-form"
   />
 </div>

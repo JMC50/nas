@@ -18,7 +18,7 @@
 
   const STATUS_CLASS: Record<UploadStatus, string> = {
     queued: "text-fg-muted",
-    uploading: "text-fg-accent",
+    uploading: "text-fg-info",
     paused: "text-fg-warning",
     complete: "text-fg-success",
     error: "text-fg-danger",
@@ -72,7 +72,7 @@
 
           <div class="h-1 mt-2 rounded-full bg-bg-overlay overflow-hidden" role="progressbar" aria-label="{upload.filename} progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow={percentOf(upload)}>
             <div
-              class="h-full {upload.status === 'error' ? 'bg-fg-danger' : upload.status === 'complete' ? 'bg-fg-success' : 'bg-accent'}"
+              class="h-full {upload.status === 'error' ? 'bg-fg-danger' : upload.status === 'complete' ? 'bg-fg-success' : 'bg-fg-info'}"
               style="width: {percentOf(upload)}%;"
             ></div>
           </div>

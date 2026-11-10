@@ -147,15 +147,15 @@
         <div class="flex flex-col gap-3 mb-5">
           <div>
             <label for="google-first" class="sg-label">Email</label>
-            <input id="google-first" type="text" value={saveData.email} readonly class="sg-input" />
+            <input id="google-first" type="text" value={saveData.email} readonly class="sg-input sg-input-form" />
           </div>
           <div>
             <label for="google-second" class="sg-label">Name</label>
-            <input id="google-second" type="text" value={saveData.global_name} readonly class="sg-input" />
+            <input id="google-second" type="text" value={saveData.global_name} readonly class="sg-input sg-input-form" />
           </div>
           <div>
             <label for="krname" class="sg-label">Korean name</label>
-            <input id="krname" type="text" bind:value={koreanName} placeholder="홍길동" autocomplete="name" class="sg-input" />
+            <input id="krname" type="text" bind:value={koreanName} placeholder="홍길동" autocomplete="name" class="sg-input sg-input-form" />
           </div>
         </div>
 

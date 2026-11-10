@@ -57,7 +57,6 @@ CREATE TABLE IF NOT EXISTS share_links (
 	expires_at INTEGER NOT NULL,
 	revoked_at INTEGER,
 	download_count INTEGER NOT NULL DEFAULT 0,
-	last_download_at INTEGER,
 	FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 CREATE INDEX IF NOT EXISTS idx_share_links_user ON share_links(user_id);

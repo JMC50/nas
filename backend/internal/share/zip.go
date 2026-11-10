@@ -22,8 +22,6 @@ var storedExtensions = map[string]bool{
 	".pdf": true, ".docx": true, ".xlsx": true, ".pptx": true,
 }
 
-// streamFolder는 폴더를 임시 파일 없이 zip으로 바로 보냅니다.
-// 심볼릭 링크는 실제 경로가 데이터 폴더 안의 보통 파일일 때만 넣고, 폴더를 가리키는 링크와 특수 파일은 뺍니다.
 func streamFolder(w http.ResponseWriter, target resolvedTarget, name string) {
 	folder, root := target.path, target.root
 	w.Header().Set("Content-Type", "application/zip")
@@ -81,7 +79,7 @@ func streamFolder(w http.ResponseWriter, target resolvedTarget, name string) {
 	}
 }
 
-// addFile은 열 수 없는 파일을 건너뛰고, 쓰는 중 오류(받는 쪽 연결 끊김 등)는 돌려줘서 폴더 순회를 멈춥니다.
+// 열 수 없는 파일은 건너뛰고, 쓰기 오류(받는 쪽 연결 끊김 등)는 돌려줘서 순회를 멈춤
 func addFile(archive *zip.Writer, entryName, path string, info os.FileInfo) error {
 	source, err := os.Open(path)
 	if err != nil {

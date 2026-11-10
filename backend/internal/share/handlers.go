@@ -8,10 +8,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"errors"
-	"log/slog"
 	"net/http"
-	"os"
-	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
@@ -21,7 +18,6 @@ import (
 	"github.com/JMC50/nas/internal/auth"
 	"github.com/JMC50/nas/internal/config"
 	"github.com/JMC50/nas/internal/db"
-	"github.com/JMC50/nas/internal/files"
 )
 
 type Handlers struct {
@@ -58,25 +54,15 @@ type linkView struct {
 	Status        string `json:"status"`
 }
 
-// Create는 요청한 사용자가 다운로드 권한을 가진 파일이나 폴더에 공개 링크를 만듭니다. 토큰 원문은 이 응답에서만 돌려줍니다.
+// Create는 파일이나 폴더의 공개 링크를 만들고, 토큰 원문은 이 응답에서만 돌려줍니다.
 func (h *Handlers) Create(w http.ResponseWriter, r *http.Request) {
-	claims := auth.ClaimsFromContext(r.Context())
-	var req createRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, "invalid body", http.StatusBadRequest)
+	req, lifetime, err := decodeCreate(r)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	lifetime, ok := expiryChoices[req.ExpiresIn]
-	if !ok {
-		http.Error(w, "expiresIn must be one of 1h, 1d, 7d, 30d", http.StatusBadRequest)
-		return
-	}
-	if req.Name == "" || strings.ContainsAny(req.Name, `/\`) {
-		http.Error(w, "invalid name", http.StatusBadRequest)
-		return
-	}
-	creator, err := db.GetUser(h.DB, claims.UserID)
-	if err != nil || creator == nil {
+	creator, _, err := h.caller(r)
+	if err != nil {
 		http.Error(w, "unauthorized", http.StatusUnauthorized)
 		return
 	}
@@ -85,13 +71,11 @@ func (h *Handlers) Create(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "not found", http.StatusNotFound)
 		return
 	}
-
-	raw := make([]byte, tokenBytes)
-	if _, err := rand.Read(raw); err != nil {
+	token, err := newToken()
+	if err != nil {
 		http.Error(w, "token generation failed", http.StatusInternalServerError)
 		return
 	}
-	token := base64.RawURLEncoding.EncodeToString(raw)
 	now := time.Now()
 	link := db.ShareLink{
 		TokenHash: hashToken(token),
@@ -114,6 +98,21 @@ func (h *Handlers) Create(w http.ResponseWriter, r *http.Request) {
 		"isFolder":  link.IsFolder,
 		"expiresAt": link.ExpiresAt,
 	})
+}
+
+func decodeCreate(r *http.Request) (createRequest, time.Duration, error) {
+	var req createRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		return req, 0, errors.New("invalid body")
+	}
+	lifetime, ok := expiryChoices[req.ExpiresIn]
+	if !ok {
+		return req, 0, errors.New("expiresIn must be one of 1h, 1d, 7d, 30d")
+	}
+	if req.Name == "" || strings.ContainsAny(req.Name, `/\`) {
+		return req, 0, errors.New("invalid name")
+	}
+	return req, lifetime, nil
 }
 
 // List는 관리자에게 모든 링크를, 다른 사용자에게 자기 링크만 돌려줍니다.
@@ -140,7 +139,7 @@ func (h *Handlers) List(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]any{"links": views, "all": admin})
 }
 
-// Revoke는 링크를 만든 사용자나 관리자만 링크를 끊게 합니다. 남의 링크는 없는 링크처럼 404로 답합니다.
+// Revoke는 링크를 만든 사용자나 관리자만 링크를 끊게 하고, 남의 링크에는 없는 링크처럼 404로 답합니다.
 func (h *Handlers) Revoke(w http.ResponseWriter, r *http.Request) {
 	caller, admin, err := h.caller(r)
 	if err != nil {
@@ -166,103 +165,6 @@ func (h *Handlers) Revoke(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	writeJSON(w, http.StatusOK, map[string]any{"success": true})
-}
-
-// Download는 로그인 없이 링크의 파일을 보내거나 폴더를 zip으로 보냅니다.
-// 받을 때마다 만료, 끊김, 만든 사람의 다운로드 권한, 실제 경로가 데이터 폴더 안인지를 다시 확인하고, 하나라도 어긋나면 이유 없이 404로 답합니다.
-func (h *Handlers) Download(w http.ResponseWriter, r *http.Request) {
-	link, err := db.GetShareLinkByHash(h.DB, hashToken(chi.URLParam(r, "token")))
-	now := time.Now()
-	if err != nil || link == nil || link.RevokedAt.Valid || now.UnixMilli() >= link.ExpiresAt {
-		http.NotFound(w, r)
-		return
-	}
-	creator, err := db.GetUserByPrimaryKey(h.DB, link.UserID)
-	if err != nil || creator == nil {
-		http.NotFound(w, r)
-		return
-	}
-	allowed, err := db.HasIntent(h.DB, creator.UserID, string(auth.IntentDownload))
-	if err != nil || !allowed {
-		http.NotFound(w, r)
-		return
-	}
-	target, err := h.resolve(link.Loc, link.Name)
-	if err != nil || target.info.IsDir() != link.IsFolder {
-		http.NotFound(w, r)
-		return
-	}
-
-	w.Header().Set("Cache-Control", "no-store")
-	w.Header().Set("X-Content-Type-Options", "nosniff")
-	w.Header().Set("Referrer-Policy", "no-referrer")
-	if link.IsFolder {
-		h.record(link, creator.UserID, now)
-		streamFolder(w, target, link.Name)
-		return
-	}
-	file, err := os.Open(target.path)
-	if err != nil {
-		http.NotFound(w, r)
-		return
-	}
-	defer file.Close()
-	// 이어받기 요청마다 세지 않도록 처음부터 받는 요청만 셈
-	if rangeHeader := r.Header.Get("Range"); rangeHeader == "" || strings.HasPrefix(rangeHeader, "bytes=0-") {
-		h.record(link, creator.UserID, now)
-	}
-	w.Header().Set("Content-Type", "application/octet-stream")
-	w.Header().Set("Content-Disposition", files.ContentDispositionAttachment(link.Name))
-	http.ServeContent(w, r, link.Name, target.info.ModTime(), file)
-}
-
-func (h *Handlers) record(link *db.ShareLink, creatorID string, at time.Time) {
-	if err := db.CountShareDownload(h.DB, link.ID, at.UnixMilli()); err != nil {
-		slog.Warn("share download count failed", "link", link.ID, "err", err)
-	}
-	description := "DOWNLOAD [LINK] AT " + strings.TrimSuffix(link.Loc, "/") + "/" + link.Name
-	if err := db.InsertLog(h.DB, creatorID, "DOWNLOAD", description, link.Loc, at.UnixMilli()); err != nil {
-		slog.Warn("share download log failed", "link", link.ID, "err", err)
-	}
-}
-
-type resolvedTarget struct {
-	path string
-	root string
-	info os.FileInfo
-}
-
-// resolve는 loc과 name을 데이터 폴더 기준 실제 경로로 바꿉니다. 심볼릭 링크를 따라간 실제 경로가 데이터 폴더 밖이거나, 대상이 보통 파일이나 폴더가 아니면 오류입니다.
-func (h *Handlers) resolve(loc, name string) (resolvedTarget, error) {
-	joined, err := files.SafeJoin(h.Config.NASDataDir, files.TrimLeadingSlash(loc), name)
-	if err != nil {
-		return resolvedTarget{}, err
-	}
-	root, err := filepath.EvalSymlinks(h.Config.NASDataDir)
-	if err != nil {
-		return resolvedTarget{}, err
-	}
-	resolved, err := filepath.EvalSymlinks(joined)
-	if err != nil {
-		return resolvedTarget{}, err
-	}
-	if !insideRoot(root, resolved) || resolved == root {
-		return resolvedTarget{}, files.ErrUnsafePath
-	}
-	info, err := os.Stat(resolved)
-	if err != nil {
-		return resolvedTarget{}, err
-	}
-	if !info.Mode().IsRegular() && !info.IsDir() {
-		return resolvedTarget{}, errNotShareable
-	}
-	return resolvedTarget{path: resolved, root: root, info: info}, nil
-}
-
-var errNotShareable = errors.New("not a regular file or folder")
-
-func insideRoot(root, path string) bool {
-	return path == root || strings.HasPrefix(path, root+string(filepath.Separator))
 }
 
 func (h *Handlers) caller(r *http.Request) (*db.User, bool, error) {
@@ -303,6 +205,14 @@ func toView(link *db.ShareLink, now int64) linkView {
 		view.Status = "expired"
 	}
 	return view
+}
+
+func newToken() (string, error) {
+	raw := make([]byte, tokenBytes)
+	if _, err := rand.Read(raw); err != nil {
+		return "", err
+	}
+	return base64.RawURLEncoding.EncodeToString(raw), nil
 }
 
 func hashToken(token string) string {

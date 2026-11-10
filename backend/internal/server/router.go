@@ -134,7 +134,7 @@ func NewRouter(cfg *config.Config, conn *sql.DB) http.Handler {
 	addFileRoute(r, "GET", "/getOfficePdf", auth.IntentOpen, requireToken, conn, officeHandlers.GetOfficePdf)
 	r.Get("/img", streamHandlers.Img) // bundled icons — no auth (matches legacy)
 
-	// 공개 다운로드 링크. 처리기가 받을 때마다 링크와 만든 사람의 권한을 다시 확인함
+	// 로그인 없이 받는 경로임. 링크와 만든 사람의 권한은 처리기가 받을 때마다 다시 확인함
 	r.Get("/d/{token}", shareHandlers.Download)
 	addFileRoute(r, "POST", "/share-links", auth.IntentDownload, requireToken, conn, shareHandlers.Create)
 	r.Group(func(r chi.Router) {

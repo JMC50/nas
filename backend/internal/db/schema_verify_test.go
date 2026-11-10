@@ -53,8 +53,7 @@ const fullSchema = `
 		created_at INTEGER NOT NULL,
 		expires_at INTEGER NOT NULL,
 		revoked_at INTEGER,
-		download_count INTEGER NOT NULL DEFAULT 0,
-		last_download_at INTEGER
+		download_count INTEGER NOT NULL DEFAULT 0
 	);
 `
 

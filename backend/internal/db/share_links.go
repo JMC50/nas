@@ -6,7 +6,7 @@ import (
 	"fmt"
 )
 
-// ShareLink는 공개 다운로드 링크 한 개입니다. 토큰 원문은 저장하지 않고 해시만 저장합니다.
+// ShareLink는 공개 다운로드 링크 한 개이며, 토큰 원문 대신 해시만 저장합니다.
 type ShareLink struct {
 	ID            int64
 	TokenHash     string
@@ -109,8 +109,8 @@ func RevokeShareLink(conn *sql.DB, id, revokedAt int64) error {
 	return nil
 }
 
-func CountShareDownload(conn *sql.DB, id, at int64) error {
-	_, err := conn.Exec(`UPDATE share_links SET download_count = download_count + 1, last_download_at = ? WHERE id = ?`, at, id)
+func CountShareDownload(conn *sql.DB, id int64) error {
+	_, err := conn.Exec(`UPDATE share_links SET download_count = download_count + 1 WHERE id = ?`, id)
 	if err != nil {
 		return fmt.Errorf("count share download: %w", err)
 	}

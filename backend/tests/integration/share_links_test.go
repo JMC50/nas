@@ -32,7 +32,7 @@ type shareFixture struct {
 	tokens  map[string]string
 }
 
-// newShareFixture는 실제 스키마(db.InitSchema)로 서버를 만들고 권한이 다른 사용자 네 명을 넣는다.
+// 실제 스키마(db.InitSchema)로 서버를 만들고 권한이 다른 사용자 네 명을 넣음
 func newShareFixture(t *testing.T) *shareFixture {
 	t.Helper()
 	tmp := t.TempDir()

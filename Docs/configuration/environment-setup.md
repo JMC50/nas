@@ -121,7 +121,7 @@ PRIVATE_KEY=your-secure-secret-key     # JWT signing key (CHANGE IN PRODUCTION!)
 JWT_EXPIRY=24h                         # Token expiration (24h, 7d, 30m, etc.)
 
 # Authentication Strategy
-AUTH_TYPE=both                         # oauth | local | both
+AUTH_TYPE=both                         # oauth | local | both | oidc
 
 # Admin Configuration
 ADMIN_PASSWORD=your-secure-password    # Admin account password
@@ -144,6 +144,18 @@ PASSWORD_REQUIRE_SPECIAL=false         # Require special character (!@#$%^&*)
 | `oauth` | Only OAuth providers | External authentication only |
 | `local` | Only local ID/Password | Self-contained authentication |
 | `both` | OAuth + Local auth | Maximum flexibility (recommended) |
+| `oidc` | One OpenID Connect issuer only | Single sign-on. ID and password sign-in, Discord, and Google are closed |
+
+#### OpenID Connect Single Sign-On (only with `AUTH_TYPE=oidc`)
+```env
+OIDC_ISSUER=https://login.example.com/auth/v1               # Issuer URL, equal to the discovery document
+OIDC_CLIENT_ID=nas                                          # Client ID at the issuer
+OIDC_CLIENT_SECRET=replace-with-the-client-secret           # Client secret
+OIDC_REDIRECT_URI=https://nas.example.com/auth/oidc/callback
+# Optional: OIDC_IDP_HINT, OIDC_SCOPES, OIDC_GROUPS_CLAIM, OIDC_MEMBER_GROUP, OIDC_ADMIN_GROUP, OIDC_LOGOUT_URL
+```
+
+The server does not read these variables in the other modes. With `AUTH_TYPE=oidc`, the server does not start when one of the first four is missing, and the error names the missing variables. See [Single Sign-On with OpenID Connect](oidc-sso.md).
 
 ### 3. OAuth Provider Configuration
 
@@ -741,6 +753,16 @@ echo "✅ Configuration test completed"
 | | PRIVATE_KEY | string | dev-key | JWT signing key |
 | | ADMIN_PASSWORD | string | admin123 | Admin password |
 | | JWT_EXPIRY | string | 24h | Token expiration |
+| | OIDC_ISSUER | string | (none) | OpenID Connect issuer URL. Required with `AUTH_TYPE=oidc` |
+| | OIDC_CLIENT_ID | string | (none) | Client ID at the issuer. Required with `AUTH_TYPE=oidc` |
+| | OIDC_CLIENT_SECRET | string | (none) | Client secret. Required with `AUTH_TYPE=oidc` |
+| | OIDC_REDIRECT_URI | string | (none) | `https://<your-nas>/auth/oidc/callback`. Required with `AUTH_TYPE=oidc` |
+| | OIDC_IDP_HINT | string | (none) | Sent as `idp_hint` in the authorization request |
+| | OIDC_SCOPES | string | openid profile email groups | Scopes of the authorization request |
+| | OIDC_GROUPS_CLAIM | string | groups | ID token claim that lists the group names |
+| | OIDC_MEMBER_GROUP | string | nas_member | Group that may sign in with the member permissions |
+| | OIDC_ADMIN_GROUP | string | nas_admin | Group that gets the `ADMIN` intent |
+| | OIDC_LOGOUT_URL | string | (none) | Sign-out address. Default: `end_session_endpoint` of the issuer |
 | **Storage** | DATA_PATH | string | auto | Storage base path |
 | | MAX_FILE_SIZE | string | 50gb | Upload size limit |
 | | ZIP_DOWNLOAD_MAX_FILES | number | 20000 | Files and folders in one zip download (0 = no limit) |

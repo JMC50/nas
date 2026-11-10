@@ -34,10 +34,12 @@ Authorization: Bearer your_jwt_token
 ```typescript
 interface JwtPayload {
   userId: string;
-  iat: number;  // Issued at
-  exp: number;  // Expiration
+  expires_in: number;  // Expiration, Unix time in milliseconds
+  issued_at?: number;  // Issue time, Unix time in milliseconds. Tokens from before v0.7.0 do not have it
 }
 ```
+
+The server also rejects a valid token with `401` when it was issued before the `tokens_valid_after` time of its user. This time is empty until a back-channel logout sets it (see [OpenID Connect Single Sign-On](#openid-connect-single-sign-on)).
 
 ---
 
@@ -136,6 +138,99 @@ GET /kakaoLogin?code=kakao_auth_code
 ```
 
 Both OAuth endpoints redirect to frontend with token or error parameters.
+
+### OpenID Connect Single Sign-On
+
+These routes exist only when `AUTH_TYPE=oidc`. In the other modes they answer 404. Setup and rules are in [Single Sign-On with OpenID Connect](../configuration/oidc-sso.md).
+
+In this mode `GET /auth/config` reports only OIDC:
+
+```json
+{
+  "authType": "oidc",
+  "localAuthEnabled": false,
+  "discordEnabled": false,
+  "googleEnabled": false,
+  "oauthEnabled": false,
+  "oidcEnabled": true,
+  "oidcLoginUrl": "/server/auth/oidc/login",
+  "oidcLogoutUrl": "/server/auth/oidc/logout"
+}
+```
+
+The response also has `discordLoginUrl`, `googleLoginUrl` (both empty), and `passwordRequirements`. The three `oidc*` fields are not in the response of the other modes.
+
+#### Start Sign-In
+```http
+GET /auth/oidc/login
+```
+
+**Response:** `302` to the authorization endpoint of the issuer, with `response_type=code`, `state`, `nonce`, `code_challenge` (`S256`), and the configured `redirect_uri`. The response sets the cookie `__Host-nas_oidc_login` (`Secure`, `HttpOnly`, `SameSite=Lax`, 10 minutes). Query parameters of this request do not change a redirect target.
+
+#### Callback
+```http
+GET /auth/oidc/callback?code=authorization_code&state=state
+```
+
+**Response:** always `302` to a page of the NAS.
+
+| Location | Meaning |
+|----------|---------|
+| `/oidcLogin` | Sign-in is complete. The response sets the cookie `__Host-nas_oidc_session` (`Secure`, `HttpOnly`, `SameSite=Lax`, 60 seconds) with the NAS token |
+| `/oidcLogin?error=denied` | The user is in none of the NAS groups, or the issuer answered `access_denied`. No user is created |
+| `/oidcLogin?error=failed` | The state, the code, or the ID token (signature, issuer, audience, expiry, nonce) is not valid |
+| `/oidcLogin?error=unavailable` | The issuer did not answer |
+| `/oidcLogin?error=conflict` | A user with the same `userId` exists without the `oidc` identity |
+
+#### Get the Token After the Callback
+```http
+POST /auth/oidc/session
+Cookie: __Host-nas_oidc_session=...
+```
+
+**Response:**
+```json
+{
+  "userId": "2f9c1e5a7b3d4c6e8a0b",
+  "username": "alice",
+  "krname": "",
+  "global_name": "Alice",
+  "token": "jwt_token_here"
+}
+```
+
+The response removes the cookie. Without a valid cookie the answer is `401`.
+
+#### Sign Out
+```http
+GET /auth/oidc/logout
+```
+
+**Response:** `302` to `OIDC_LOGOUT_URL`, or to the `end_session_endpoint` of the issuer with `client_id`. If the issuer has no such endpoint, the target is `/localLogin?signedout=1`. The front end removes the NAS token before it opens this address.
+
+#### Back-Channel Logout
+```http
+POST /auth/oidc/backchannel
+Content-Type: application/x-www-form-urlencoded
+
+logout_token=jwt_from_the_issuer
+```
+
+The issuer calls this route. The NAS verifies the `logout_token` (signature, `iss`, `aud`, `exp`, `iat` not older than 5 minutes, the back-channel logout event, no `nonce`, a `sub`, and a `jti` that was not used before). Then it sets `tokens_valid_after` of that user to the current time, and each token of the user that was issued earlier answers `401`.
+
+| Status | Meaning |
+|--------|---------|
+| 200 | Accepted. Also when no NAS user has this `sub` |
+| 400 | The `logout_token` is missing, not valid, too old, or already used |
+| 500 | The time could not be saved. The issuer can send the same token again |
+
+#### Routes Closed in This Mode
+
+`POST /auth/register`, `POST /auth/login`, `POST /auth/change-password`, `GET /auth/discord/callback`, `GET /auth/google/callback`, `POST /auth/discord/register`, `POST /auth/google/register`, `POST /auth/link/start`, `POST /auth/link/discord/complete`, `POST /auth/link/google/complete`, and `DELETE /auth/identities/{provider}` answer `403`. The link and identity routes still answer `401` first when the request has no valid token.
+
+```json
+{ "success": false, "message": "This sign-in method is disabled. Sign in through single sign-on." }
+```
 
 ---
 

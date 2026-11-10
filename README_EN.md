@@ -176,11 +176,12 @@ The whole router lives in [`backend/internal/server/router.go`](backend/internal
 | `DATA_PATH` | `./data` | Host data root (relative to the Docker mount) |
 | `PRIVATE_KEY` / `JWT_SECRET` | (required) | JWT signing key. 32 bytes recommended |
 | `ADMIN_PASSWORD` | (required) | Verified when `Request admin` is called |
-| `AUTH_TYPE` | `both` | One of `local`, `oauth`, `both` |
+| `AUTH_TYPE` | `both` | One of `local`, `oauth`, `both`, `oidc`. `oidc` allows sign-in through one OpenID Connect issuer only |
 | `CORS_ORIGIN` | `*` | Allowed CORS origin |
 | `MAX_FILE_SIZE` | `50gb` | Per-file upload cap |
 | `DISCORD_CLIENT_ID/SECRET/REDIRECT_URI` | — | OAuth bootstrap; can be overridden via the admin UI |
 | `GOOGLE_CLIENT_ID/SECRET/REDIRECT_URI` | — | Same |
+| `OIDC_ISSUER`, `OIDC_CLIENT_ID/SECRET`, `OIDC_REDIRECT_URI` | — | Read only with `AUTH_TYPE=oidc`, and all four are required then. See the [setup guide](Docs/configuration/oidc-sso.md) |
 | `TZ` | `UTC` | Container timezone |
 
 Full list: [`.env.example`](.env.example).

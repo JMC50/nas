@@ -176,11 +176,12 @@ flowchart TB
 | `DATA_PATH` | `./data` | 호스트 측 데이터 루트 (Docker 마운트 기준) |
 | `PRIVATE_KEY` / `JWT_SECRET` | (필수) | JWT 서명 키. 32바이트 이상 권장 |
 | `ADMIN_PASSWORD` | (필수) | `Request admin` 호출 시 검증되는 비밀번호 |
-| `AUTH_TYPE` | `both` | `local`, `oauth`, `both` 중 선택 |
+| `AUTH_TYPE` | `both` | `local`, `oauth`, `both`, `oidc` 중 선택. `oidc`는 OpenID Connect 발급자 하나로만 로그인 |
 | `CORS_ORIGIN` | `*` | CORS 허용 오리진 |
 | `MAX_FILE_SIZE` | `50gb` | 단일 업로드 상한 |
 | `DISCORD_CLIENT_ID/SECRET/REDIRECT_URI` | — | OAuth 부트스트랩. 이후 관리자 UI 로 덮어쓰기 가능 |
 | `GOOGLE_CLIENT_ID/SECRET/REDIRECT_URI` | — | 동일 |
+| `OIDC_ISSUER`, `OIDC_CLIENT_ID/SECRET`, `OIDC_REDIRECT_URI` | — | `AUTH_TYPE=oidc`일 때만 읽고, 그때는 네 값이 모두 필요. [설정 안내](Docs/configuration/oidc-sso.md) |
 | `TZ` | `UTC` | 컨테이너 타임존 |
 
 전체 목록: [`.env.example`](.env.example).

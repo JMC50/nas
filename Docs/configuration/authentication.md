@@ -7,6 +7,7 @@ Authentication guide for the NAS File Manager - from simple admin login to advan
 - [🎯 Quick Start (Admin Login)](#quick-start-admin-login)
 - [Local User Management](#local-user-management)
 - [🔧 Advanced: OAuth Providers](#advanced-oauth-providers)  
+- [Single Sign-On with OpenID Connect](#single-sign-on-with-openid-connect)
 - [Permission System](#permission-system)
 - [Security Best Practices](#security-best-practices)
 - [Troubleshooting](#troubleshooting)
@@ -274,6 +275,20 @@ GET /kakaoLogin?code=kakao_authorization_code
 - **Redirect URI Mismatch**: Verify redirect URIs match exactly
 - **Scope Issues**: Ensure required scopes are granted
 - **Network Issues**: Check connectivity to OAuth providers
+
+## Single Sign-On with OpenID Connect
+
+`AUTH_TYPE=oidc` makes one OpenID Connect issuer the only way to sign in. In this mode the sign-in page has no ID or password form and no Discord or Google button, and the server closes those sign-in routes. The other modes do not change and do not read the `OIDC_*` variables.
+
+```env
+AUTH_TYPE=oidc
+OIDC_ISSUER=https://login.example.com/auth/v1
+OIDC_CLIENT_ID=nas
+OIDC_CLIENT_SECRET=replace-with-the-client-secret
+OIDC_REDIRECT_URI=https://nas.example.com/auth/oidc/callback
+```
+
+The settings, the client at the issuer, group mapping, back-channel logout, and the steps to switch an existing deployment are in [Single Sign-On with OpenID Connect](oidc-sso.md).
 
 ## User Management
 

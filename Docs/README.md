@@ -16,6 +16,7 @@ Welcome to the comprehensive documentation for the NAS File Manager application 
 Once your basic system is running, explore these advanced features:
 - **[Environment Setup](configuration/environment-setup.md)** - Complete environment configuration guide
 - **[Authentication Setup](configuration/authentication.md)** - OAuth and local authentication configuration
+- **[Single Sign-On with OpenID Connect](configuration/oidc-sso.md)** - `AUTH_TYPE=oidc`, group mapping, back-channel logout, switching an existing deployment
 - **[Storage Configuration](configuration/storage-config.md)** - File system and storage settings
 
 ## 🛠️ Development & Technical Documentation

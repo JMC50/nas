@@ -47,11 +47,12 @@ func TrimLeadingSlash(s string) string {
 }
 
 // ContentDispositionAttachment builds a safe Content-Disposition: attachment
-// header per RFC 6266. It sanitizes the ASCII filename (stripping quote/CR/LF/backslash
-// to block header injection) and provides the canonical UTF-8 encoded filename*.
+// header per RFC 6266. The quoted filename keeps printable ASCII only (quote,
+// backslash, control and non-ASCII characters become _), and filename* carries
+// the real UTF-8 name.
 func ContentDispositionAttachment(filename string) string {
 	safe := strings.Map(func(r rune) rune {
-		if r == '"' || r == '\\' || r == '\r' || r == '\n' {
+		if r < 0x20 || r > 0x7e || r == '"' || r == '\\' {
 			return '_'
 		}
 		return r

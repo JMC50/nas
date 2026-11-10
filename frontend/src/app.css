@@ -1,129 +1,98 @@
 @import "tailwindcss";
 
-/* ─────────────────────────────────────────────────────────────────
-   Body font: Pretendard Variable covers Latin and Hangul on one
-   weight axis (45-920), so the custom 550 weight applies to Korean
-   text as well. The dynamic subset loads only the glyph ranges a page
-   uses.
-
-   Mono font: FiraD2 (Fira Code + D2 Coding) kept for code/paths/
-   timestamps where Korean + Latin glyphs both need monospace alignment.
-   Source: https://github.com/partrita/FiraD2 v1.0.2
-   ───────────────────────────────────────────────────────────────── */
-@import "pretendard/dist/web/variable/pretendardvariable-dynamic-subset.css";
-
+/* Signal: Gitea 테마(arcyn-homelab gitea/custom theme-signal.css)와 같은 토큰 값과 같은 글꼴 파일임 */
 @font-face {
-    font-family: "FiraD2";
-    src: url("/fonts/FiraD2-Regular.woff2") format("woff2");
-    font-weight: 400;
+    font-family: "Wanted Sans Variable";
+    src: url("/fonts/WantedSansVariable.woff2") format("woff2");
+    font-weight: 400 1000;
     font-style: normal;
     font-display: swap;
 }
+/* 라틴 범위만 담은 파일이라 한글은 다음 글꼴(Wanted Sans)로 넘어감 */
 @font-face {
-    font-family: "FiraD2";
-    src: url("/fonts/FiraD2-Bold.woff2") format("woff2");
-    font-weight: 700;
+    font-family: "JetBrains Mono";
+    src: url("/fonts/JetBrainsMono-latin-wght.woff2") format("woff2");
+    font-weight: 100 800;
     font-style: normal;
     font-display: swap;
+    unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 
-/* ─────────────────────────────────────────────────────────────────
-   Dark mode variant: matches when <html> is NOT .light.
-   (Default = dark; mode-watcher adds .dark class but we also want
-   dark to be the fallback when no class is set yet during initial paint.)
-
-   Light mode variant: matches when <html> is .light (mode-watcher set).
-   ───────────────────────────────────────────────────────────────── */
-@custom-variant dark (&:where(html:not(.light) *, html:not(.light)));
-@custom-variant light (&:where(html.light *, html.light));
-
-/* ─────────────────────────────────────────────────────────────────
-   gruvbox-dark color tokens (default — Pavel Pertsev's gruvbox).
-
-   @theme registers tokens — Tailwind 4 generates CSS vars at :root
-   AND utility classes like `bg-bg-base`, `text-fg-primary`, etc.
-   ───────────────────────────────────────────────────────────────── */
 @theme {
-    --color-bg-base: #1d2021;
-    --color-bg-surface: #282828;
-    --color-bg-elevated: #32302f;
-    --color-bg-overlay: #3c3836;
-    --color-bg-hover: #504945;
-    --color-bg-selected: #665c54;
+    --color-bg-base: #0d0e11;
+    --color-bg-surface: #131518;
+    --color-bg-elevated: #1c1e22;
+    --color-bg-overlay: #23252a;
+    --color-bg-inset: #090a0d;
+    --color-bg-hover: #edeef10d;
+    --color-bg-selected: #bdf9521a;
 
-    --color-border-default: #504945;
-    --color-border-strong: #665c54;
-    --color-border-focus: #fabd2f;
+    --color-border-default: #2b2e32;
+    --color-border-strong: #71757a;
+    --color-border-focus: #bdf952;
 
-    --color-fg: #ebdbb2;
-    --color-fg-primary: #ebdbb2;
-    --color-fg-secondary: #d5c4a1;
-    --color-fg-muted: #a89984;
-    --color-fg-disabled: #928374;
+    --color-fg: #edeef1;
+    --color-fg-primary: #edeef1;
+    --color-fg-secondary: #bbbec3;
+    --color-fg-muted: #a1a5ab;
+    --color-fg-disabled: #a1a5ab;
 
-    --color-fg-accent: #fabd2f;
-    --color-fg-success: #b8bb26;
-    --color-fg-warning: #fe8019;
-    --color-fg-danger: #fb4934;
-    --color-fg-info: #83a598;
-    --color-fg-link: #8ec07c;
-    --color-fg-purple: #d3869b;
+    --color-fg-accent: #bdf952;
+    --color-fg-success: #73d4ac;
+    --color-fg-warning: #f4c26a;
+    --color-fg-danger: #fb817a;
+    --color-fg-info: #87c6f2;
+    --color-fg-link: #bdf952;
+    --color-fg-purple: #b0aff5;
 
-    --color-accent: #fabd2f;
-    --color-accent-hover: #fbe69b;
-    --color-accent-fg: #282828;
-    --color-accent-muted: #d79921;
+    --color-accent: #bdf952;
+    --color-accent-hover: #cefc88;
+    --color-accent-fg: #121909;
+    --color-accent-muted: #a7dc48;
+    --color-bg-danger: #361715;
+    --color-brand-discord: #5865f2;
 
-    --font-sans: "Pretendard Variable", Pretendard, ui-sans-serif, system-ui, sans-serif;
-    --font-mono: "FiraD2", "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+    --font-sans: "Wanted Sans Variable", -apple-system, "Segoe UI", system-ui, sans-serif;
+    --font-mono: "JetBrains Mono", "Wanted Sans Variable", ui-monospace, monospace;
+
+    --font-weight-medium: 600;
+    --font-weight-semibold: 650;
+    --font-weight-bold: 700;
 
     --text-xs: 12px;
-    --text-sm: 13px;
+    --text-sm: 14px;
     --text-base: 14px;
     --text-md: 16px;
-    --text-lg: 18px;
-    --text-xl: 24px;
-    --text-2xl: 32px;
+    --text-lg: clamp(18px, 0.95rem + 0.4vw, 20px);
+    --text-xl: clamp(24px, 1.2rem + 0.8vw, 28px);
+    --text-2xl: 28px;
 
-    --ease-smooth: cubic-bezier(0.16, 1, 0.3, 1);
+    --radius-chip: 4px;
+    --radius-control: 6px;
+    --radius-seg: 7px;
+    --radius-panel: 8px;
+
+    --spacing-gutter: clamp(12px, 0.5rem + 2vw, 28px);
+
+    --shadow-overlay: 0 16px 40px -8px #000000a6, 0 0 0 1px var(--color-border-default);
+
+    --ease-snap: cubic-bezier(0.2, 0, 0, 1);
+    --default-transition-duration: 70ms;
+    --default-transition-timing-function: cubic-bezier(0.2, 0, 0, 1);
+
+    --animate-pop: sg-pop 120ms cubic-bezier(0.2, 0, 0, 1);
+    --animate-drawer: sg-drawer 160ms cubic-bezier(0.2, 0, 0, 1);
+    --animate-sheet: sg-sheet 160ms cubic-bezier(0.2, 0, 0, 1);
+    --animate-toast: sg-toast 160ms cubic-bezier(0.2, 0, 0, 1);
+    --animate-fade: sg-fade 120ms cubic-bezier(0.2, 0, 0, 1);
 }
 
-/* gruvbox-light overrides — applied when <html> has .light class */
-html.light {
-    --color-bg-base: #f9f5d7;
-    --color-bg-surface: #fbf1c7;
-    --color-bg-elevated: #f2e5bc;
-    --color-bg-overlay: #ebdbb2;
-    --color-bg-hover: #d5c4a1;
-    --color-bg-selected: #bdae93;
+@keyframes sg-pop { from { opacity: 0; transform: scale(0.98); } }
+@keyframes sg-drawer { from { transform: translateX(-100%); } }
+@keyframes sg-sheet { from { transform: translateY(100%); } }
+@keyframes sg-toast { from { opacity: 0; transform: translateY(6px); } }
+@keyframes sg-fade { from { opacity: 0; } }
 
-    --color-border-default: #d5c4a1;
-    --color-border-strong: #bdae93;
-    --color-border-focus: #b57614;
-
-    --color-fg: #3c3836;
-    --color-fg-primary: #3c3836;
-    --color-fg-secondary: #504945;
-    --color-fg-muted: #7c6f64;
-    --color-fg-disabled: #928374;
-
-    --color-fg-accent: #b57614;
-    --color-fg-success: #79740e;
-    --color-fg-warning: #af3a03;
-    --color-fg-danger: #9d0006;
-    --color-fg-info: #076678;
-    --color-fg-link: #427b58;
-    --color-fg-purple: #8f3f71;
-
-    --color-accent: #b57614;
-    --color-accent-hover: #d79921;
-    --color-accent-fg: #fbf1c7;
-    --color-accent-muted: #fabd2f;
-}
-
-/* ─────────────────────────────────────────────────────────────────
-   Equalizer bar keyframes — used by AudioPlayer animated equalizer
-   ───────────────────────────────────────────────────────────────── */
 @keyframes equalize-1 { 0%, 100% { transform: scaleY(0.3); } 50% { transform: scaleY(1); } }
 @keyframes equalize-2 { 0%, 100% { transform: scaleY(0.5); } 50% { transform: scaleY(0.9); } }
 @keyframes equalize-3 { 0%, 100% { transform: scaleY(0.7); } 50% { transform: scaleY(0.4); } }
@@ -132,13 +101,13 @@ html.light {
 
 @layer base {
     html {
+        color-scheme: dark;
+        scrollbar-color: var(--color-border-strong) var(--color-bg-base);
         background-color: var(--color-bg-base);
         color: var(--color-fg-primary);
         font-family: var(--font-sans);
-        font-size: 13px;
-        /* Per project request: minimum 550 weight for body text. */
-        font-weight: 550;
-        font-variation-settings: "wght" 550;
+        font-optical-sizing: auto;
+        -webkit-text-size-adjust: 100%;
     }
 
     body {
@@ -146,24 +115,23 @@ html.light {
         width: 100vw;
         overflow: hidden;
         margin: 0;
+        font-size: var(--text-sm);
+        line-height: 1.5;
+        /* 소유자 요청: 본문 굵기 550 이상 */
+        font-weight: 550;
+        word-break: keep-all;
+        overflow-wrap: anywhere;
     }
 
-    /* Bump bold tiers to weights heavier than the 550 base so semantic
-       emphasis stays legible without going thinner than the new floor. */
-    strong, b, .font-bold {
-        font-weight: 700;
-        font-variation-settings: "wght" 700;
-    }
-    .font-semibold {
-        font-weight: 650;
-        font-variation-settings: "wght" 650;
-    }
-    .font-medium {
-        font-weight: 600;
-        font-variation-settings: "wght" 600;
+    h1, h2, h3 {
+        text-wrap: balance;
+        letter-spacing: -0.01em;
     }
 
-    /* Monospace (FiraD2) is a static font; keep at 400/700 only. */
+    ::selection {
+        background: #bdf95240;
+    }
+
     .font-mono,
     code,
     pre,
@@ -171,7 +139,7 @@ html.light {
     samp {
         font-family: var(--font-mono);
         font-weight: 400;
-        font-variation-settings: normal;
+        word-break: normal;
     }
     .font-mono.font-bold,
     code.font-bold,
@@ -183,6 +151,366 @@ html.light {
         outline: 2px solid var(--color-border-focus);
         outline-offset: 2px;
     }
+
+    input::placeholder {
+        color: var(--color-fg-muted);
+        opacity: 1;
+    }
+
+    button:not(:disabled),
+    [role="button"],
+    [role="tab"],
+    summary {
+        cursor: pointer;
+    }
+}
+
+@layer components {
+    .sg-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        min-height: 32px;
+        padding: 0 12px;
+        border: 1px solid var(--color-border-default);
+        border-radius: var(--radius-control);
+        background: var(--color-bg-surface);
+        color: var(--color-fg-primary);
+        font-size: var(--text-sm);
+        font-weight: 600;
+        line-height: 1.2;
+        white-space: nowrap;
+        transition: background-color 70ms var(--ease-snap), border-color 70ms var(--ease-snap), color 70ms var(--ease-snap);
+    }
+    .sg-btn:hover:not(:disabled) {
+        background: var(--color-bg-elevated);
+        border-color: var(--color-border-strong);
+    }
+    .sg-btn:disabled {
+        cursor: not-allowed;
+        background: var(--color-bg-surface);
+        border-color: var(--color-border-default);
+        color: var(--color-fg-muted);
+    }
+    .sg-btn-primary {
+        background: var(--color-accent);
+        border-color: var(--color-accent);
+        color: var(--color-accent-fg);
+        font-weight: 680;
+    }
+    .sg-btn-primary:hover:not(:disabled) {
+        background: var(--color-accent-hover);
+        border-color: var(--color-accent-hover);
+    }
+    .sg-btn-primary:active:not(:disabled) {
+        background: var(--color-accent-muted);
+        border-color: var(--color-accent-muted);
+    }
+    .sg-btn-ghost {
+        background: transparent;
+        border-color: transparent;
+        color: var(--color-fg-secondary);
+    }
+    .sg-btn-ghost:hover:not(:disabled) {
+        background: var(--color-bg-hover);
+        border-color: transparent;
+        color: var(--color-fg-primary);
+    }
+    .sg-btn-ghost:disabled {
+        background: transparent;
+        border-color: transparent;
+    }
+    .sg-btn-ghost[aria-pressed="true"],
+    .sg-btn-ghost[aria-expanded="true"] {
+        background: var(--color-bg-selected);
+        color: var(--color-fg-primary);
+    }
+    .sg-btn-danger {
+        background: transparent;
+        border-color: color-mix(in oklab, var(--color-fg-danger) 55%, var(--color-border-default));
+        color: var(--color-fg-danger);
+    }
+    .sg-btn-danger:hover:not(:disabled) {
+        background: var(--color-bg-danger);
+        border-color: var(--color-fg-danger);
+    }
+    .sg-btn-icon {
+        width: 32px;
+        padding: 0;
+    }
+    .sg-btn-block {
+        width: 100%;
+        min-height: 40px;
+    }
+
+    .sg-label {
+        display: block;
+        margin-bottom: 6px;
+        font-size: var(--text-xs);
+        font-weight: 600;
+        color: var(--color-fg-secondary);
+    }
+    .sg-input {
+        width: 100%;
+        min-height: 36px;
+        padding: 0 10px;
+        background: var(--color-bg-inset);
+        border: 1px solid var(--color-border-strong);
+        border-radius: var(--radius-control);
+        color: var(--color-fg-primary);
+        font-size: var(--text-sm);
+    }
+    .sg-input:focus-visible {
+        outline-offset: 0;
+        border-color: var(--color-border-focus);
+    }
+    .sg-input:disabled,
+    .sg-input[readonly] {
+        background: var(--color-bg-surface);
+        border-color: var(--color-border-default);
+        color: var(--color-fg-secondary);
+    }
+    .sg-input[aria-invalid="true"] {
+        border-color: var(--color-fg-danger);
+    }
+    .sg-input-icon {
+        padding-left: 32px;
+    }
+
+    .sg-panel {
+        background: var(--color-bg-surface);
+        border: 1px solid var(--color-border-default);
+        border-radius: var(--radius-panel);
+    }
+    .sg-page-head {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        min-height: 48px;
+        padding: 0 var(--spacing-gutter);
+        background: var(--color-bg-surface);
+        border-bottom: 1px solid var(--color-border-default);
+    }
+    .sg-page-title {
+        font-size: var(--text-md);
+        font-weight: 650;
+        color: var(--color-fg-primary);
+    }
+    .sg-section-title {
+        font-size: var(--text-md);
+        font-weight: 650;
+        color: var(--color-fg-primary);
+    }
+
+    .sg-menu {
+        min-width: 208px;
+        padding: 6px;
+        background: var(--color-bg-overlay);
+        border: 1px solid var(--color-border-default);
+        border-radius: var(--radius-panel);
+        box-shadow: var(--shadow-overlay);
+        color: var(--color-fg-primary);
+    }
+    .sg-menu-sheet {
+        border-radius: var(--radius-panel) var(--radius-panel) 0 0;
+        padding-bottom: calc(8px + env(safe-area-inset-bottom));
+    }
+    .sg-menu-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        width: 100%;
+        min-height: 34px;
+        padding: 0 10px;
+        border-radius: var(--radius-control);
+        color: var(--color-fg-primary);
+        font-size: var(--text-sm);
+        text-align: left;
+    }
+    .sg-menu-item:hover {
+        background: var(--color-bg-hover);
+    }
+    .sg-menu-item:focus-visible {
+        outline-offset: -2px;
+    }
+    .sg-menu-item svg {
+        color: var(--color-fg-secondary);
+        flex-shrink: 0;
+    }
+    .sg-menu-item-danger,
+    .sg-menu-item-danger svg {
+        color: var(--color-fg-danger);
+    }
+    .sg-menu-sep {
+        height: 1px;
+        margin: 4px 6px;
+        background: var(--color-border-default);
+    }
+
+    .sg-viewer-bar {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        min-height: 44px;
+        padding: 2px var(--spacing-gutter);
+        background: var(--color-bg-surface);
+        border-bottom: 1px solid var(--color-border-default);
+        color: var(--color-fg-secondary);
+        font-size: var(--text-sm);
+    }
+    .sg-viewer-sep {
+        flex-shrink: 0;
+        width: 1px;
+        height: 20px;
+        margin: 0 4px;
+        background: var(--color-border-default);
+    }
+    .sg-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        height: 20px;
+        padding: 0 8px;
+        border: 1px solid color-mix(in oklab, currentColor 45%, transparent);
+        border-radius: var(--radius-chip);
+        font-size: var(--text-xs);
+        font-weight: 600;
+        line-height: 1;
+        white-space: nowrap;
+    }
+    .sg-count {
+        display: inline-block;
+        min-width: 20px;
+        padding: 0 6px;
+        border: 1px solid var(--color-border-default);
+        border-radius: var(--radius-chip);
+        color: var(--color-fg-secondary);
+        font: 600 var(--text-xs) / 18px var(--font-mono);
+        font-variant-numeric: tabular-nums;
+        text-align: center;
+        white-space: nowrap;
+    }
+
+    .sg-seg {
+        display: inline-flex;
+        gap: 2px;
+        padding: 2px;
+        background: var(--color-bg-inset);
+        border: 1px solid var(--color-border-default);
+        border-radius: var(--radius-seg);
+    }
+    .sg-seg-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        min-width: 28px;
+        min-height: 26px;
+        padding: 0 8px;
+        border-radius: calc(var(--radius-seg) - 2px);
+        color: var(--color-fg-secondary);
+        font-size: var(--text-sm);
+        white-space: nowrap;
+        transition: background-color 70ms var(--ease-snap), color 70ms var(--ease-snap);
+    }
+    .sg-seg-btn:hover {
+        color: var(--color-fg-primary);
+    }
+    .sg-seg-btn[aria-pressed="true"] {
+        background: var(--color-bg-overlay);
+        color: var(--color-fg-primary);
+        font-weight: 650;
+    }
+    .sg-seg-btn:focus-visible {
+        outline-offset: 1px;
+    }
+
+    .sg-switch {
+        position: relative;
+        flex-shrink: 0;
+        width: 34px;
+        height: 20px;
+        border: 1px solid var(--color-border-strong);
+        border-radius: 999px;
+        background: var(--color-bg-overlay);
+        transition: background-color 120ms var(--ease-snap), border-color 120ms var(--ease-snap);
+    }
+    .sg-switch::after {
+        content: "";
+        position: absolute;
+        top: 2px;
+        left: 2px;
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        background: var(--color-fg-secondary);
+        transition: translate 120ms var(--ease-snap), background-color 120ms var(--ease-snap);
+    }
+    .sg-switch[aria-checked="true"] {
+        background: var(--color-accent);
+        border-color: var(--color-accent);
+    }
+    .sg-switch[aria-checked="true"]::after {
+        translate: 14px 0;
+        background: var(--color-accent-fg);
+    }
+    .sg-switch:disabled {
+        cursor: progress;
+    }
+    /* 44px 터치 목표는 보이는 스위치를 키우지 않고 누를 영역만 넓힘 */
+    .sg-switch::before {
+        content: "";
+        position: absolute;
+        inset: -12px -5px;
+    }
+
+    .sg-tip {
+        position: absolute;
+        z-index: 60;
+        padding: 4px 8px;
+        border: 1px solid var(--color-border-strong);
+        border-radius: var(--radius-chip);
+        background: var(--color-bg-overlay);
+        color: var(--color-fg-primary);
+        font-size: var(--text-xs);
+        font-weight: 600;
+        white-space: nowrap;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 70ms var(--ease-snap);
+    }
+    :is(:hover, :focus-visible) > .sg-tip {
+        opacity: 1;
+    }
+}
+
+@media (pointer: coarse) {
+    .sg-btn {
+        min-height: 44px;
+    }
+    .sg-btn-icon {
+        width: 44px;
+    }
+    .sg-input {
+        min-height: 44px;
+    }
+    .sg-menu-item {
+        min-height: 44px;
+    }
+    .sg-seg-btn {
+        min-width: 40px;
+        min-height: 38px;
+    }
+}
+
+/* 휴대폰 입력 칸은 16px 이상이어야 브라우저가 초점 때 확대하지 않음 */
+@media (pointer: coarse) {
+    input:not([type="checkbox"], [type="radio"], [type="range"]),
+    textarea,
+    select {
+        font-size: 16px;
+    }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -190,18 +518,20 @@ html.light {
     .eq-bar {
         animation: none !important;
     }
+    .animate-pop,
+    .animate-drawer,
+    .animate-sheet,
+    .animate-toast {
+        animation-name: sg-fade;
+        animation-duration: 120ms;
+    }
     .transition-transform,
-    .transition-\[width\] {
+    .transition-\[width\],
+    .sg-switch::after {
         transition: none;
     }
 }
 
-/* ─────────────────────────────────────────────────────────────────
-   `.h-app` — full viewport height for the (app) layout root.
-   Uses `100dvh` so iOS Safari's collapsing URL bar doesn't clip the
-   bottom 28px StatusBar (the classic `100vh` bug). Falls back to
-   `100vh` on browsers without dynamic viewport units.
-   ───────────────────────────────────────────────────────────────── */
 @utility h-app {
     height: 100vh;
     height: 100dvh;

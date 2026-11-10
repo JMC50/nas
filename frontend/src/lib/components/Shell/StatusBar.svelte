@@ -4,7 +4,6 @@
   import AlertCircle from "lucide-svelte/icons/alert-circle";
   import { uploads } from "$lib/store/uploads.svelte";
   import { ui } from "$lib/store/ui.svelte";
-  import { mode } from "mode-watcher";
 
   const percentDisplay = $derived(Math.round(uploads.overallProgress * 100));
 
@@ -17,39 +16,34 @@
 </script>
 
 <footer
-  class="row-start-3 col-span-1 md:col-span-2 h-7 flex items-center justify-between gap-4 px-3 text-xs text-fg-muted border-t border-border-default bg-bg-surface pb-[env(safe-area-inset-bottom)] md:pb-0"
+  class="row-start-3 col-start-1 lg:row-start-2 lg:col-start-2 h-7 min-w-0 flex items-center justify-between gap-3 pl-1 pr-3 text-xs text-fg-muted border-t border-border-default bg-bg-surface"
 >
   <button
     type="button"
-    class="flex items-center gap-3 min-w-0 max-w-[60%] hover:bg-bg-hover px-2 h-full transition-colors text-left"
+    class="flex items-center gap-2 min-w-0 h-full px-2 rounded-chip hover:bg-bg-hover hover:text-fg-primary transition-colors text-left focus-visible:outline-offset-[-2px]"
     onclick={() => ui.toggleUploadsPanel()}
     aria-label="Open uploads panel"
+    aria-expanded={ui.uploadsPanelOpen}
   >
     {#if uploads.hasActive}
-      <Upload size="12" class="text-fg-accent shrink-0" />
+      <Upload size="13" class="text-fg-accent shrink-0" />
       <span class="truncate">
         {uploads.active.length} uploading · {formatBytes(uploads.uploadedBytes)} / {formatBytes(uploads.totalBytes)}
       </span>
-      <div class="w-24 h-1 bg-bg-elevated overflow-hidden shrink-0">
-        <div
-          class="h-full bg-accent transition-[width] duration-200"
-          style="width: {percentDisplay}%;"
-        ></div>
-      </div>
-      <span class="font-mono tabular-nums shrink-0">{percentDisplay}%</span>
+      <span class="hidden md:block w-24 h-1 rounded-full bg-bg-overlay overflow-hidden shrink-0" aria-hidden="true">
+        <span class="block h-full bg-accent" style="width: {percentDisplay}%;"></span>
+      </span>
+      <span class="tabular-nums shrink-0">{percentDisplay}%</span>
     {:else if uploads.failed.length > 0}
-      <AlertCircle size="12" class="text-fg-danger shrink-0" />
-      <span class="text-fg-danger">{uploads.failed.length} failed</span>
+      <AlertCircle size="13" class="text-fg-danger shrink-0" />
+      <span class="text-fg-danger truncate">{uploads.failed.length} failed</span>
     {:else if uploads.completed.length > 0}
-      <CheckCircle2 size="12" class="text-fg-success shrink-0" />
-      <span class="text-fg-success">{uploads.completed.length} uploaded</span>
+      <CheckCircle2 size="13" class="text-fg-success shrink-0" />
+      <span class="text-fg-success truncate">{uploads.completed.length} uploaded</span>
     {:else}
-      <span class="text-fg-disabled">Ready</span>
+      <span>Ready</span>
     {/if}
   </button>
 
-  <div class="flex items-center gap-3 shrink-0">
-    <span>{mode.current === "light" ? "Light" : "Dark"}</span>
-    <span class="font-mono" title="App version">v{__APP_VERSION__}</span>
-  </div>
+  <span class="shrink-0 font-mono" title="App version">v{__APP_VERSION__}</span>
 </footer>

@@ -1,7 +1,6 @@
 import { browser } from "$app/environment";
 import type { Breakpoint } from "$lib/types";
 
-const SIDEBAR_STORAGE_KEY = "nas:ui:sidebarCollapsed";
 const QUICKOPEN_DEFAULT = false;
 
 const BREAKPOINTS: Record<Breakpoint, number> = {
@@ -12,7 +11,6 @@ const BREAKPOINTS: Record<Breakpoint, number> = {
 };
 
 class UIStore {
-  sidebarCollapsed = $state<boolean>(false);
   quickOpenVisible = $state<boolean>(QUICKOPEN_DEFAULT);
   uploadsPanelOpen = $state<boolean>(false);
   drawerOpen = $state<boolean>(false);
@@ -33,25 +31,16 @@ class UIStore {
 
   constructor() {
     if (browser) {
-      this.sidebarCollapsed = localStorage.getItem(SIDEBAR_STORAGE_KEY) === "1";
       this.viewportWidth = window.innerWidth;
       this.viewportHeight = window.innerHeight;
       window.addEventListener("resize", () => {
         this.viewportWidth = window.innerWidth;
         this.viewportHeight = window.innerHeight;
-        // Auto-close drawer when upsizing past md — the drawer is mobile-only
-        // and the sidebar grid column reappears at md+.
-        if (this.viewportWidth >= BREAKPOINTS.md && this.drawerOpen) {
+        // 1024px 이상에서는 레일이 서랍을 대신함
+        if (this.viewportWidth >= BREAKPOINTS.lg && this.drawerOpen) {
           this.closeDrawer();
         }
       });
-    }
-  }
-
-  toggleSidebar() {
-    this.sidebarCollapsed = !this.sidebarCollapsed;
-    if (browser) {
-      localStorage.setItem(SIDEBAR_STORAGE_KEY, this.sidebarCollapsed ? "1" : "0");
     }
   }
 
@@ -80,16 +69,17 @@ class UIStore {
     }
   }
 
-  openDrawer() {
+  private drawerOpener: HTMLElement | null = null;
+
+  openDrawer(opener?: HTMLElement) {
+    this.drawerOpener = opener ?? null;
     this.setDrawerOpen(true);
   }
 
   closeDrawer() {
     this.setDrawerOpen(false);
-  }
-
-  toggleDrawer() {
-    this.setDrawerOpen(!this.drawerOpen);
+    this.drawerOpener?.focus();
+    this.drawerOpener = null;
   }
 }
 

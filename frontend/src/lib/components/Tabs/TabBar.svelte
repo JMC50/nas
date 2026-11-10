@@ -101,60 +101,125 @@
 </script>
 
 <div
-  class="h-9 flex items-end overflow-x-auto bg-bg-base border-b border-border-default"
+  class="h-10 flex items-stretch gap-1 pl-1 pr-1 overflow-x-auto bg-bg-base border-b border-border-default [scrollbar-width:none]"
   role="tablist"
+  aria-label="Open tabs"
 >
-  <div class="flex items-end h-full">
-    {#each tabs.list as tab (tab.id)}
-      {@const Icon = KIND_TO_ICON[tab.kind] ?? Folder}
-      {@const isActive = tab.id === tabs.activeId}
-      {@const isDragOver = dragOverId === tab.id}
-      <div
-        role="tab"
-        tabindex="0"
-        draggable={!ui.isMobile}
-        aria-selected={isActive}
-        class="group relative flex items-center gap-2 h-full px-3 text-xs border-r border-border-default transition-colors focus-visible:outline-offset-[-2px] min-w-[100px] max-w-[140px] md:min-w-[120px] md:max-w-[200px] cursor-pointer select-none {isActive
- ? 'bg-bg-base text-fg-primary'
- : 'bg-bg-surface text-fg-muted hover:text-fg-primary hover:bg-bg-elevated'} {isDragOver
- ? 'ring-1 ring-inset ring-accent'
- : ''}"
-        onclick={() => focus(tab)}
-        onauxclick={(event) => onAuxClick(event, tab)}
-        onkeydown={(event) => onKey(event, tab)}
-        ondragstart={(event) => onDragStart(event, tab)}
-        ondragover={(event) => onDragOver(event, tab)}
-        ondragleave={() => onDragLeave(tab)}
-        ondrop={(event) => onDrop(event, tab)}
-        ondragend={onDragEnd}
-      >
-        {#if isActive}
-          <span class="absolute top-0 left-0 right-0 h-0.5 bg-accent"></span>
-        {/if}
-        <Icon size="14" class="shrink-0" />
-        <span class="truncate flex-1 text-left">
-          {tab.title}{#if tab.dirty}<span class="text-fg-warning"> •</span>{/if}
-        </span>
-        {#if tab.closable}
-          <button
-            type="button"
-            class="shrink-0 w-4 h-4 inline-flex items-center justify-center text-fg-muted hover:text-fg-danger hover:bg-bg-hover opacity-100 md:opacity-0 md:group-hover:opacity-100 md:group-focus-within:opacity-100 transition-opacity focus-visible:outline-offset-[-2px]"
-            onclick={(event) => close(event, tab)}
-            aria-label="Close tab"
-          >
-            <X size="12" />
-          </button>
-        {/if}
-      </div>
-    {/each}
-  </div>
+  {#each tabs.list as tab (tab.id)}
+    {@const Icon = KIND_TO_ICON[tab.kind] ?? Folder}
+    {@const isActive = tab.id === tabs.activeId}
+    {@const isDragOver = dragOverId === tab.id}
+    <div
+      role="tab"
+      tabindex="0"
+      draggable={!ui.isMobile}
+      aria-selected={isActive}
+      class="tab group {isActive ? 'is-active' : ''} {isDragOver ? 'is-drop' : ''}"
+      onclick={() => focus(tab)}
+      onauxclick={(event) => onAuxClick(event, tab)}
+      onkeydown={(event) => onKey(event, tab)}
+      ondragstart={(event) => onDragStart(event, tab)}
+      ondragover={(event) => onDragOver(event, tab)}
+      ondragleave={() => onDragLeave(tab)}
+      ondrop={(event) => onDrop(event, tab)}
+      ondragend={onDragEnd}
+      title={tab.title}
+    >
+      <Icon size="16" class="shrink-0" />
+      <span class="truncate flex-1 min-w-0 text-left">{tab.title}</span>
+      {#if tab.dirty}
+        <span class="shrink-0 size-1.5 rounded-full bg-fg-warning" role="img" aria-label="Unsaved changes"></span>
+      {/if}
+      {#if tab.closable}
+        <button
+          type="button"
+          class="tab-close"
+          onclick={(event) => close(event, tab)}
+          aria-label="Close tab"
+        >
+          <X size="14" />
+        </button>
+      {/if}
+    </div>
+  {/each}
   <button
     type="button"
-    class="shrink-0 inline-flex items-center justify-center w-8 h-8 mb-0.5 ml-1 text-fg-muted hover:text-fg-primary hover:bg-bg-elevated"
+    class="sg-btn sg-btn-ghost sg-btn-icon self-center shrink-0"
     onclick={openNewTab}
     aria-label="New explorer tab"
     title="New explorer tab (clone current location)"
   >
-    <Plus size="14" />
+    <Plus size="16" />
   </button>
 </div>
+
+<style>
+  .tab {
+    position: relative;
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    gap: 8px;
+    min-width: 112px;
+    max-width: 200px;
+    padding: 0 6px 0 12px;
+    border-radius: var(--radius-control) var(--radius-control) 0 0;
+    color: var(--color-fg-secondary);
+    font-size: var(--text-sm);
+    user-select: none;
+    transition: color 70ms var(--ease-snap), background-color 70ms var(--ease-snap);
+  }
+  .tab:hover {
+    color: var(--color-fg-primary);
+    background: var(--color-bg-hover);
+  }
+  .tab:focus-visible {
+    outline-offset: -2px;
+  }
+  .tab.is-active {
+    color: var(--color-fg-primary);
+    font-weight: 650;
+  }
+  .tab.is-active::after {
+    content: "";
+    position: absolute;
+    left: 8px;
+    right: 8px;
+    bottom: 0;
+    height: 2px;
+    background: var(--color-accent);
+  }
+  .tab.is-drop {
+    background: var(--color-bg-selected);
+    box-shadow: inset 0 0 0 1px var(--color-accent);
+  }
+  .tab-close {
+    display: grid;
+    flex-shrink: 0;
+    place-items: center;
+    width: 24px;
+    height: 24px;
+    border-radius: var(--radius-chip);
+    color: var(--color-fg-muted);
+    opacity: 0;
+  }
+  .tab.is-active .tab-close,
+  .tab:hover .tab-close,
+  .tab:focus-within .tab-close {
+    opacity: 1;
+  }
+  .tab-close:hover {
+    background: var(--color-bg-hover);
+    color: var(--color-fg-primary);
+  }
+  .tab-close:focus-visible {
+    outline-offset: -2px;
+  }
+  @media (pointer: coarse) {
+    .tab-close {
+      opacity: 1;
+      width: 32px;
+      height: 32px;
+    }
+  }
+</style>

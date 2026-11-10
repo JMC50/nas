@@ -8,7 +8,7 @@
   onDestroy(() => uninstall());
 </script>
 
-<div class="grid grid-rows-[36px_1fr] h-full w-full">
+<div class="grid grid-rows-[40px_minmax(0,1fr)] h-full w-full">
   <TabBar />
   <div class="min-h-0 overflow-hidden">
     <TabContent />

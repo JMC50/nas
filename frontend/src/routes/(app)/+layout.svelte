@@ -8,6 +8,7 @@
   import VerticalNav from "$lib/components/Shell/VerticalNav.svelte";
   import MobileDrawer from "$lib/components/Shell/MobileDrawer.svelte";
   import StatusBar from "$lib/components/Shell/StatusBar.svelte";
+  import Toasts from "$lib/components/Shell/Toasts.svelte";
   import DragDropOverlay from "$lib/components/Uploads/DragDropOverlay.svelte";
   import UploadPanel from "$lib/components/Uploads/UploadPanel.svelte";
   import QuickOpen from "$lib/components/QuickOpen.svelte";
@@ -30,13 +31,11 @@
 </script>
 
 <div
-  class="grid grid-rows-[48px_1fr_28px] grid-cols-[1fr] md:grid-cols-[auto_1fr] h-app w-screen bg-bg-base"
+  class="grid grid-rows-[48px_minmax(0,1fr)_28px] grid-cols-[minmax(0,1fr)] lg:grid-rows-[minmax(0,1fr)_28px] lg:grid-cols-[64px_minmax(0,1fr)] h-app w-screen bg-bg-base"
 >
   <Header />
-  <div class="hidden md:contents">
-    <VerticalNav />
-  </div>
-  <main class="row-start-2 col-start-1 md:col-start-2 min-w-0 min-h-0 overflow-hidden bg-bg-base">
+  <VerticalNav />
+  <main class="row-start-2 col-start-1 lg:row-start-1 lg:col-start-2 min-w-0 min-h-0 overflow-hidden bg-bg-base">
     {@render children?.()}
   </main>
   <StatusBar />
@@ -46,3 +45,4 @@
 <DragDropOverlay />
 <UploadPanel open={ui.uploadsPanelOpen} onClose={() => ui.closeUploadsPanel()} />
 <QuickOpen />
+<Toasts />

@@ -521,6 +521,10 @@
         position: absolute;
         inset: -3px 0;
     }
+    /* 48px 머리 막대 안의 44px 버튼은 바깥 고리 위쪽이 탭 내용 영역에서 잘리므로 안쪽에 그림 */
+    .sg-page-head .sg-btn:focus-visible {
+        outline-offset: -2px;
+    }
 }
 
 /* 휴대폰 입력 칸은 16px 이상이어야 브라우저가 초점 때 확대하지 않음 */

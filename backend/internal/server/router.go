@@ -52,7 +52,7 @@ func NewRouter(cfg *config.Config, conn *sql.DB) http.Handler {
 	fileHandlers := &files.Handlers{Config: cfg, DB: conn}
 	streamHandlers := &stream.Handlers{Config: cfg, DB: conn}
 	uploadHandlers := &upload.Handlers{Config: cfg, DB: conn}
-	shareHandlers := &share.Handlers{Config: cfg, DB: conn}
+	shareHandlers := share.NewHandlers(cfg, conn)
 	archiveTracker := archive.NewTracker(1 * time.Hour)
 	archiveHandlers := &archive.Handlers{Config: cfg, DB: conn, Tracker: archiveTracker}
 	officeHandlers, err := office.NewHandlers(cfg, conn)

@@ -9,8 +9,8 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
+	"os"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/go-chi/chi/v5"
@@ -23,6 +23,11 @@ import (
 type Handlers struct {
 	Config *config.Config
 	DB     *sql.DB
+	limits *limiter
+}
+
+func NewHandlers(cfg *config.Config, conn *sql.DB) *Handlers {
+	return &Handlers{Config: cfg, DB: conn, limits: newLimiter()}
 }
 
 var expiryChoices = map[string]time.Duration{
@@ -56,7 +61,7 @@ type linkView struct {
 
 // Create는 파일이나 폴더의 공개 링크를 만들고, 토큰 원문은 이 응답에서만 돌려줍니다.
 func (h *Handlers) Create(w http.ResponseWriter, r *http.Request) {
-	req, lifetime, err := decodeCreate(r)
+	rel, lifetime, err := decodeCreate(r)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -66,7 +71,7 @@ func (h *Handlers) Create(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "unauthorized", http.StatusUnauthorized)
 		return
 	}
-	target, err := h.resolve(req.Loc, req.Name)
+	info, err := h.statShared(rel)
 	if err != nil {
 		http.Error(w, "not found", http.StatusNotFound)
 		return
@@ -77,12 +82,13 @@ func (h *Handlers) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	now := time.Now()
+	loc, name := splitTarget(rel)
 	link := db.ShareLink{
 		TokenHash: hashToken(token),
 		UserID:    creator.ID,
-		Loc:       normalizeLoc(req.Loc),
-		Name:      req.Name,
-		IsFolder:  target.info.IsDir(),
+		Loc:       loc,
+		Name:      name,
+		IsFolder:  info.IsDir(),
 		CreatedAt: now.UnixMilli(),
 		ExpiresAt: now.Add(lifetime).UnixMilli(),
 	}
@@ -100,19 +106,30 @@ func (h *Handlers) Create(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func decodeCreate(r *http.Request) (createRequest, time.Duration, error) {
+// decodeCreate는 요청 값을 검사하고 데이터 폴더 기준 상대 경로로 바꿈. 저장도 이 경로로 해서 검사한 값과 저장한 값이 같음
+func decodeCreate(r *http.Request) (string, time.Duration, error) {
 	var req createRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		return req, 0, errors.New("invalid body")
+		return "", 0, errors.New("invalid body")
 	}
 	lifetime, ok := expiryChoices[req.ExpiresIn]
 	if !ok {
-		return req, 0, errors.New("expiresIn must be one of 1h, 1d, 7d, 30d")
+		return "", 0, errors.New("expiresIn must be one of 1h, 1d, 7d, 30d")
 	}
-	if req.Name == "" || strings.ContainsAny(req.Name, `/\`) {
-		return req, 0, errors.New("invalid name")
+	rel, err := targetPath(req.Loc, req.Name)
+	if err != nil {
+		return "", 0, err
 	}
-	return req, lifetime, nil
+	return rel, lifetime, nil
+}
+
+func (h *Handlers) statShared(rel string) (os.FileInfo, error) {
+	root, err := os.OpenRoot(h.Config.NASDataDir)
+	if err != nil {
+		return nil, err
+	}
+	defer root.Close()
+	return statTarget(root, rel)
 }
 
 // List는 관리자에게 모든 링크를, 다른 사용자에게 자기 링크만 돌려줍니다.
@@ -218,10 +235,6 @@ func newToken() (string, error) {
 func hashToken(token string) string {
 	sum := sha256.Sum256([]byte(token))
 	return hex.EncodeToString(sum[:])
-}
-
-func normalizeLoc(loc string) string {
-	return "/" + strings.Trim(strings.ReplaceAll(loc, `\`, "/"), "/")
 }
 
 func writeJSON(w http.ResponseWriter, status int, body any) {

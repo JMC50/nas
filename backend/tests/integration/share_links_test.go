@@ -263,6 +263,32 @@ func TestShareLink_TraversalIsRejected(t *testing.T) {
 	require.NotContains(t, w.Body.String(), "secret")
 }
 
+func TestShareLink_DotNamesAreRejectedAndTheCheckedPathIsStored(t *testing.T) {
+	f := newShareFixture(t)
+	f.write(t, "top/sub/x.txt", "x")
+	f.write(t, "top/y.txt", "y")
+
+	for _, name := range []string{".", "..", `a\b`} {
+		w := f.do("POST", "/server/share-links", "alice", map[string]string{"loc": "/top/sub", "name": name, "expiresIn": "1d"}, nil)
+		require.Equal(t, http.StatusBadRequest, w.Code, name)
+	}
+
+	link := f.create(t, "alice", "/top/sub/..", "sub", "1d")
+	var loc, name string
+	require.NoError(t, f.conn.QueryRow(`SELECT loc, name FROM share_links WHERE id = ?`, link.ID).Scan(&loc, &name))
+	require.Equal(t, "/top", loc)
+	require.Equal(t, "sub", name)
+
+	w := f.do("GET", link.Path, "", nil, nil)
+	require.Equal(t, http.StatusOK, w.Code)
+	entries := readZip(t, w.Body.Bytes())
+	require.Equal(t, "x", entries["sub/x.txt"])
+	for entry := range entries {
+		require.True(t, strings.HasPrefix(entry, "sub/"), entry)
+		require.NotContains(t, strings.Split(entry, "/"), "..", entry)
+	}
+}
+
 func TestShareLink_SymlinkEscapeIsRejected(t *testing.T) {
 	f := newShareFixture(t)
 	secret := filepath.Join(f.outside, "secret.txt")
@@ -329,7 +355,8 @@ func TestShareLink_FolderDownloadsAsZip(t *testing.T) {
 	w := f.do("GET", link.Path, "", nil, nil)
 	require.Equal(t, http.StatusOK, w.Code)
 	require.Equal(t, "application/zip", w.Header().Get("Content-Type"))
-	require.Contains(t, w.Header().Get("Content-Disposition"), ".zip")
+	require.Equal(t, `attachment; filename="__.zip"; filename*=UTF-8''%EC%82%AC%EC%A7%84.zip`, w.Header().Get("Content-Disposition"),
+		"the quoted name keeps printable ASCII only and filename* carries the real name")
 
 	entries := readZip(t, w.Body.Bytes())
 	require.Equal(t, "png bytes", entries["사진/바다.png"])
@@ -345,7 +372,8 @@ func TestShareLink_FolderZipSkipsSymlinkEscapes(t *testing.T) {
 	f.write(t, "다른 폴더/b.txt", "b")
 	require.NoError(t, os.Symlink(secret, filepath.Join(f.dataDir, "공유", "escape.txt")))
 	require.NoError(t, os.Symlink(f.outside, filepath.Join(f.dataDir, "공유", "escape-dir")))
-	require.NoError(t, os.Symlink(filepath.Join(f.dataDir, "다른 폴더", "b.txt"), filepath.Join(f.dataDir, "공유", "inside.txt")))
+	require.NoError(t, os.Symlink(filepath.Join("..", "다른 폴더", "b.txt"), filepath.Join(f.dataDir, "공유", "inside.txt")))
+	require.NoError(t, os.Symlink(filepath.Join(f.dataDir, "다른 폴더", "b.txt"), filepath.Join(f.dataDir, "공유", "absolute.txt")))
 
 	link := f.create(t, "alice", "/", "공유", "1d")
 	w := f.do("GET", link.Path, "", nil, nil)
@@ -353,7 +381,8 @@ func TestShareLink_FolderZipSkipsSymlinkEscapes(t *testing.T) {
 
 	entries := readZip(t, w.Body.Bytes())
 	require.Equal(t, "a", entries["공유/a.txt"])
-	require.Equal(t, "b", entries["공유/inside.txt"])
+	require.Equal(t, "b", entries["공유/inside.txt"], "a relative link that stays inside the data folder is followed")
+	require.NotContains(t, entries, "공유/absolute.txt", "absolute links are not followed")
 	require.NotContains(t, entries, "공유/escape.txt")
 	require.NotContains(t, entries, "공유/escape-dir/")
 	require.NotContains(t, entries, "공유/escape-dir/secret.txt")

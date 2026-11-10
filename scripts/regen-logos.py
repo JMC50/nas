@@ -19,7 +19,7 @@ STATIC = REPO_ROOT / "frontend" / "static"
 APP_HTML = REPO_ROOT / "frontend" / "src" / "app.html"
 README_LOGO = REPO_ROOT / "Docs" / "images" / "logo.png"
 
-# 레일과 머리 막대의 바탕(Signal s1)과 같은 색 타일 위에 로고를 둠. 밝은 탭 막대에서도 라임 로고가 보이게 함
+# 밝은 탭 막대에서도 라임 로고가 보이게 레일 바탕색(#131518) 타일 위에 그림
 TILE_COLOR = "#131518"
 GRID = 32
 MARK_OFFSET = 4

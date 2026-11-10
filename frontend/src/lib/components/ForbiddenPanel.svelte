@@ -38,22 +38,22 @@
   Without this, Explorer's containerEl swallows pointerdown via setPointerCapture
   and the button never sees a complete click sequence — so prompt() never fires.
 -->
-<div class="flex items-center justify-center h-full w-full p-6" data-marquee-canvas="false">
+<div class="flex items-center justify-center h-full w-full p-gutter" data-marquee-canvas="false">
   <div class="max-w-md w-full text-center">
-    <div class="inline-flex items-center justify-center w-16 h-16 bg-accent/10 border border-accent/20 mb-5">
-      <Lock size="28" class="text-accent" />
+    <div class="inline-grid place-items-center size-14 rounded-panel bg-bg-elevated border border-border-default mb-5">
+      <Lock size="26" class="text-fg-secondary" />
     </div>
 
     <h2 class="text-lg font-semibold text-fg-primary mb-2">{title}</h2>
-    <p class="text-sm text-fg-muted mb-6 leading-relaxed">{description}</p>
+    <p class="text-sm text-fg-secondary mb-6 leading-relaxed">{description}</p>
 
     <button
       type="button"
-      class="inline-flex items-center gap-2 h-10 px-4 bg-accent text-accent-fg text-sm font-semibold hover:bg-accent-hover disabled:opacity-60 transition-colors"
+      class="sg-btn sg-btn-primary"
       onclick={tryClaim}
       disabled={busy}
     >
-      <ShieldCheck size="14" />
+      <ShieldCheck size="16" />
       {busy ? "Verifying…" : "Request admin permission"}
     </button>
 

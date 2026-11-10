@@ -27,33 +27,33 @@
   onMount(load);
 </script>
 
-<section class="space-y-3">
+<section class="flex flex-col gap-3">
   <div class="flex items-center gap-2">
-    <Info size="14" class="text-fg-muted" />
-    <h2 class="text-xs font-semibold uppercase tracking-wide text-fg-muted">About</h2>
+    <Info size="18" class="text-fg-secondary" />
+    <h2 class="sg-section-title">About</h2>
   </div>
 
-  <div class="bg-bg-surface border border-border-default p-4 space-y-2">
-    <div class="grid grid-cols-[140px_1fr] gap-x-4 gap-y-1.5 text-xs">
-      <div class="text-fg-muted">App version</div>
-      <div class="font-mono text-fg-primary">{__APP_VERSION__}</div>
+  <div class="sg-panel p-4">
+    <dl class="grid grid-cols-[120px_minmax(0,1fr)] gap-x-4 gap-y-2 text-sm">
+      <dt class="text-fg-muted">App version</dt>
+      <dd class="font-mono text-fg-primary">{__APP_VERSION__}</dd>
 
-      <div class="text-fg-muted">Backend</div>
-      <div class="font-mono text-fg-primary">Go server</div>
+      <dt class="text-fg-muted">Backend</dt>
+      <dd class="text-fg-primary">Go server</dd>
 
       {#if health}
-        <div class="text-fg-muted">Health</div>
-        <div class="font-mono {statusColor(health.status)}">{health.status}</div>
+        <dt class="text-fg-muted">Health</dt>
+        <dd class="font-mono {statusColor(health.status)}">{health.status}</dd>
 
-        <div class="text-fg-muted">Database</div>
-        <div class="font-mono {statusColor(health.db)}">{health.db}</div>
+        <dt class="text-fg-muted">Database</dt>
+        <dd class="font-mono {statusColor(health.db)}">{health.db}</dd>
 
-        <div class="text-fg-muted">Schema</div>
-        <div class="font-mono {statusColor(health.schema)}">{health.schema}</div>
+        <dt class="text-fg-muted">Schema</dt>
+        <dd class="font-mono {statusColor(health.schema)}">{health.schema}</dd>
       {:else}
-        <div class="text-fg-muted">Health</div>
-        <div class="font-mono text-fg-muted">checking…</div>
+        <dt class="text-fg-muted">Health</dt>
+        <dd class="font-mono text-fg-muted">checking…</dd>
       {/if}
-    </div>
+    </dl>
   </div>
 </section>

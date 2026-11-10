@@ -32,13 +32,13 @@
 </script>
 
 <section class="flex flex-col h-full bg-bg-base overflow-hidden">
-  <header class="flex items-center gap-2 px-6 h-12 border-b border-border-default bg-bg-surface">
-    <Settings size="18" class="text-accent" />
-    <h1 class="text-sm font-semibold text-fg-primary">Settings</h1>
+  <header class="sg-page-head">
+    <Settings size="18" class="text-fg-secondary" />
+    <h1 class="sg-page-title">Settings</h1>
   </header>
 
-  <div class="flex-1 overflow-auto p-6">
-    <div class="max-w-2xl space-y-6">
+  <div class="flex-1 overflow-auto px-gutter py-6">
+    <div class="max-w-2xl flex flex-col gap-10">
       <Appearance />
       {#if showSecurity}
         <Security />

@@ -48,15 +48,15 @@
 >
   <defs>
     <linearGradient id={gradId} x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color={color} stop-opacity="0.35" />
-      <stop offset="100%" stop-color={color} stop-opacity="0" />
+      <stop offset="0%" style="stop-color: {color}; stop-opacity: 0.35;" />
+      <stop offset="100%" style="stop-color: {color}; stop-opacity: 0;" />
     </linearGradient>
   </defs>
   <path d={areaD} fill="url(#{gradId})" />
   <path
     d={lineD}
     fill="none"
-    stroke={color}
+    style="stroke: {color};"
     stroke-width="1.75"
     stroke-linejoin="round"
     stroke-linecap="round"

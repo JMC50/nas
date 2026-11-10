@@ -90,11 +90,9 @@
 </script>
 
 <div class="flex flex-col h-full w-full bg-bg-base">
-  <header
-    class="flex items-center gap-2 px-4 h-12 border-b border-border-default bg-bg-overlay"
-  >
-    <FilmIcon size="16" class="text-fg-accent shrink-0" />
-    <h2 class="text-sm font-semibold text-fg-primary">Videos</h2>
+  <header class="sg-page-head flex-wrap py-2">
+    <FilmIcon size="18" class="text-fg-secondary shrink-0" />
+    <h1 class="sg-page-title">Videos</h1>
     <span class="text-xs text-fg-muted tabular-nums">
       {#if loading}
         loading…
@@ -102,10 +100,10 @@
         {filtered.length} of {entries.length}
       {/if}
     </span>
-    <div class="relative ml-auto w-72">
+    <div class="relative w-full md:w-72 md:ml-auto">
       <Search
-        size="14"
-        class="absolute left-2 top-1/2 -translate-y-1/2 text-fg-muted pointer-events-none"
+        size="16"
+        class="absolute left-2.5 top-1/2 -translate-y-1/2 text-fg-muted pointer-events-none"
       />
       <input
         type="search"
@@ -115,14 +113,16 @@
         spellcheck="false"
         bind:value={query}
         placeholder="Search videos or folders…"
-        class="w-full h-8 pl-7 pr-3 text-xs bg-bg-base border border-border-default text-fg-primary placeholder:text-fg-muted focus:outline-none focus:border-accent"
+        aria-label="Search videos or folders"
+        class="sg-input sg-input-icon"
       />
     </div>
   </header>
 
   {#if truncated}
     <div
-      class="px-4 py-2 text-xs text-fg-warning bg-bg-elevated border-b border-border-default"
+      class="px-gutter py-2 text-sm text-fg-warning border-b border-border-default"
+      role="status"
     >
       Library truncated at {entries.length} entries. Refine via search.
     </div>
@@ -130,37 +130,37 @@
 
   <div class="flex-1 overflow-y-auto">
     {#if loading}
-      <div class="p-6 text-sm text-fg-muted">Loading library…</div>
+      <div class="px-gutter py-6 text-sm text-fg-muted" role="status">Loading library…</div>
     {:else if errorMessage}
-      <div class="p-6 text-sm text-fg-danger">{errorMessage}</div>
+      <div class="px-gutter py-6 text-sm text-fg-danger" role="alert">{errorMessage}</div>
     {:else if filtered.length === 0}
-      <div class="p-6 text-sm text-fg-muted">
+      <div class="px-gutter py-16 text-center text-sm text-fg-muted">
         {entries.length === 0 ? "No video files found." : "No matches."}
       </div>
     {:else}
       <div
-        class="grid grid-cols-[repeat(auto-fill,minmax(220px,1fr))] gap-4 p-6"
+        class="grid grid-cols-[repeat(auto-fill,minmax(min(100%,220px),1fr))] gap-4 px-gutter py-5"
       >
         {#each visible as entry (entry.loc + "/" + entry.name)}
           <button
             type="button"
-            class="group flex flex-col text-left overflow-hidden border border-border-default bg-bg-surface hover:border-accent transition-colors"
+            class="video-card group flex flex-col text-left overflow-hidden rounded-panel border border-border-default bg-bg-surface"
             onclick={() => playVideo(entry)}
           >
             <div
-              class="aspect-video bg-bg-elevated flex items-center justify-center text-fg-muted group-hover:text-fg-accent transition-colors"
+              class="aspect-video bg-bg-elevated flex items-center justify-center text-fg-muted"
             >
               <FilmIcon size="32" />
             </div>
-            <div class="flex flex-col gap-0.5 px-2 py-2">
+            <div class="flex flex-col gap-0.5 px-3 py-2.5">
               <span
-                class="text-xs font-medium text-fg-primary truncate"
+                class="text-sm font-semibold text-fg-primary truncate"
                 title={entry.name}>{stripExt(entry.name)}</span
               >
-              <span class="text-[10px] text-fg-muted truncate" title={entry.loc}
+              <span class="text-xs text-fg-muted truncate" title={entry.loc}
                 >{entry.loc}</span
               >
-              <span class="text-[10px] text-fg-muted tabular-nums"
+              <span class="text-xs text-fg-muted tabular-nums"
                 >{formatBytes(entry.size)} · —</span
               >
             </div>
@@ -173,3 +173,13 @@
     {/if}
   </div>
 </div>
+
+<style>
+  .video-card {
+    transition: border-color 70ms var(--ease-snap), background-color 70ms var(--ease-snap);
+  }
+  .video-card:hover {
+    border-color: var(--color-border-strong);
+    background: var(--color-bg-elevated);
+  }
+</style>

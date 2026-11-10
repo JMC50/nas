@@ -43,8 +43,8 @@
     DELETE: "bg-fg-danger",
     DOWNLOAD: "bg-fg-info",
     RENAME: "bg-fg-warning",
-    COPY: "bg-fg-link",
-    MOVE: "bg-fg-link",
+    COPY: "bg-fg-purple",
+    MOVE: "bg-fg-purple",
     VIEW: "bg-fg-muted",
     OPEN: "bg-fg-muted",
   };
@@ -54,8 +54,8 @@
     DELETE: "text-fg-danger",
     DOWNLOAD: "text-fg-info",
     RENAME: "text-fg-warning",
-    COPY: "text-fg-link",
-    MOVE: "text-fg-link",
+    COPY: "text-fg-purple",
+    MOVE: "text-fg-purple",
     VIEW: "text-fg-muted",
     OPEN: "text-fg-muted",
   };
@@ -154,41 +154,34 @@
 </script>
 
 <section class="flex flex-col h-full bg-bg-base overflow-hidden">
-  <header class="flex items-center justify-between gap-2 px-6 h-12 border-b border-border-default bg-bg-surface">
-    <div class="flex items-center gap-2">
-      <History size="18" class="text-accent" />
-      <h1 class="text-sm font-semibold text-fg-primary">Activity</h1>
-      <span class="text-xs text-fg-muted font-mono ml-2">{entries.length}</span>
-    </div>
-    <button
-      type="button"
-      class="inline-flex items-center gap-1.5 h-8 px-2.5 text-fg-muted hover:text-fg-primary hover:bg-bg-hover text-xs transition-colors"
-      onclick={load}
-      aria-label="Refresh"
-    >
-      <RefreshCw size="13" />
-      <span>Refresh</span>
+  <header class="sg-page-head">
+    <History size="18" class="text-fg-secondary" />
+    <h1 class="sg-page-title">Activity</h1>
+    {#if !loading}
+      <span class="sg-count">{entries.length}</span>
+    {/if}
+    <button type="button" class="ml-auto sg-btn sg-btn-ghost" onclick={load} aria-label="Refresh">
+      <RefreshCw size="16" />
+      <span class="hidden sm:inline">Refresh</span>
     </button>
   </header>
 
-  {#if !loading}
-    <ActivityGraph {entries} />
-  {/if}
+  <ActivityGraph {entries} {loading} />
 
   <div class="flex-1 overflow-auto">
     {#if loading}
-      <div class="p-6 text-sm text-fg-muted">Loading…</div>
+      <div class="px-gutter py-6 text-sm text-fg-muted" role="status">Loading…</div>
     {:else if entries.length === 0}
-      <div class="p-12 text-center text-sm text-fg-muted">No activity yet.</div>
+      <div class="px-gutter py-16 text-center text-sm text-fg-muted">No activity yet.</div>
     {:else}
-      <div class="py-2">
+      <div class="pb-4">
         {#each dayGroups as group (group.key)}
-          <div class="sticky top-0 z-10 flex items-baseline gap-3 px-6 h-7 bg-bg-base border-y border-border-default/60">
-            <span class="text-[11px] font-semibold text-fg-primary uppercase tracking-wide">
+          <div class="sticky top-0 z-10 flex items-baseline gap-3 px-gutter h-9 bg-bg-surface border-y border-border-default">
+            <h2 class="self-center text-sm font-semibold text-fg-primary">
               {group.label}
-            </span>
-            <span class="text-[10px] font-mono text-fg-muted">{group.iso}</span>
-            <span class="ml-auto text-[10px] font-mono text-fg-muted">
+            </h2>
+            <span class="self-center text-xs text-fg-muted tabular-nums">{group.iso}</span>
+            <span class="self-center ml-auto text-xs text-fg-muted tabular-nums">
               {group.entries.length} {group.entries.length === 1 ? "event" : "events"}
             </span>
           </div>
@@ -197,25 +190,26 @@
             {#each group.entries as entry (entry.id ?? `${entry.time}-${entry.activity}`)}
               {@const parsed = parse(entry.description)}
               <li
-                class="grid grid-cols-[58px_22px_1fr] items-start gap-2 px-6 py-1.5 group hover:bg-bg-hover/40 transition-colors"
+                class="grid grid-cols-[48px_24px_minmax(0,1fr)] items-start gap-3 px-gutter py-2 border-b border-border-default hover:bg-bg-hover transition-colors"
               >
                 <!-- Time column -->
                 <div
-                  class="font-mono text-[11px] text-fg-muted pt-1"
+                  class="text-xs text-fg-muted tabular-nums pt-0.5"
                   title={fullTime(entry.time)}
                 >
                   {timeOfDay(entry.time)}
                 </div>
 
                 <!-- Dot + author chip column -->
-                <div class="flex flex-col items-center pt-1.5 gap-1">
+                <div class="flex flex-col items-center gap-1.5 pt-0.5">
                   <span
-                    class="w-2.5 h-2.5 {dotClass(entry.activity)} ring-2 ring-bg-base"
+                    class="size-2 rounded-full {dotClass(entry.activity)}"
                     aria-hidden="true"
                   ></span>
                   <span
-                    class="w-5 h-5 bg-bg-elevated text-fg-primary text-[10px] font-semibold flex items-center justify-center"
+                    class="grid place-items-center size-6 rounded-control bg-bg-elevated text-fg-secondary text-xs font-bold"
                     title={authorName(entry)}
+                    aria-hidden="true"
                   >
                     {authorInitial(entry)}
                   </span>
@@ -224,27 +218,25 @@
                 <!-- Content column -->
                 <div class="min-w-0">
                   <div class="flex items-baseline gap-2 flex-wrap">
-                    <span
-                      class="font-mono text-[10px] uppercase tracking-wide {textClass(entry.activity)}"
-                    >
+                    <span class="sg-chip font-mono {textClass(entry.activity)}">
                       {entry.activity}
                     </span>
                     {#if parsed.target}
-                      <span class="text-[10px] font-mono text-fg-muted">[{parsed.target}]</span>
+                      <span class="text-xs font-mono text-fg-muted">[{parsed.target}]</span>
                     {/if}
                     <span class="text-xs text-fg-secondary">{authorName(entry)}</span>
                   </div>
 
                   {#if parsed.kind === "move"}
-                    <div class="text-sm flex items-center gap-1.5 flex-wrap mt-0.5">
+                    <div class="text-sm flex items-center gap-1.5 flex-wrap mt-1">
                       <span class="font-mono text-fg-muted">{parsed.from}</span>
-                      <ArrowRight size="12" class="text-fg-muted shrink-0" />
+                      <ArrowRight size="14" class="text-fg-muted shrink-0" />
                       <span class="font-mono text-fg-primary">{parsed.to}</span>
                     </div>
                   {:else if parsed.kind === "simple"}
-                    <div class="text-sm font-mono text-fg-primary mt-0.5 break-all">{parsed.path}</div>
+                    <div class="text-sm font-mono text-fg-primary mt-1 break-all">{parsed.path}</div>
                   {:else}
-                    <div class="text-sm text-fg-primary mt-0.5 break-words">{parsed.text}</div>
+                    <div class="text-sm text-fg-primary mt-1">{parsed.text}</div>
                   {/if}
                 </div>
               </li>

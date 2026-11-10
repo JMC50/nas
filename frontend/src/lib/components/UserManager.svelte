@@ -1,7 +1,6 @@
 <script lang="ts">
   import { onMount } from "svelte";
   import Shield from "lucide-svelte/icons/shield";
-  import UserIcon from "lucide-svelte/icons/user";
   import Trash2 from "lucide-svelte/icons/trash-2";
   import { auth } from "$lib/store/auth.svelte";
   import { notifications } from "$lib/store/notifications.svelte";
@@ -128,99 +127,98 @@
 </script>
 
 <section class="flex flex-col h-full bg-bg-base overflow-hidden">
-  <header class="flex items-center gap-2 px-6 h-12 border-b border-border-default bg-bg-surface">
-    <Shield size="18" class="text-accent" />
-    <h1 class="text-sm font-semibold text-fg-primary">User permissions</h1>
+  <header class="sg-page-head">
+    <Shield size="18" class="text-fg-secondary" />
+    <h1 class="sg-page-title">User permissions</h1>
+    {#if users.length > 0}
+      <span class="sg-count">{users.length}</span>
+    {/if}
   </header>
 
-  <div class="flex-1 grid grid-cols-[280px_1fr] min-h-0">
-    <aside class="border-r border-border-default overflow-auto bg-bg-surface/30">
+  <div class="flex-1 grid grid-rows-[auto_minmax(0,1fr)] md:grid-rows-1 md:grid-cols-[280px_minmax(0,1fr)] min-h-0">
+    <aside class="md:border-r border-b md:border-b-0 border-border-default overflow-auto max-h-[40dvh] md:max-h-none bg-bg-surface" aria-label="Users">
       {#if loadError}
-        <div class="p-4 text-xs text-fg-danger" role="alert">{loadError}</div>
+        <div class="m-3 p-3 rounded-panel border border-fg-danger/45 text-sm text-fg-danger" role="alert">{loadError}</div>
       {:else if users.length === 0}
-        <div class="p-4 text-xs text-fg-muted">Loading users…</div>
+        <div class="p-4 text-sm text-fg-muted" role="status">Loading users…</div>
       {/if}
-      {#each users as entry (entry.userId)}
-        <button
-          type="button"
-          class="w-full flex items-center gap-2 px-4 py-2.5 border-b border-border-default/40 text-left transition-colors {entry.userId === userId
- ? 'bg-bg-hover text-fg-primary'
- : 'text-fg-secondary hover:bg-bg-hover/60 hover:text-fg-primary'}"
-          onclick={() => selectUser(entry.userId)}
-        >
-          <UserIcon size="14" class="shrink-0 text-fg-muted" />
-          <div class="min-w-0 flex-1">
-            <div class="text-sm truncate">
-              {entry.krname || entry.global_name || entry.username}
-            </div>
-            <div class="text-xs text-fg-muted truncate font-mono">{entry.userId}</div>
-          </div>
-          {#if entry.intents.includes("ADMIN")}
-            <span class="text-[10px] px-1.5 h-4 bg-accent/15 text-fg-accent border border-accent/30 font-mono leading-4">
-              ADMIN
-            </span>
-          {/if}
-        </button>
-      {/each}
+      <ul>
+        {#each users as entry (entry.userId)}
+          <li>
+            <button
+              type="button"
+              class="user-row {entry.userId === userId ? 'is-current' : ''}"
+              onclick={() => selectUser(entry.userId)}
+              aria-current={entry.userId === userId ? "true" : undefined}
+            >
+              <span class="grid place-items-center size-8 shrink-0 rounded-control bg-bg-elevated text-fg-secondary text-xs font-bold" aria-hidden="true">
+                {(entry.krname || entry.global_name || entry.username || "?").slice(0, 1).toUpperCase()}
+              </span>
+              <span class="min-w-0 flex-1">
+                <span class="block text-sm text-fg-primary truncate">{entry.krname || entry.global_name || entry.username}</span>
+                <span class="block text-xs text-fg-muted truncate font-mono">{entry.userId}</span>
+              </span>
+              {#if entry.intents.includes("ADMIN")}
+                <span class="sg-chip font-mono text-fg-purple">ADMIN</span>
+              {/if}
+            </button>
+          </li>
+        {/each}
+      </ul>
     </aside>
 
-    <div class="overflow-auto p-6">
+    <div class="overflow-auto px-gutter py-5">
       {#if !user}
         <div class="text-sm text-fg-muted">Select a user from the list.</div>
       {:else}
-        <div class="max-w-xl">
-          <div class="flex items-center gap-3 mb-5">
-            <div class="w-10 h-10 bg-bg-elevated border border-border-default flex items-center justify-center">
-              <UserIcon size="18" class="text-fg-muted" />
-            </div>
+        <div class="max-w-xl flex flex-col gap-5">
+          <div class="flex items-center gap-3 min-w-0">
+            <span class="grid place-items-center size-10 shrink-0 rounded-control bg-bg-elevated text-fg-secondary text-sm font-bold" aria-hidden="true">
+              {(user.krname || user.global_name || user.username || "?").slice(0, 1).toUpperCase()}
+            </span>
             <div class="min-w-0">
-              <div class="text-base font-semibold text-fg-primary truncate">
+              <h2 class="text-md font-semibold text-fg-primary truncate">
                 {user.krname || user.global_name || user.username}
-              </div>
+              </h2>
               <div class="text-xs text-fg-muted font-mono truncate">{user.userId}</div>
             </div>
           </div>
 
-          <div class="bg-bg-surface border border-border-default divide-y divide-border-default/60">
+          <ul class="sg-panel divide-y divide-border-default" aria-label="Permissions for {user.userId}">
             {#each ALL_INTENTS as intent}
               {@const granted = user.intents.includes(intent)}
               {@const pending = busy.has(intent)}
-              <div class="flex items-center justify-between px-4 h-11">
-                <div class="text-sm font-mono text-fg-primary">{intent}</div>
+              <li class="flex items-center justify-between gap-4 px-4 min-h-11">
+                <span class="text-sm font-mono text-fg-primary">{intent}</span>
                 <button
                   type="button"
-                  class="relative inline-flex items-center h-5 w-9 transition-colors disabled:opacity-60 {granted
- ? 'bg-accent'
- : 'bg-bg-elevated border border-border-default'}"
+                  role="switch"
+                  class="sg-switch"
                   onclick={() => toggleIntent(intent)}
                   disabled={pending}
-                  aria-label={granted ? `Revoke ${intent}` : `Grant ${intent}`}
-                  aria-pressed={granted}
-                >
-                  <span
-                    class="inline-block w-3.5 h-3.5 bg-bg-base shadow transition-transform {granted ? 'translate-x-[18px]' : 'translate-x-0.5'}"
-                  ></span>
-                </button>
-              </div>
+                  aria-label={intent}
+                  aria-checked={granted}
+                ></button>
+              </li>
             {/each}
-          </div>
+          </ul>
 
-          <div class="mt-6 pt-5 border-t border-border-default/60">
-            <div class="text-xs font-semibold text-fg-muted uppercase tracking-wide mb-2">Danger zone</div>
-            <div class="flex items-center justify-between gap-4">
-              <div class="text-xs text-fg-muted leading-relaxed">
+          <div class="pt-5 border-t border-border-default">
+            <h3 class="text-sm font-semibold text-fg-danger mb-2">Danger zone</h3>
+            <div class="flex flex-wrap items-center justify-between gap-3">
+              <p class="text-xs text-fg-secondary leading-relaxed max-w-[48ch]">
                 {isSelf
                   ? "You can't delete your own account from here."
                   : "Permanently remove this user and their permissions. Activity log entries owned by this user are also removed."}
-              </div>
+              </p>
               <button
                 type="button"
-                class="inline-flex items-center gap-1.5 h-8 px-3 text-xs font-medium text-fg-danger border border-border-default hover:bg-bg-hover disabled:opacity-50 disabled:cursor-not-allowed transition-colors shrink-0"
+                class="sg-btn sg-btn-danger shrink-0"
                 onclick={deleteUser}
                 disabled={isSelf || deleting}
                 aria-label="Delete user"
               >
-                <Trash2 size="12" />
+                <Trash2 size="16" />
                 {deleting ? "Deleting…" : "Delete user"}
               </button>
             </div>
@@ -230,3 +228,27 @@
     </div>
   </div>
 </section>
+
+<style>
+  .user-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    min-height: 52px;
+    padding: 6px 12px;
+    border-bottom: 1px solid var(--color-border-default);
+    text-align: left;
+    transition: background-color 70ms var(--ease-snap);
+  }
+  .user-row:hover {
+    background: var(--color-bg-hover);
+  }
+  .user-row:focus-visible {
+    outline-offset: -2px;
+  }
+  .user-row.is-current {
+    background: var(--color-bg-selected);
+    box-shadow: inset 2px 0 0 var(--color-accent);
+  }
+</style>

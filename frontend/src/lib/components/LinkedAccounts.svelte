@@ -95,47 +95,37 @@
   onMount(loadLinked);
 </script>
 
-<div class="p-5 bg-bg-surface border border-border-default">
-  <div class="flex items-center gap-2 mb-4">
-    <Link2 size="14" class="text-fg-muted" />
+<div class="sg-panel p-4">
+  <div class="flex items-center gap-2 mb-3">
+    <Link2 size="18" class="text-fg-secondary" />
     <h2 class="text-sm font-semibold text-fg-primary">Linked accounts</h2>
   </div>
 
-  <div class="divide-y divide-border-default/40">
+  <ul class="divide-y divide-border-default">
     {#each PROVIDERS as provider (provider.id)}
       {@const Icon = provider.icon}
       {@const linked = isLinked(provider.id)}
       {@const pending = busy.has(provider.id)}
-      <div class="flex items-center justify-between py-3 first:pt-0 last:pb-0">
-        <div class="flex items-center gap-2.5">
-          <Icon size={16} />
-          <div>
-            <div class="text-sm text-fg-primary">{provider.label}</div>
-            <div class="text-xs text-fg-muted">
+      <li class="flex items-center justify-between gap-3 py-3 first:pt-0 last:pb-0">
+        <div class="flex items-center gap-3 min-w-0">
+          <Icon size={20} />
+          <div class="min-w-0">
+            <div class="text-sm font-semibold text-fg-primary">{provider.label}</div>
+            <div class="text-xs {linked ? 'text-fg-success' : 'text-fg-muted'}">
               {linked ? "Connected" : "Not connected"}
             </div>
           </div>
         </div>
         {#if linked}
-          <button
-            type="button"
-            class="h-8 px-3 bg-bg-elevated border border-border-default text-xs text-fg-primary hover:bg-bg-hover disabled:opacity-60 transition-colors"
-            onclick={() => disconnect(provider.id)}
-            disabled={pending}
-          >
-            {pending ? "..." : "Disconnect"}
+          <button type="button" class="sg-btn" onclick={() => disconnect(provider.id)} disabled={pending}>
+            {pending ? "Disconnecting…" : "Disconnect"}
           </button>
         {:else}
-          <button
-            type="button"
-            class="h-8 px-3 bg-accent text-accent-fg text-xs font-semibold hover:bg-accent-hover disabled:opacity-60 transition-colors"
-            onclick={() => connect(provider.id)}
-            disabled={pending}
-          >
-            {pending ? "..." : "Connect"}
+          <button type="button" class="sg-btn" onclick={() => connect(provider.id)} disabled={pending}>
+            {pending ? "Connecting…" : "Connect"}
           </button>
         {/if}
-      </div>
+      </li>
     {/each}
-  </div>
+  </ul>
 </div>

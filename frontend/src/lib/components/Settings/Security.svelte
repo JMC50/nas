@@ -43,16 +43,16 @@
   }
 </script>
 
-<section class="space-y-3">
+<section class="flex flex-col gap-3">
   <div class="flex items-center gap-2">
-    <Shield size="14" class="text-fg-muted" />
-    <h2 class="text-xs font-semibold uppercase tracking-wide text-fg-muted">Account & Security</h2>
+    <Shield size="18" class="text-fg-secondary" />
+    <h2 class="sg-section-title">Account & Security</h2>
   </div>
 
-  <div class="bg-bg-surface border border-border-default p-4 space-y-3">
+  <div class="sg-panel p-4 flex flex-col gap-3">
     <div>
-      <div class="text-sm text-fg-primary">Change password</div>
-      <div class="text-xs text-fg-muted mt-0.5">Local accounts only. OAuth users manage credentials with their provider.</div>
+      <h3 class="text-sm font-semibold text-fg-primary">Change password</h3>
+      <p class="text-xs text-fg-muted mt-1">Local accounts only. OAuth users manage credentials with their provider.</p>
     </div>
 
     <TextField id="current-password" label="Current password" type="password" value={current} disabled={busy} onInput={(v) => (current = v)} />
@@ -61,7 +61,7 @@
 
     <button
       type="button"
-      class="inline-flex items-center gap-2 h-9 px-4 bg-accent text-accent-fg text-xs font-semibold hover:bg-accent-hover disabled:opacity-60 transition-colors"
+      class="sg-btn sg-btn-primary self-start"
       onclick={submit}
       disabled={busy}
     >

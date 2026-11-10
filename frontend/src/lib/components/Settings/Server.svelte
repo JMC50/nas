@@ -115,37 +115,37 @@
   });
 </script>
 
-<section class="space-y-3">
+<section class="flex flex-col gap-3">
   <div class="flex items-center gap-2">
-    <ServerIcon size="14" class="text-fg-muted" />
-    <h2 class="text-xs font-semibold uppercase tracking-wide text-fg-muted">Server</h2>
+    <ServerIcon size="18" class="text-fg-secondary" />
+    <h2 class="sg-section-title">Server</h2>
   </div>
 
-  <div class="bg-bg-surface border border-border-default p-4 space-y-3">
+  <div class="sg-panel p-4 flex flex-col gap-3">
     <div class="flex items-center gap-2">
-      <DiscordIcon size={14} />
-      <div class="text-sm font-medium text-fg-primary">Discord OAuth</div>
+      <DiscordIcon size={18} class="text-fg-secondary" />
+      <h3 class="text-sm font-semibold text-fg-primary">Discord OAuth</h3>
     </div>
     <TextField id="discord-client-id" label="Client ID" value={discordId} disabled={busy} onInput={(next) => (discordId = next)} />
     <TextField id="discord-secret" label="Client secret" type="password" value={discordSecret} placeholder={hints.discord.secret} disabled={busy} onInput={(next) => (discordSecret = next)} />
     <TextField id="discord-redirect" label="Redirect URI" value={discordRedirect} placeholder={hints.discord.redirect} disabled={busy} onInput={(next) => (discordRedirect = next)} />
-    <p class="text-[11px] text-fg-muted">Leave the secret empty to keep the stored value. Clear Client ID or Redirect URI to disable Discord sign-in.</p>
+    <p class="text-xs text-fg-muted">Leave the secret empty to keep the stored value. Clear Client ID or Redirect URI to disable Discord sign-in.</p>
   </div>
 
-  <div class="bg-bg-surface border border-border-default p-4 space-y-3">
+  <div class="sg-panel p-4 flex flex-col gap-3">
     <div class="flex items-center gap-2">
-      <GoogleIcon size={14} />
-      <div class="text-sm font-medium text-fg-primary">Google OAuth</div>
+      <GoogleIcon size={18} />
+      <h3 class="text-sm font-semibold text-fg-primary">Google OAuth</h3>
     </div>
     <TextField id="google-client-id" label="Client ID" value={googleId} disabled={busy} onInput={(next) => (googleId = next)} />
     <TextField id="google-secret" label="Client secret" type="password" value={googleSecret} placeholder={hints.google.secret} disabled={busy} onInput={(next) => (googleSecret = next)} />
     <TextField id="google-redirect" label="Redirect URI" value={googleRedirect} placeholder={hints.google.redirect} disabled={busy} onInput={(next) => (googleRedirect = next)} />
-    <p class="text-[11px] text-fg-muted">Leave the secret empty to keep the stored value. Google sign-in requires all three fields.</p>
+    <p class="text-xs text-fg-muted">Leave the secret empty to keep the stored value. Google sign-in requires all three fields.</p>
   </div>
 
   <button
     type="button"
-    class="inline-flex items-center gap-2 h-9 px-4 bg-accent text-accent-fg text-xs font-semibold hover:bg-accent-hover disabled:opacity-60 transition-colors"
+    class="sg-btn sg-btn-primary self-start"
     onclick={save}
     disabled={busy}
   >

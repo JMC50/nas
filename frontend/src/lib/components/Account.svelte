@@ -91,19 +91,19 @@
 </script>
 
 <section class="flex flex-col h-full bg-bg-base overflow-auto">
-  <header class="flex items-center gap-2 px-6 h-12 border-b border-border-default bg-bg-surface">
-    <UserIcon size="18" class="text-accent" />
-    <h1 class="text-sm font-semibold text-fg-primary">Account</h1>
+  <header class="sg-page-head">
+    <UserIcon size="18" class="text-fg-secondary" />
+    <h1 class="sg-page-title">Account</h1>
   </header>
 
-  <div class="flex-1 p-6">
+  <div class="flex-1 px-gutter py-6">
     {#if !auth.isAuthenticated}
       {#if !authConfig}
-        <div class="text-xs text-fg-muted">Loading auth options…</div>
+        <div class="text-sm text-fg-muted" role="status">Loading auth options…</div>
       {:else}
-        <div class="max-w-md mx-auto mt-12 p-6 bg-bg-surface border border-border-default">
-          <h2 class="text-base font-semibold text-fg-primary mb-1">Sign in</h2>
-          <p class="text-xs text-fg-muted mb-6">Choose a provider to continue.</p>
+        <div class="max-w-md mx-auto mt-12 p-6 sg-panel">
+          <h2 class="text-lg font-semibold text-fg-primary">Sign in</h2>
+          <p class="text-sm text-fg-secondary mt-1 mb-6">Choose a provider to continue.</p>
           <SignInOptions
             discordEnabled={authConfig.discordEnabled}
             discordUrl={authConfig.discordLoginUrl}
@@ -115,67 +115,52 @@
         </div>
       {/if}
     {:else}
-      <div class="max-w-2xl">
-        <div class="p-5 bg-bg-surface border border-border-default mb-4">
-          <div class="flex items-center gap-3 mb-4">
-            <div class="w-12 h-12 bg-bg-elevated border border-border-default flex items-center justify-center">
-              <UserIcon size="20" class="text-fg-muted" />
+      <div class="max-w-2xl flex flex-col gap-4">
+        <div class="sg-panel p-4 flex flex-wrap items-center gap-3">
+          <span class="grid place-items-center size-12 shrink-0 rounded-control bg-fg-info text-accent-fg text-lg font-bold" aria-hidden="true">
+            {(auth.current.krname || auth.current.global_name || auth.current.username || "?").slice(0, 1).toUpperCase()}
+          </span>
+          <div class="min-w-0 flex-1">
+            <div class="text-md font-semibold text-fg-primary truncate">
+              {auth.current.krname || auth.current.global_name || auth.current.username}
             </div>
-            <div class="min-w-0">
-              <div class="text-base font-semibold text-fg-primary truncate">
-                {auth.current.krname || auth.current.global_name || auth.current.username}
-              </div>
-              <div class="text-xs text-fg-muted truncate font-mono">{auth.current.userId}</div>
-            </div>
+            <div class="text-xs text-fg-muted truncate font-mono">{auth.current.userId}</div>
           </div>
-
-          <button
-            type="button"
-            class="inline-flex items-center gap-2 h-9 px-3 bg-bg-elevated text-fg-primary text-xs font-medium hover:bg-bg-hover border border-border-default transition-colors"
-            onclick={logout}
-          >
-            <LogOut size="13" />
+          <button type="button" class="sg-btn" onclick={logout}>
+            <LogOut size="16" />
             Sign out
           </button>
         </div>
 
-        <div class="mb-4">
-          <LinkedAccounts />
-        </div>
+        <LinkedAccounts />
 
-        <div class="p-5 bg-bg-surface border border-border-default">
-          <div class="flex items-center justify-between mb-4">
+        <div class="sg-panel p-4">
+          <div class="flex items-center justify-between gap-3 mb-4">
             <div class="flex items-center gap-2">
-              <Shield size="14" class="text-fg-muted" />
+              <Shield size="18" class="text-fg-secondary" />
               <h2 class="text-sm font-semibold text-fg-primary">Permissions</h2>
             </div>
             {#if !intents.includes("ADMIN")}
-              <button
-                type="button"
-                class="inline-flex items-center gap-1.5 h-7 px-2.5 text-xs text-fg-muted hover:text-fg-primary hover:bg-bg-hover transition-colors"
-                onclick={requestAdmin}
-              >
-                <KeyRound size="11" />
+              <button type="button" class="sg-btn sg-btn-ghost" onclick={requestAdmin}>
+                <KeyRound size="16" />
                 Request admin
               </button>
             {/if}
           </div>
 
           {#if loadingIntents}
-            <div class="text-xs text-fg-muted">Loading…</div>
+            <div class="text-sm text-fg-muted" role="status">Loading…</div>
           {:else}
-            <div class="flex flex-wrap gap-1.5">
+            <ul class="flex flex-wrap gap-1.5" aria-label="Permissions">
               {#each ALL_INTENTS as intent}
                 {@const granted = intents.includes(intent)}
-                <span
-                  class="inline-flex items-center px-2 h-6 text-xs font-mono {granted
- ? 'bg-accent/15 text-fg-accent border border-accent/30'
- : 'bg-bg-elevated text-fg-disabled border border-border-default'}"
-                >
+                <li class="sg-chip font-mono {granted ? 'text-fg-success' : 'text-fg-muted'}">
+                  <span class="size-1.5 rounded-full {granted ? 'bg-fg-success' : 'border border-fg-muted'}" aria-hidden="true"></span>
                   {intent}
-                </span>
+                  <span class="sr-only">{granted ? "granted" : "not granted"}</span>
+                </li>
               {/each}
-            </div>
+            </ul>
           {/if}
         </div>
       </div>

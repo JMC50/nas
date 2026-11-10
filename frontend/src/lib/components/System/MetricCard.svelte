@@ -12,9 +12,9 @@
 
   let { label, value, history, icon: Icon, detail }: Props = $props();
 
-  const COLOR_OK = "#b8bb26";
-  const COLOR_WARN = "#fabd2f";
-  const COLOR_DANGER = "#fb4934";
+  const COLOR_OK = "var(--color-fg-success)";
+  const COLOR_WARN = "var(--color-fg-warning)";
+  const COLOR_DANGER = "var(--color-fg-danger)";
   const THRESHOLD_WARN = 60;
   const THRESHOLD_DANGER = 80;
 
@@ -28,27 +28,24 @@
   }
 </script>
 
-<div class="p-5 bg-bg-surface border border-border-default flex flex-col gap-3 overflow-hidden">
-  <div class="flex items-center justify-between">
-    <div class="flex items-center gap-2 text-fg-muted text-xs uppercase tracking-wide">
-      <Icon size="14" />
+<div class="sg-panel p-5 flex flex-col gap-3 overflow-hidden">
+  <div class="flex items-center justify-between gap-2">
+    <h2 class="flex items-center gap-2 text-fg-secondary text-sm font-semibold">
+      <Icon size="16" />
       <span>{label}</span>
-    </div>
-    <span
-      class="text-[10px] font-mono px-2 py-0.5 border"
-      style="color: {color}; border-color: {color}40; background-color: {color}10;"
-    >
+    </h2>
+    <span class="sg-chip font-mono" style="color: {color};">
       {value >= THRESHOLD_DANGER ? "HIGH" : value >= THRESHOLD_WARN ? "WARN" : "OK"}
     </span>
   </div>
 
-  <div class="flex items-baseline gap-1.5">
-    <span class="text-4xl font-mono font-semibold tabular-nums" style="color: {color};">{valueText}</span>
-    <span class="text-sm text-fg-muted font-mono">%</span>
+  <div class="flex items-baseline gap-1">
+    <span class="text-2xl font-semibold tabular-nums" style="color: {color};">{valueText}</span>
+    <span class="text-sm text-fg-muted">%</span>
   </div>
 
   {#if detail}
-    <div class="text-xs text-fg-muted font-mono">{detail}</div>
+    <div class="text-xs text-fg-muted tabular-nums">{detail}</div>
   {/if}
 
   <div class="-mx-1 mt-auto">

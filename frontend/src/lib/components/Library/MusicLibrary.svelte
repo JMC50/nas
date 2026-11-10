@@ -95,11 +95,9 @@
 </script>
 
 <div class="flex flex-col h-full w-full bg-bg-base">
-  <header
-    class="flex items-center gap-2 px-4 h-12 border-b border-border-default bg-bg-overlay"
-  >
-    <MusicIcon size="16" class="text-fg-accent shrink-0" />
-    <h2 class="text-sm font-semibold text-fg-primary">Music</h2>
+  <header class="sg-page-head flex-wrap py-2">
+    <MusicIcon size="18" class="text-fg-secondary shrink-0" />
+    <h1 class="sg-page-title">Music</h1>
     <span class="text-xs text-fg-muted tabular-nums">
       {#if loading}
         loading…
@@ -107,10 +105,10 @@
         {filtered.length} of {entries.length}
       {/if}
     </span>
-    <div class="relative ml-auto w-72">
+    <div class="relative w-full md:w-72 md:ml-auto">
       <Search
-        size="14"
-        class="absolute left-2 top-1/2 -translate-y-1/2 text-fg-muted pointer-events-none"
+        size="16"
+        class="absolute left-2.5 top-1/2 -translate-y-1/2 text-fg-muted pointer-events-none"
       />
       <input
         type="search"
@@ -120,14 +118,16 @@
         spellcheck="false"
         bind:value={query}
         placeholder="Search tracks or folders…"
-        class="w-full h-8 pl-7 pr-3 text-xs bg-bg-base border border-border-default text-fg-primary placeholder:text-fg-muted focus:outline-none focus:border-accent"
+        aria-label="Search tracks or folders"
+        class="sg-input sg-input-icon"
       />
     </div>
   </header>
 
   {#if truncated}
     <div
-      class="px-4 py-2 text-xs text-fg-warning bg-bg-elevated border-b border-border-default"
+      class="px-gutter py-2 text-sm text-fg-warning border-b border-border-default"
+      role="status"
     >
       Library truncated at {entries.length} entries. Refine via search.
     </div>
@@ -135,11 +135,11 @@
 
   <div class="flex-1 overflow-y-auto">
     {#if loading}
-      <div class="p-6 text-sm text-fg-muted">Loading library…</div>
+      <div class="px-gutter py-6 text-sm text-fg-muted" role="status">Loading library…</div>
     {:else if errorMessage}
-      <div class="p-6 text-sm text-fg-danger">{errorMessage}</div>
+      <div class="px-gutter py-6 text-sm text-fg-danger" role="alert">{errorMessage}</div>
     {:else if filtered.length === 0}
-      <div class="p-6 text-sm text-fg-muted">
+      <div class="px-gutter py-16 text-center text-sm text-fg-muted">
         {entries.length === 0 ? "No audio files found." : "No matches."}
       </div>
     {:else}
@@ -148,10 +148,10 @@
           <li>
             <button
               type="button"
-              class="flex items-center gap-3 w-full px-4 h-10 text-left hover:bg-bg-hover text-sm transition-colors"
+              class="lib-row"
               onclick={() => playTrack(entry)}
             >
-              <MusicIcon size="14" class="text-fg-muted shrink-0" />
+              <MusicIcon size="16" class="text-fg-muted shrink-0" />
               <span class="flex-1 truncate text-fg-primary"
                 >{stripExt(entry.name)}</span
               >
@@ -176,3 +176,28 @@
     {/if}
   </div>
 </div>
+
+<style>
+  .lib-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    min-height: 40px;
+    padding: 0 var(--spacing-gutter);
+    font-size: var(--text-sm);
+    text-align: left;
+    transition: background-color 70ms var(--ease-snap);
+  }
+  .lib-row:hover {
+    background: var(--color-bg-hover);
+  }
+  .lib-row:focus-visible {
+    outline-offset: -2px;
+  }
+  @media (pointer: coarse) {
+    .lib-row {
+      min-height: 48px;
+    }
+  }
+</style>

@@ -728,8 +728,8 @@
       hideMenu();
     }}
     onShare={() => {
-      hideMenu();
       openShare(target);
+      hideMenu();
     }}
     onRename={() => {
       rename(target);

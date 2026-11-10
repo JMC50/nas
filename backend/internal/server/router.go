@@ -32,7 +32,7 @@ func NewRouter(cfg *config.Config, conn *sql.DB) http.Handler {
 	r := chi.NewRouter()
 	r.Use(middleware.Recoverer)
 	r.Use(middleware.RealIP)
-	r.Use(middleware.Logger)
+	r.Use(accessLog())
 	// Frontend code (built with Vite dev proxy) prefixes API calls with /server.
 	// Production proxy is gone; this middleware reproduces the rewrite so existing
 	// frontend builds keep working unchanged.

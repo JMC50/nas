@@ -369,7 +369,7 @@
       <canvas
         bind:this={canvases[i]}
         data-page={i + 1}
-        class="max-w-full bg-bg-elevated rounded-chip shadow-overlay"
+        class="bg-bg-elevated rounded-chip shadow-overlay"
       ></canvas>
     {/each}
   </div>

@@ -374,6 +374,12 @@
   let bgMenuOpen = $state(false);
   let bgMenuX = $state(0);
   let bgMenuY = $state(0);
+  let bgMenuEl: HTMLDivElement | undefined = $state();
+  let bgMenuSize = $state({ width: 0, height: 0 });
+
+  $effect(() => {
+    if (bgMenuEl) bgMenuSize = { width: bgMenuEl.offsetWidth, height: bgMenuEl.offsetHeight };
+  });
 
   function showBackgroundMenu(event: MouseEvent) {
     // Only fire when the contextmenu target is the canvas itself (not an
@@ -729,7 +735,8 @@
        file canvas anywhere except on an entry. Folder-level actions only. -->
   <div
     class="fixed z-50 sg-menu animate-pop origin-top-left"
-    style="left: {Math.min(bgMenuX, ui.viewportWidth - 216)}px; top: {Math.min(bgMenuY, ui.viewportHeight - 190)}px;"
+    bind:this={bgMenuEl}
+    style="left: {Math.max(8, Math.min(bgMenuX, ui.viewportWidth - bgMenuSize.width - 8))}px; top: {Math.max(8, Math.min(bgMenuY, ui.viewportHeight - bgMenuSize.height - 8))}px;"
     role="menu"
   >
     <button

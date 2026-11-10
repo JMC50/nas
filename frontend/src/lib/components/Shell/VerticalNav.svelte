@@ -9,7 +9,7 @@
   import { displayName, openAccount, logout } from "./session";
 
   const visibleItems = $derived(NAV_ITEMS.filter((item) => !item.adminOnly || auth.isAdmin));
-  const name = $derived(auth.isAuthenticated ? displayName() : "Guest");
+  const name = $derived(displayName());
   const accountActive = $derived(tabs.activeId === "system:account");
 </script>
 

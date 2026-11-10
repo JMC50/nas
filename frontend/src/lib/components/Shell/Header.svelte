@@ -7,7 +7,7 @@
   import { ui } from "$lib/store/ui.svelte";
   import { displayName, openAccount, logout } from "./session";
 
-  const name = $derived(auth.isAuthenticated ? displayName() : "Guest");
+  const name = $derived(displayName());
 </script>
 
 <header

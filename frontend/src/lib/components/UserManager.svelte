@@ -41,9 +41,15 @@
 
   async function loadUsers() {
     loadError = "";
-    const response = await fetch("/server/getAllUsers", {
-      headers: { Authorization: `Bearer ${auth.token}` },
-    });
+    let response: Response;
+    try {
+      response = await fetch("/server/getAllUsers", {
+        headers: { Authorization: `Bearer ${auth.token}` },
+      });
+    } catch (cause) {
+      loadError = `Failed to load users: ${(cause as Error).message}`;
+      return;
+    }
     if (!response.ok) {
       loadError = response.status === 403 ? "Only administrators can list users." : `Failed to load users (HTTP ${response.status}).`;
       return;

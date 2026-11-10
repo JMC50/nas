@@ -220,15 +220,11 @@
 </script>
 
 {#if visible && currentPath !== null}
-  <div
-    class="fixed inset-0 z-50 flex items-center justify-center bg-bg-base/80 backdrop-blur-sm pointer-events-none"
-  >
-    <div
-      class="flex flex-col items-center gap-4 p-12 border-2 border-dashed border-accent bg-bg-elevated"
-    >
-      <Upload size="48" class="text-accent" />
-      <div class="text-lg text-fg-primary font-semibold">Drop files or folders to upload</div>
-      <div class="text-sm text-fg-muted font-mono">{currentPath}</div>
+  <div class="fixed inset-0 z-50 flex items-center justify-center p-gutter bg-bg-base/85 pointer-events-none animate-fade">
+    <div class="flex flex-col items-center gap-3 w-full max-w-md px-6 py-10 rounded-panel border-2 border-dashed border-accent bg-bg-surface text-center">
+      <Upload size="40" class="text-accent" />
+      <p class="text-lg font-semibold text-fg-primary">Drop files or folders to upload</p>
+      <p class="max-w-full text-sm text-fg-secondary font-mono truncate">{currentPath}</p>
     </div>
   </div>
 {/if}

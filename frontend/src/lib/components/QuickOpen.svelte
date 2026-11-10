@@ -206,7 +206,7 @@
   <!-- svelte-ignore a11y_click_events_have_key_events -->
   <!-- svelte-ignore a11y_no_static_element_interactions -->
   <div
-    class="fixed inset-0 z-50 bg-bg-base md:bg-bg-base/70 md:backdrop-blur-sm flex items-start justify-center md:pt-[20vh]"
+    class="fixed inset-0 z-50 bg-bg-base md:bg-black/55 flex items-start justify-center md:pt-[12vh] animate-fade"
     onclick={() => ui.closeQuickOpen()}
   >
     <div
@@ -214,34 +214,37 @@
       tabindex="-1"
       aria-modal="true"
       aria-label="Quick open"
-      class="w-full h-full md:h-auto md:max-w-lg md:mx-4 md:rounded-lg bg-bg-surface md:border md:border-border-strong md:shadow-[0_8px_32px_rgba(0,0,0,0.6)] overflow-hidden cursor-default flex flex-col"
+      class="w-full h-full md:h-auto md:max-w-[640px] md:mx-4 md:rounded-panel bg-bg-overlay md:border md:border-border-default md:shadow-overlay overflow-hidden cursor-default flex flex-col animate-pop"
       style={ui.isMobile && modalHeight !== null ? `height: ${modalHeight}px` : ""}
       onclick={(event) => event.stopPropagation()}
     >
-      <div class="flex items-center gap-2 px-3 h-11 border-b border-border-default shrink-0">
-        <Search size="14" class="text-fg-muted shrink-0" />
+      <div class="pal-input flex items-center gap-2.5 px-3.5 min-h-[52px] border-b border-border-default shrink-0">
+        <Search size="18" class="text-fg-muted shrink-0" />
         <input
           bind:this={inputEl}
           bind:value={query}
           type="search"
           name="quickopen-q"
+          aria-label="Search files, folders, or tabs"
           autocomplete="off"
           autocorrect="off"
           spellcheck="false"
           placeholder="Search files, folders, or tabs…"
-          class="flex-1 bg-transparent text-sm text-fg-primary placeholder:text-fg-muted outline-none"
+          class="flex-1 min-w-0 h-12 bg-transparent text-md text-fg-primary outline-none"
         />
-        <span class="text-[10px] text-fg-muted font-mono">ESC</span>
+        <button type="button" class="md:hidden sg-btn sg-btn-ghost" onclick={() => ui.closeQuickOpen()}>Close</button>
+        <kbd class="hidden md:inline px-1.5 rounded-chip border border-border-default text-xs text-fg-secondary">Esc</kbd>
       </div>
 
-      <div class="flex-1 md:max-h-80 overflow-y-auto py-1">
+      <div class="flex-1 md:max-h-[min(420px,60vh)] overflow-y-auto p-1.5" role="listbox" aria-label="Results">
         {#if filtered.length === 0 && !fileSearching}
-          <div class="px-3 py-6 text-center text-xs text-fg-muted">
-            {query ? "No matches." : "Type to search files, folders, or open tabs."}
+          <div class="px-3 py-8 text-center">
+            <p class="text-sm font-semibold text-fg-primary">{query ? "No matches." : "Type to search."}</p>
+            <p class="mt-1 text-xs text-fg-muted">{query ? "Check the spelling, or try part of the file name." : "Search files, folders, or open tabs."}</p>
           </div>
         {/if}
         {#if fileSearching}
-          <div class="px-3 py-1.5 text-[10px] text-fg-muted font-mono">Searching files…</div>
+          <div class="px-2.5 py-1.5 text-xs text-fg-muted" role="status">Searching files…</div>
         {/if}
         {#each filtered as item, index (item.kind === "tab" ? `tab:${item.tab.id}` : `file:${item.hit.loc}/${item.hit.name}`)}
           {@const active = index === highlighted}
@@ -250,26 +253,30 @@
             {@const Icon = KIND_TO_ICON[tab.kind] ?? Folder}
             <button
               type="button"
-              class="w-full flex items-center gap-2.5 px-3 h-9 text-left transition-colors {active ? 'bg-bg-hover text-fg-primary' : 'text-fg-secondary hover:bg-bg-hover/60'}"
+              role="option"
+              aria-selected={active}
+              class="pal-item {active ? 'is-active' : ''}"
               onclick={() => pick(item)}
               onmouseenter={() => (highlighted = index)}
             >
-              <Icon size="14" class="shrink-0 text-fg-muted" />
-              <span class="text-sm flex-1 truncate">{tab.title}</span>
-              <span class="text-[10px] text-fg-muted font-mono uppercase">tab · {tab.kind}</span>
+              <Icon size="16" class="shrink-0 text-fg-muted" />
+              <span class="flex-1 min-w-0 truncate">{tab.title}</span>
+              <span class="shrink-0 text-xs text-fg-muted">Tab · {tab.kind}</span>
             </button>
           {:else}
             {@const hit = item.hit}
             {@const Icon = hit.isFolder ? Folder : KIND_TO_ICON[pickViewer(hit.extensions) ?? "text"] ?? FileText}
             <button
               type="button"
-              class="w-full flex items-center gap-2.5 px-3 h-9 text-left transition-colors {active ? 'bg-bg-hover text-fg-primary' : 'text-fg-secondary hover:bg-bg-hover/60'}"
+              role="option"
+              aria-selected={active}
+              class="pal-item {active ? 'is-active' : ''}"
               onclick={() => pick(item)}
               onmouseenter={() => (highlighted = index)}
             >
-              <Icon size="14" class="shrink-0 text-fg-muted" />
-              <span class="text-sm truncate">{hit.name}</span>
-              <span class="text-[10px] text-fg-muted font-mono truncate flex-1 text-right">{hit.loc || "/"}</span>
+              <Icon size="16" class="shrink-0 text-fg-muted" />
+              <span class="min-w-0 truncate">{hit.name}</span>
+              <span class="flex-1 min-w-0 truncate text-right text-xs text-fg-muted font-mono">{hit.loc || "/"}</span>
             </button>
           {/if}
         {/each}
@@ -277,3 +284,34 @@
     </div>
   </div>
 {/if}
+
+<style>
+  .pal-input:has(input:focus-visible) {
+    box-shadow: inset 0 -2px 0 var(--color-border-focus);
+  }
+  .pal-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    min-height: 40px;
+    padding: 0 10px;
+    border-radius: var(--radius-control);
+    color: var(--color-fg-secondary);
+    font-size: var(--text-sm);
+    text-align: left;
+  }
+  .pal-item.is-active {
+    background: var(--color-bg-selected);
+    color: var(--color-fg-primary);
+    box-shadow: inset 2px 0 0 var(--color-accent);
+  }
+  .pal-item:focus-visible {
+    outline-offset: -2px;
+  }
+  @media (pointer: coarse) {
+    .pal-item {
+      min-height: 44px;
+    }
+  }
+</style>

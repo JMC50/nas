@@ -8,14 +8,13 @@
   const LINK_STATE_PREFIX = "link.";
 
   interface UserData {
-    userId: string;
-    username: string;
     email: string;
     global_name: string;
   }
 
   let registering = $state(false);
-  let saveData = $state<UserData>({ userId: "", username: "", email: "", global_name: "" });
+  let saveData = $state<UserData>({ email: "", global_name: "" });
+  let accessToken = $state("");
   let koreanName = $state("");
   let error = $state("");
 
@@ -25,11 +24,10 @@
       const data = await response.json();
       if (data.status === "new") {
         saveData = {
-          userId: data.userId,
-          username: data.username ?? "",
           email: data.email ?? "",
           global_name: data.global_name ?? data.username ?? "",
         };
+        accessToken = data.access_token ?? "";
         registering = true;
       } else if (data.token) {
         useAuth.set({
@@ -89,13 +87,7 @@
       const response = await fetch("/server/auth/google/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          userId: saveData.userId,
-          username: saveData.username,
-          email: saveData.email,
-          global_name: saveData.global_name,
-          krname: koreanName,
-        }),
+        body: JSON.stringify({ access_token: accessToken, krname: koreanName }),
       });
       const data = await response.json();
       if (data.status === "complete") {

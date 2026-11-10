@@ -130,52 +130,53 @@ func (h *Handlers) GoogleLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	writeJSON(w, http.StatusOK, map[string]any{
-		"status":      "new",
-		"userId":      user.ID,
-		"username":    user.Name,
-		"email":       user.Email,
-		"global_name": user.Name,
+		"status":       "new",
+		"userId":       user.ID,
+		"username":     user.Name,
+		"email":        user.Email,
+		"global_name":  user.Name,
+		"access_token": accessToken,
 	})
 }
 
 type googleRegisterRequest struct {
-	UserID     string `json:"userId"`
-	Username   string `json:"username"`
-	Email      string `json:"email"`
-	GlobalName string `json:"global_name"`
-	KrName     string `json:"krname"`
+	AccessToken string `json:"access_token"`
+	KrName      string `json:"krname"`
 }
 
+// GoogleRegister creates the account for the Google user that owns the access
+// token from GoogleLogin. The identity comes from Google, never from the body.
 func (h *Handlers) GoogleRegister(w http.ResponseWriter, r *http.Request) {
 	var req googleRegisterRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, "invalid body", http.StatusBadRequest)
 		return
 	}
-	globalName := req.GlobalName
-	if globalName == "" {
-		globalName = req.Username
+	user, err := fetchGoogleUser(http.DefaultClient, req.AccessToken)
+	if err != nil {
+		http.Error(w, "google lookup failed", http.StatusBadGateway)
+		return
 	}
-	newID, err := db.SaveOAuthUser(h.DB, req.UserID, req.Username, globalName, req.KrName)
+	newID, err := db.SaveOAuthUser(h.DB, user.ID, user.Name, user.Name, req.KrName)
 	if err != nil {
 		http.Error(w, "save user failed", http.StatusInternalServerError)
 		return
 	}
-	if err := db.AddIdentity(h.DB, newID, "google", req.UserID); err != nil {
+	if err := db.AddIdentity(h.DB, newID, "google", user.ID); err != nil {
 		http.Error(w, "identity seed failed", http.StatusInternalServerError)
 		return
 	}
-	token, err := IssueToken(req.UserID, h.Config.PrivateKey)
+	token, err := IssueToken(user.ID, h.Config.PrivateKey)
 	if err != nil {
 		http.Error(w, "token issue failed", http.StatusInternalServerError)
 		return
 	}
 	writeJSON(w, http.StatusOK, map[string]any{
 		"status":      "complete",
-		"userId":      req.UserID,
-		"username":    req.Username,
-		"email":       req.Email,
-		"global_name": globalName,
+		"userId":      user.ID,
+		"username":    user.Name,
+		"email":       user.Email,
+		"global_name": user.Name,
 		"token":       token,
 	})
 }

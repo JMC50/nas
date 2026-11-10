@@ -37,10 +37,18 @@
   let user = $state<UserView | null>(null);
   let busy = $state<Set<Intent>>(new Set());
   let deleting = $state(false);
+  let loadError = $state("");
   const isSelf = $derived(user !== null && user.userId === auth.current.userId);
 
   async function loadUsers() {
-    const response = await fetch("/server/getAllUsers");
+    loadError = "";
+    const response = await fetch("/server/getAllUsers", {
+      headers: { Authorization: `Bearer ${auth.token}` },
+    });
+    if (!response.ok) {
+      loadError = response.status === 403 ? "Only administrators can list users." : `Failed to load users (HTTP ${response.status}).`;
+      return;
+    }
     const data = await response.json();
     const raw = (data.users ?? []) as Partial<UserView>[];
     users = raw.map((entry) => ({
@@ -127,7 +135,9 @@
 
   <div class="flex-1 grid grid-cols-[280px_1fr] min-h-0">
     <aside class="border-r border-border-default overflow-auto bg-bg-surface/30">
-      {#if users.length === 0}
+      {#if loadError}
+        <div class="p-4 text-xs text-fg-danger" role="alert">{loadError}</div>
+      {:else if users.length === 0}
         <div class="p-4 text-xs text-fg-muted">Loading users…</div>
       {/if}
       {#each users as entry (entry.userId)}

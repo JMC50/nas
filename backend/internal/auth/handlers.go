@@ -257,9 +257,25 @@ func (h *Handlers) ChangePassword(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, authResponse{Success: true, Message: "Password changed successfully"})
 }
 
-// GetIntents returns the list of intents for a user (no auth required, matches legacy).
+// GetIntents는 사용자의 권한 목록을 돌려줍니다. 본인이 아니면 관리자만 읽을 수 있습니다.
 func (h *Handlers) GetIntents(w http.ResponseWriter, r *http.Request) {
+	claims := ClaimsFromContext(r.Context())
+	if claims == nil {
+		http.Error(w, "unauthorized", http.StatusUnauthorized)
+		return
+	}
 	userID := r.URL.Query().Get("userId")
+	if userID != claims.UserID {
+		isAdmin, err := db.HasIntent(h.DB, claims.UserID, string(IntentAdmin))
+		if err != nil {
+			http.Error(w, "intent check failed", http.StatusInternalServerError)
+			return
+		}
+		if !isAdmin {
+			http.Error(w, "forbidden", http.StatusForbidden)
+			return
+		}
+	}
 	user, err := db.GetUser(h.DB, userID)
 	if err != nil || user == nil {
 		writeJSON(w, http.StatusOK, map[string]any{"intents": []string{}})
@@ -310,8 +326,7 @@ func (h *Handlers) CheckIntent(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]any{"status": has})
 }
 
-// GetAllUsers returns all users with their intents. Note: legacy version had no auth gate.
-// Phase 1 mirrors that behavior; admin gating moves in via REST cleanup phase.
+// GetAllUsers는 모든 사용자와 권한을 돌려줍니다. 라우터가 관리자만 들여보냅니다.
 func (h *Handlers) GetAllUsers(w http.ResponseWriter, r *http.Request) {
 	users, err := db.GetAllUsers(h.DB)
 	if err != nil {

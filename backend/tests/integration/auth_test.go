@@ -24,8 +24,7 @@ func setupAuthTestServer(t *testing.T) (http.Handler, *config.Config) {
 	conn, err := db.Open(dbPath)
 	require.NoError(t, err)
 	t.Cleanup(func() { conn.Close() })
-	_, err = conn.Exec(testSchema())
-	require.NoError(t, err)
+	require.NoError(t, db.InitSchema(conn))
 
 	cfg := &config.Config{
 		Port:                 0,

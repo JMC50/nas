@@ -4,6 +4,7 @@
   import RefreshCw from "lucide-svelte/icons/refresh-cw";
   import ArrowRight from "lucide-svelte/icons/arrow-right";
   import { notifications } from "$lib/store/notifications.svelte";
+  import { auth } from "$lib/store/auth.svelte";
   import ActivityGraph from "./Activity/ActivityGraph.svelte";
 
   interface ActivityEntry {
@@ -23,7 +24,10 @@
   async function load() {
     loading = true;
     try {
-      const response = await fetch("/server/getActivityLog");
+      const response = await fetch("/server/getActivityLog", {
+        headers: { Authorization: `Bearer ${auth.token}` },
+      });
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
       const data = await response.json();
       const raw = (data.logs ?? data.data ?? (Array.isArray(data) ? data : [])) as ActivityEntry[];
       entries = raw.sort((a, b) => b.time - a.time);

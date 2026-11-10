@@ -88,15 +88,14 @@ func NewRouter(cfg *config.Config, conn *sql.DB) http.Handler {
 	r.Post("/auth/discord/register", authHandlers.DiscordRegister)
 	r.Post("/auth/google/register", authHandlers.GoogleRegister)
 
-	// Intent inspection (legacy compat — no auth gate per legacy behavior)
-	r.Get("/getIntents", authHandlers.GetIntents)
-	r.Get("/getAllUsers", authHandlers.GetAllUsers)
-	r.Get("/getActivityLog", adminHandlers.GetActivityLog)
 	r.Post("/log", adminHandlers.InsertLog) // token in body
 
 	// Token-required intent checks
 	r.Group(func(r chi.Router) {
 		r.Use(requireToken)
+		r.Get("/getIntents", authHandlers.GetIntents)
+		r.With(auth.RequireIntent(conn, auth.IntentAdmin)).Get("/getAllUsers", authHandlers.GetAllUsers)
+		r.Get("/getActivityLog", adminHandlers.GetActivityLog)
 		r.Get("/checkAdmin", authHandlers.CheckAdmin)
 		r.Get("/checkIntent", authHandlers.CheckIntent)
 		r.Get("/authorize", adminHandlers.ToggleIntent)

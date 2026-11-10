@@ -49,9 +49,14 @@
     if (!auth.current.userId) return;
     loadingIntents = true;
     try {
-      const response = await fetch(`/server/getIntents?userId=${encodeURIComponent(auth.current.userId)}`);
+      const response = await fetch(`/server/getIntents?userId=${encodeURIComponent(auth.current.userId)}`, {
+        headers: { Authorization: `Bearer ${auth.token}` },
+      });
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
       const data = await response.json();
       intents = data.intents ?? [];
+    } catch (cause) {
+      notifications.error(`Failed to load permissions: ${(cause as Error).message}`);
     } finally {
       loadingIntents = false;
     }

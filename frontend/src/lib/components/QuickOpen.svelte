@@ -10,6 +10,7 @@
   import Users from "lucide-svelte/icons/users";
   import Settings from "lucide-svelte/icons/settings";
   import History from "lucide-svelte/icons/history";
+  import Link2 from "lucide-svelte/icons/link-2";
   import User from "lucide-svelte/icons/user";
   import Cpu from "lucide-svelte/icons/cpu";
   import { ui } from "$lib/store/ui.svelte";
@@ -29,6 +30,7 @@
     "user-manager": Users,
     settings: Settings,
     activity: History,
+    "share-links": Link2,
     account: User,
     system: Cpu,
     "music-library": Music,

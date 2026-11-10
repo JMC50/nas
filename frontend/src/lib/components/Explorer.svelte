@@ -19,6 +19,7 @@
   import FileList from "$lib/components/Explorer/FileList.svelte";
   import Inspector from "$lib/components/Explorer/Inspector.svelte";
   import ContextMenu from "$lib/components/Explorer/ContextMenu.svelte";
+  import ShareLinkDialog from "$lib/components/Share/ShareLinkDialog.svelte";
   import ForbiddenPanel from "$lib/components/ForbiddenPanel.svelte";
   import {
     locPath,
@@ -142,6 +143,24 @@
 
   function closeInspector() {
     inspectedEntry = null;
+  }
+
+  // 대화 상자가 열린 동안 폴더를 옮겨도 연 때의 위치로 링크를 만들도록 loc을 복사해 둠
+  let share = $state<{ entry: FolderEntry; loc: string[] } | null>(null);
+  let shareOpener: HTMLElement | null = null;
+
+  function openShare(entry: FolderEntry) {
+    shareOpener = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    share = { entry, loc: [...loc] };
+  }
+
+  // 메뉴에서 열었으면 메뉴 항목이 사라졌으므로 그 파일의 행으로 초점을 돌려줌
+  function closeShare() {
+    const name = share?.entry.name ?? "";
+    share = null;
+    const row = containerEl?.querySelector<HTMLElement>(`[data-entry-name="${CSS.escape(name)}"]`);
+    (shareOpener?.isConnected ? shareOpener : row)?.focus();
+    shareOpener = null;
   }
 
   // If the inspected entry disappears (e.g. deleted, renamed, or out of the
@@ -297,7 +316,7 @@
   const EDITABLE_SELECTOR = "input, textarea, [contenteditable='true']";
 
   function onKeyDown(event: KeyboardEvent) {
-    if (tabs.activeId !== tabId) return;
+    if (tabs.activeId !== tabId || share) return;
     const target = event.target as HTMLElement | null;
     if (target?.matches?.(EDITABLE_SELECTOR)) return;
     if ((event.ctrlKey || event.metaKey) && event.key === "a") {
@@ -663,6 +682,7 @@
         {dragPayload}
         onOpen={openEntry}
         onMenu={showMenu}
+        onShare={openShare}
         {onDropOnFolder}
         {onSelect}
         selectedNames={selection}
@@ -685,6 +705,10 @@
 
 <Inspector entry={inspectedEntry} {loc} onClose={closeInspector} />
 
+{#if share}
+  <ShareLinkDialog target={share.entry} loc={share.loc} onClose={closeShare} />
+{/if}
+
 {#if menuOpen && menuTarget}
   {@const target = menuTarget}
   <ContextMenu
@@ -702,6 +726,10 @@
     onDownload={() => {
       download(target);
       hideMenu();
+    }}
+    onShare={() => {
+      hideMenu();
+      openShare(target);
     }}
     onRename={() => {
       rename(target);

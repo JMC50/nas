@@ -3,6 +3,7 @@
   import FolderOpen from "lucide-svelte/icons/folder-open";
   import ExternalLink from "lucide-svelte/icons/external-link";
   import DownloadIcon from "lucide-svelte/icons/download";
+  import Link2 from "lucide-svelte/icons/link-2";
   import Pencil from "lucide-svelte/icons/pencil";
   import Copy from "lucide-svelte/icons/copy";
   import Trash2 from "lucide-svelte/icons/trash-2";
@@ -23,6 +24,7 @@
     onOpen: () => void;
     onOpenNewTab: () => void;
     onDownload: () => void;
+    onShare: () => void;
     onRename: () => void;
     onCopy: () => void;
     onDelete: () => void;
@@ -41,6 +43,7 @@
     onOpen,
     onOpenNewTab,
     onDownload,
+    onShare,
     onRename,
     onCopy,
     onDelete,
@@ -134,6 +137,15 @@
   >
     <DownloadIcon size="16" />
     Download
+  </button>
+  <button
+    type="button"
+    class="sg-menu-item"
+    onclick={onShare}
+    role="menuitem"
+  >
+    <Link2 size="16" />
+    Create download link
   </button>
   <button
     type="button"

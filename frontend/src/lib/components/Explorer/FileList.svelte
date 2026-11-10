@@ -1,5 +1,6 @@
 <script lang="ts">
   import MoreVertical from "lucide-svelte/icons/more-vertical";
+  import Link2 from "lucide-svelte/icons/link-2";
   import { iconFor, type FolderEntry } from "./icon-for";
   import { dragEntry } from "./drag-drop-action";
   import { longPress } from "$lib/actions/long-press";
@@ -11,6 +12,7 @@
     dragPayload: (entry: FolderEntry) => string;
     onOpen: (entry: FolderEntry, opts?: { newTab?: boolean }) => void;
     onMenu: (event: MouseEvent, entry: FolderEntry) => void;
+    onShare: (entry: FolderEntry) => void;
     onDropOnFolder: (event: DragEvent, target: FolderEntry) => void;
     // Click → fires for every entry click (modifier-aware). Explorer.svelte
     // dispatches setSingle / toggleEntry / selectRange / openEntry based on the
@@ -26,6 +28,7 @@
     dragPayload,
     onOpen,
     onMenu,
+    onShare,
     onDropOnFolder,
     onSelect,
     selectedNames,
@@ -92,6 +95,7 @@
       <th scope="col" class="hidden md:table-cell text-left font-semibold px-3 w-24">Type</th>
       <th scope="col" class="text-right font-semibold px-3 w-24">Size</th>
       <th scope="col" class="hidden sm:table-cell text-left font-semibold px-3 w-32 lg:pr-gutter">Modified</th>
+      <th class="hidden md:table-cell w-12" aria-hidden="true"></th>
       <th class="md:hidden w-12" aria-hidden="true"></th>
     </tr>
   </thead>
@@ -139,6 +143,22 @@
         <td class="hidden sm:table-cell px-3 lg:pr-gutter text-xs text-fg-muted whitespace-nowrap" title={formatFullTime(entry.modifiedAt)}>
           {formatRelTime(entry.modifiedAt)}
         </td>
+        <td class="hidden md:table-cell pr-2 text-right">
+          <button
+            type="button"
+            class="row-action sg-btn sg-btn-ghost sg-btn-icon"
+            onpointerdown={stopRowLongPress}
+            onclick={(event) => {
+              event.stopPropagation();
+              onShare(entry);
+            }}
+            ondblclick={(event) => event.stopPropagation()}
+            aria-label="Create download link for {entry.name}"
+            title="Create download link"
+          >
+            <Link2 size="16" />
+          </button>
+        </td>
         <!--
           Mobile-only kebab. Hidden at md+ where right-click / two-finger tap
           already invokes the context menu. data-marquee-canvas inherited as
@@ -176,6 +196,19 @@
   .row.is-selected {
     background: var(--color-bg-selected);
     box-shadow: inset 2px 0 0 var(--color-accent);
+  }
+  .row-action {
+    opacity: 0;
+  }
+  .row:hover .row-action,
+  .row:focus-within .row-action,
+  .row.is-selected .row-action {
+    opacity: 1;
+  }
+  @media (pointer: coarse) {
+    .row-action {
+      opacity: 1;
+    }
   }
   .row.is-drop {
     background: var(--color-bg-selected);

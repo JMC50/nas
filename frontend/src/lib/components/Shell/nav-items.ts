@@ -6,6 +6,7 @@ import Music from "lucide-svelte/icons/music";
 import Film from "lucide-svelte/icons/film";
 import Users from "lucide-svelte/icons/users";
 import History from "lucide-svelte/icons/history";
+import Link2 from "lucide-svelte/icons/link-2";
 import Settings from "lucide-svelte/icons/settings";
 import Cpu from "lucide-svelte/icons/cpu";
 import { tabs, EXPLORER_TAB_ID } from "$lib/store/tabs.svelte";
@@ -25,6 +26,7 @@ export const NAV_ITEMS: NavItem[] = [
   { id: "system:video-library", kind: "video-library", title: "Videos", icon: Film },
   { id: "system:user-manager", kind: "user-manager", title: "Users", icon: Users, adminOnly: true },
   { id: "system:activity", kind: "activity", title: "Activity", icon: History },
+  { id: "system:share-links", kind: "share-links", title: "Links", icon: Link2 },
   { id: "system:settings", kind: "settings", title: "Settings", icon: Settings, adminOnly: true },
   { id: "system:system", kind: "system", title: "System", icon: Cpu, adminOnly: true },
 ];

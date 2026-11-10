@@ -424,12 +424,17 @@
     .sg-seg-btn:hover {
         color: var(--color-fg-primary);
     }
-    .sg-seg-btn[aria-pressed="true"] {
+    .sg-seg-btn[aria-pressed="true"],
+    .sg-seg-btn:has(> input:checked) {
         background: var(--color-bg-overlay);
         color: var(--color-fg-primary);
         font-weight: 650;
     }
     .sg-seg-btn:focus-visible {
+        outline-offset: 1px;
+    }
+    .sg-seg-btn:has(> input:focus-visible) {
+        outline: 2px solid var(--color-border-focus);
         outline-offset: 1px;
     }
 

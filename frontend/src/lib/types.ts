@@ -46,6 +46,7 @@ export type TabKind =
   | "user-manager"
   | "settings"
   | "activity"
+  | "share-links"
   | "account"
   | "system"
   | "music-library"

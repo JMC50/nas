@@ -6,6 +6,7 @@
   import Setting from "$lib/components/Setting.svelte";
   import Account from "$lib/components/Account.svelte";
   import ActivityLog from "$lib/components/ActivityLog.svelte";
+  import ShareLinks from "$lib/components/Share/ShareLinks.svelte";
   import SystemInfo from "$lib/components/SystemInfo.svelte";
   import ImageViewer from "$lib/components/Viewers/ImageViewer.svelte";
   import MediaViewer from "$lib/components/Viewers/MediaViewer.svelte";
@@ -40,6 +41,8 @@
         <Setting />
       {:else if tab.kind === "activity"}
         <ActivityLog />
+      {:else if tab.kind === "share-links"}
+        <ShareLinks />
       {:else if tab.kind === "account"}
         <Account />
       {:else if tab.kind === "system"}

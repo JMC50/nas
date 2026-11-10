@@ -2,6 +2,7 @@
   import FilePlus from "lucide-svelte/icons/file-plus";
   import FolderPlus from "lucide-svelte/icons/folder-plus";
   import FolderUp from "lucide-svelte/icons/folder-up";
+  import DownloadIcon from "lucide-svelte/icons/download";
   import Search from "lucide-svelte/icons/search";
   import LayoutGrid from "lucide-svelte/icons/layout-grid";
   import LayoutList from "lucide-svelte/icons/list";
@@ -18,6 +19,10 @@
     onUpload: () => void;
     onUploadFolder: () => void;
     onNewFolder: () => void;
+    onDownload: () => void;
+    downloadCount: number;
+    downloadLabel: string;
+    downloadBusy: boolean;
     onDropToUp: (event: DragEvent) => void;
   }
 
@@ -29,6 +34,10 @@
     onUpload,
     onUploadFolder,
     onNewFolder,
+    onDownload,
+    downloadCount,
+    downloadLabel,
+    downloadBusy,
     onDropToUp,
   }: Props = $props();
 
@@ -107,6 +116,18 @@
   <button type="button" class="hidden md:inline-flex sg-btn" onclick={onNewFolder}>
     <FolderPlus size="16" />
     <span>New folder</span>
+  </button>
+
+  <button
+    type="button"
+    class="hidden md:inline-flex sg-btn"
+    onclick={onDownload}
+    disabled={downloadCount === 0 || downloadBusy}
+    aria-label={downloadCount === 0 ? "Download" : downloadLabel}
+    title={downloadCount === 0 ? "Select files or folders to download" : downloadLabel}
+  >
+    <DownloadIcon size="16" />
+    <span class="hidden lg:inline">Download</span>
   </button>
 
   <div class="hidden md:flex flex-1 min-w-0 max-w-md ml-2">

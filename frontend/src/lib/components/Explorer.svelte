@@ -3,6 +3,7 @@
   import Folder from "lucide-svelte/icons/folder";
   import X from "lucide-svelte/icons/x";
   import Trash2 from "lucide-svelte/icons/trash-2";
+  import DownloadIcon from "lucide-svelte/icons/download";
   import UploadIcon from "lucide-svelte/icons/upload";
   import FolderUp from "lucide-svelte/icons/folder-up";
   import RefreshCw from "lucide-svelte/icons/refresh-cw";
@@ -28,6 +29,7 @@
     deleteEntry,
     renameEntry,
     downloadUrl,
+    prepareZip,
     FetchError,
   } from "$lib/components/Explorer/actions";
   import {
@@ -197,18 +199,48 @@
     navigateTo(loc.slice(0, -1));
   }
 
-  function download(entry: FolderEntry) {
-    if (entry.isFolder) {
-      notifications.info("Folder download not implemented yet.");
-      return;
-    }
+  function saveFrom(href: string, name: string) {
     const anchor = document.createElement("a");
-    anchor.href = downloadUrl(loc, entry);
-    anchor.download = entry.name;
+    anchor.href = href;
+    anchor.download = name;
     anchor.rel = "noopener";
     document.body.appendChild(anchor);
     anchor.click();
     anchor.remove();
+  }
+
+  let zipPending = $state(false);
+
+  // 파일 하나는 그대로 받고, 폴더나 여러 항목은 서버가 zip 하나로 묶어 보냄
+  async function download(targets: FolderEntry[]) {
+    if (targets.length === 0 || zipPending) return;
+    if (targets.length === 1 && !targets[0].isFolder) {
+      saveFrom(downloadUrl(loc, targets[0]), targets[0].name);
+      return;
+    }
+    zipPending = true;
+    try {
+      const zip = await prepareZip(loc, targets);
+      saveFrom(zip.url, zip.name);
+      notifications.info(`Downloading ${zip.name}`);
+    } catch (cause) {
+      notifications.error(cause instanceof FetchError ? cause.message : "Could not reach the server.");
+    } finally {
+      zipPending = false;
+    }
+  }
+
+  const selectedEntries = $derived(sorted.filter((entry) => selectedSet.has(entry.name)));
+
+  // 메뉴를 연 항목이 여러 개 고른 것 중 하나면 고른 것 전체를 받음
+  function downloadTargets(entry: FolderEntry): FolderEntry[] {
+    return selectedEntries.length > 1 && selectedSet.has(entry.name) ? selectedEntries : [entry];
+  }
+
+  function downloadLabel(targets: FolderEntry[]): string {
+    if (targets.length > 1) return `Download ${targets.length} items as .zip`;
+    if (targets.length === 1 && targets[0].isFolder) return "Download as .zip";
+    return "Download";
   }
 
   function openEntry(entry: FolderEntry, opts: { newTab?: boolean } = {}) {
@@ -219,7 +251,7 @@
     const kind = pickViewer(entry.extensions);
     if (kind === null) {
       notifications.info(`No preview for .${entry.extensions} — downloading instead.`);
-      download(entry);
+      download([entry]);
       return;
     }
     tabs.open({
@@ -574,6 +606,10 @@
     onUpload={() => fileInputEl?.click()}
     onUploadFolder={() => folderInputEl?.click()}
     onNewFolder={newFolder}
+    onDownload={() => download(selectedEntries)}
+    downloadCount={selectedEntries.length}
+    downloadLabel={downloadLabel(selectedEntries)}
+    downloadBusy={zipPending}
     onDropToUp={(event) => onDropOnLoc(event, loc.slice(0, -1))}
   />
 
@@ -589,6 +625,7 @@
     <Folder size="16" class="text-fg-secondary shrink-0" />
     <h2 class="text-sm font-semibold text-fg-primary truncate min-w-0">{folderName}</h2>
     <span class="ml-auto shrink-0 text-xs text-fg-muted tabular-nums">
+      {#if selectedEntries.length > 0 && !ui.isMobile}{selectedEntries.length} selected ·{/if}
       {sorted.length} {sorted.length === 1 ? "item" : "items"}
     </span>
   </div>
@@ -614,7 +651,17 @@
       </span>
       <button
         type="button"
-        class="ml-auto sg-btn sg-btn-danger"
+        class="ml-auto sg-btn sg-btn-ghost sg-btn-icon"
+        onclick={() => download(selectedEntries)}
+        disabled={zipPending}
+        aria-label={downloadLabel(selectedEntries)}
+        title={downloadLabel(selectedEntries)}
+      >
+        <DownloadIcon size="18" />
+      </button>
+      <button
+        type="button"
+        class="sg-btn sg-btn-danger"
         onclick={deleteSelected}
         aria-label="Delete selected"
       >
@@ -723,8 +770,9 @@
       openEntry(target, { newTab: true });
       hideMenu();
     }}
+    downloadLabel={downloadLabel(downloadTargets(target))}
     onDownload={() => {
-      download(target);
+      download(downloadTargets(target));
       hideMenu();
     }}
     onShare={() => {

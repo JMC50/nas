@@ -23,6 +23,7 @@
     y: number;
     onOpen: () => void;
     onOpenNewTab: () => void;
+    downloadLabel: string;
     onDownload: () => void;
     onShare: () => void;
     onRename: () => void;
@@ -42,6 +43,7 @@
     y,
     onOpen,
     onOpenNewTab,
+    downloadLabel,
     onDownload,
     onShare,
     onRename,
@@ -136,7 +138,7 @@
     role="menuitem"
   >
     <DownloadIcon size="16" />
-    Download
+    {downloadLabel}
   </button>
   <button
     type="button"

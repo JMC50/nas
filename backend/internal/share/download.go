@@ -40,7 +40,9 @@ func (h *Handlers) Download(w http.ResponseWriter, r *http.Request) {
 	}
 	defer release()
 	guard := newStreamGuard(w, func() error { return h.recheck(target.link.ID) })
-	defer guard.clearDeadline()
+	defer guard.finish()
+	stopWatch := guard.watch()
+	defer stopWatch()
 
 	w.Header().Set("Cache-Control", "no-store")
 	w.Header().Set("X-Content-Type-Options", "nosniff")

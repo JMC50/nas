@@ -7,13 +7,15 @@ import (
 )
 
 const (
-	maxZipStreams     = 3
-	maxStreamsPerLink = 4
-	recordInterval    = time.Minute
-	retryAfterSeconds = "30"
+	maxZipStreams        = 3
+	maxStreamsPerLink    = 4
+	maxZipStreamsPerLink = 1
+	recordInterval       = time.Minute
+	retryAfterSeconds    = "30"
 )
 
-// zip은 폴더 순회와 압축이 무거워 서버 전체에서 동시에 maxZipStreams개만 보냄
+// zip은 폴더 순회와 압축이 무거워 서버 전체에서 동시에 maxZipStreams개만 보냄.
+// 링크 하나가 서버 전체 zip 자리를 다 차지하지 못하게 폴더 링크는 링크마다 maxZipStreamsPerLink개만 받음
 type limiter struct {
 	zipSlots chan struct{}
 	mu       sync.Mutex
@@ -31,8 +33,12 @@ func newLimiter() *limiter {
 
 // 자리가 없으면 0이 아닌 HTTP 상태 코드를 돌려줌. 자리를 얻었으면 끝날 때 release를 불러야 함
 func (l *limiter) acquire(linkID int64, folder bool) (release func(), status int) {
+	limit := maxStreamsPerLink
+	if folder {
+		limit = maxZipStreamsPerLink
+	}
 	l.mu.Lock()
-	if l.perLink[linkID] >= maxStreamsPerLink {
+	if l.perLink[linkID] >= limit {
 		l.mu.Unlock()
 		return nil, http.StatusTooManyRequests
 	}

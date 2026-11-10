@@ -1,9 +1,11 @@
 package integration
 
 import (
+	"context"
 	"crypto/rand"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -172,4 +174,92 @@ func TestShareLink_ZipStreamsShareAServerWideLimit(t *testing.T) {
 		resp.Body.Close()
 	}
 	requireSlotFreed(t, srv, links[3].Path)
+}
+
+func TestShareLink_AFolderLinkSendsOneZipAtATime(t *testing.T) {
+	f := newShareFixture(t)
+	for part := range 4 {
+		f.writeBig(t, fmt.Sprintf("big/part%d.mp4", part), 12)
+	}
+	link := f.create(t, "alice", "/", "big", "1d")
+	srv := f.serve(t)
+
+	first := openStream(t, srv, link.Path)
+	require.Equal(t, http.StatusOK, first.StatusCode)
+	second := openStream(t, srv, link.Path)
+	second.Body.Close()
+	require.Equal(t, http.StatusTooManyRequests, second.StatusCode)
+
+	first.Body.Close()
+	requireSlotFreed(t, srv, link.Path)
+}
+
+// 받는 버퍼를 16 KiB로 줄이고 초당 약 200 KiB로 천천히 읽음. 서버가 보낸 바이트 수로만 다시 확인하면 끊은 링크의 자리를 20초 넘게 붙잡음
+func openSlowStream(t *testing.T, srv *httptest.Server, path string) {
+	t.Helper()
+	dialer := &net.Dialer{}
+	transport := &http.Transport{
+		DisableKeepAlives: true,
+		DialContext: func(ctx context.Context, network, addr string) (net.Conn, error) {
+			conn, err := dialer.DialContext(ctx, network, addr)
+			if err != nil {
+				return nil, err
+			}
+			if err := conn.(*net.TCPConn).SetReadBuffer(16 << 10); err != nil {
+				conn.Close()
+				return nil, err
+			}
+			return conn, nil
+		},
+	}
+	resp, err := (&http.Client{Transport: transport}).Get(srv.URL + path)
+	require.NoError(t, err)
+	require.Equal(t, http.StatusOK, resp.StatusCode)
+	stop := make(chan struct{})
+	done := make(chan struct{})
+	go func() {
+		defer close(done)
+		buf := make([]byte, 4<<10)
+		for {
+			select {
+			case <-stop:
+				return
+			case <-time.After(20 * time.Millisecond):
+			}
+			if _, err := resp.Body.Read(buf); err != nil {
+				return
+			}
+		}
+	}()
+	t.Cleanup(func() {
+		close(stop)
+		resp.Body.Close()
+		<-done
+	})
+}
+
+func TestShareLink_RevokedSlowZipFreesItsSlotQuickly(t *testing.T) {
+	f := newShareFixture(t)
+	for part := range 4 {
+		f.writeBig(t, fmt.Sprintf("big/part%d.mp4", part), 12)
+	}
+	var links []createdLink
+	for range 4 {
+		links = append(links, f.create(t, "alice", "/", "big", "1d"))
+	}
+	srv := f.serve(t)
+
+	for _, link := range links[:3] {
+		openSlowStream(t, srv, link.Path)
+	}
+	busy := openStream(t, srv, links[3].Path)
+	busy.Body.Close()
+	require.Equal(t, http.StatusServiceUnavailable, busy.StatusCode)
+
+	f.revoke(t, "alice", links[0].ID)
+	require.Eventually(t, func() bool {
+		resp := openStream(t, srv, links[3].Path)
+		defer resp.Body.Close()
+		return resp.StatusCode == http.StatusOK
+	}, 5*time.Second, 100*time.Millisecond, "the revoked slow stream must give its zip slot back within seconds")
 }

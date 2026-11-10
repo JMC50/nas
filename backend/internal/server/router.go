@@ -76,19 +76,31 @@ func NewRouter(cfg *config.Config, conn *sql.DB) http.Handler {
 	r.Get("/", rootHandler)
 	r.Get("/healthz", healthzHandler(conn))
 
+	// AUTH_TYPE=oidc에서는 발급자를 거치는 로그인만 남기고, 아래 otherSignIn에 건 경로는 모두 거절함
+	otherSignIn := chi.Router(r)
+	if cfg.AuthType == config.AuthTypeOIDC {
+		otherSignIn = r.With(auth.RefuseOtherSignIn)
+		oidcHandlers := auth.NewOIDCHandlers(cfg, conn)
+		r.Get("/auth/oidc/login", oidcHandlers.Login)
+		r.Get("/auth/oidc/callback", oidcHandlers.Callback)
+		r.Post("/auth/oidc/session", oidcHandlers.Session)
+		r.Get("/auth/oidc/logout", oidcHandlers.Logout)
+		r.Post("/auth/oidc/backchannel", oidcHandlers.BackchannelLogout)
+	}
+
 	// Local auth (no token required)
-	r.Post("/auth/register", authHandlers.RegisterLocal)
-	r.Post("/auth/login", authHandlers.LoginLocal)
-	r.Post("/auth/change-password", authHandlers.ChangePassword) // token in query, parsed inside
+	otherSignIn.Post("/auth/register", authHandlers.RegisterLocal)
+	otherSignIn.Post("/auth/login", authHandlers.LoginLocal)
+	otherSignIn.Post("/auth/change-password", authHandlers.ChangePassword) // token in query, parsed inside
 	r.Get("/auth/config", authHandlers.AuthConfig)
 
 	// OAuth flows (no token required — they ISSUE tokens).
 	// Frontend SPA routes /login and /googleLogin handle the OAuth callback UI.
 	// Backend endpoints live under /auth/* to avoid shadowing.
-	r.Get("/auth/discord/callback", authHandlers.DiscordLogin)
-	r.Get("/auth/google/callback", authHandlers.GoogleLogin)
-	r.Post("/auth/discord/register", authHandlers.DiscordRegister)
-	r.Post("/auth/google/register", authHandlers.GoogleRegister)
+	otherSignIn.Get("/auth/discord/callback", authHandlers.DiscordLogin)
+	otherSignIn.Get("/auth/google/callback", authHandlers.GoogleLogin)
+	otherSignIn.Post("/auth/discord/register", authHandlers.DiscordRegister)
+	otherSignIn.Post("/auth/google/register", authHandlers.GoogleRegister)
 
 	r.Post("/log", adminHandlers.InsertLog) // token in body
 
@@ -106,11 +118,15 @@ func NewRouter(cfg *config.Config, conn *sql.DB) http.Handler {
 		r.Delete("/users/{userId}", adminHandlers.DeleteUser)
 		r.Get("/admin/oauth-config", adminHandlers.GetOAuthConfig)
 		r.Put("/admin/oauth-config", adminHandlers.UpdateOAuthConfig)
-		r.Post("/auth/link/start", authHandlers.LinkStart)
-		r.Post("/auth/link/discord/complete", authHandlers.LinkDiscord)
-		r.Post("/auth/link/google/complete", authHandlers.LinkGoogle)
+		linking := r
+		if cfg.AuthType == config.AuthTypeOIDC {
+			linking = r.With(auth.RefuseOtherSignIn)
+		}
+		linking.Post("/auth/link/start", authHandlers.LinkStart)
+		linking.Post("/auth/link/discord/complete", authHandlers.LinkDiscord)
+		linking.Post("/auth/link/google/complete", authHandlers.LinkGoogle)
 		r.Get("/auth/identities", authHandlers.Identities)
-		r.Delete("/auth/identities/{provider}", authHandlers.Unlink)
+		linking.Delete("/auth/identities/{provider}", authHandlers.Unlink)
 		r.Get("/stat", fileHandlers.Stat)
 	})
 

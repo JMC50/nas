@@ -7,8 +7,8 @@ import (
 )
 
 // Identity links a NAS user to an external sign-in source. Provider is one
-// of "local", "discord", "google"; external_id is the user's identifier
-// inside that provider (local userId, Discord snowflake, Google sub).
+// of "local", "discord", "google", "oidc"; external_id is the user's identifier
+// inside that provider (local userId, Discord snowflake, Google sub, OIDC sub).
 // Primary key is (provider, external_id) so the same external account can
 // only ever map to one NAS user.
 type Identity struct {
@@ -71,6 +71,41 @@ func DropIdentity(conn *sql.DB, userID int64, provider string) error {
 		return fmt.Errorf("delete identity: %w", err)
 	}
 	return nil
+}
+
+// CreateIdentityUser inserts a user together with its first sign-in identity
+// and intents. Nothing is written when userId or the identity already exists.
+func CreateIdentityUser(conn *sql.DB, user User, provider, externalID string) (int64, error) {
+	tx, err := conn.Begin()
+	if err != nil {
+		return 0, fmt.Errorf("begin tx: %w", err)
+	}
+	defer tx.Rollback()
+
+	result, err := tx.Exec(`
+		INSERT INTO users (userId, username, global_name, krname, auth_type)
+		VALUES (?, ?, ?, ?, ?)`, user.UserID, user.Username, user.GlobalName, user.KrName, user.AuthType)
+	if err != nil {
+		return 0, fmt.Errorf("insert user: %w", err)
+	}
+	id, err := result.LastInsertId()
+	if err != nil {
+		return 0, fmt.Errorf("get insert id: %w", err)
+	}
+	if _, err := tx.Exec(`
+		INSERT INTO user_identities (user_id, provider, external_id)
+		VALUES (?, ?, ?)`, id, provider, externalID); err != nil {
+		return 0, fmt.Errorf("insert identity: %w", err)
+	}
+	for _, intent := range user.Intents {
+		if _, err := tx.Exec("INSERT INTO user_intents (user_id, intent) VALUES (?, ?)", id, intent); err != nil {
+			return 0, fmt.Errorf("insert intent: %w", err)
+		}
+	}
+	if err := tx.Commit(); err != nil {
+		return 0, fmt.Errorf("commit user: %w", err)
+	}
+	return id, nil
 }
 
 // Backfill seeds user_identities from existing users for the local provider

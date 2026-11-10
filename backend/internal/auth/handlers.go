@@ -68,6 +68,9 @@ type authConfigBody struct {
 	GoogleLoginURL       string        `json:"googleLoginUrl"`
 	OAuthEnabled         bool          `json:"oauthEnabled"`
 	PasswordRequirements passwordRules `json:"passwordRequirements"`
+	OIDCEnabled          bool          `json:"oidcEnabled,omitempty"`
+	OIDCLoginURL         string        `json:"oidcLoginUrl,omitempty"`
+	OIDCLogoutURL        string        `json:"oidcLogoutUrl,omitempty"`
 }
 
 func (h *Handlers) AuthConfig(w http.ResponseWriter, r *http.Request) {
@@ -90,6 +93,11 @@ func (h *Handlers) authBody() authConfigBody {
 		PasswordRequirements: passwordRules(h.Config.PasswordRequirements),
 	}
 	fillURLs(&body, creds, discord, google)
+	if authType == config.AuthTypeOIDC {
+		body.OIDCEnabled = true
+		body.OIDCLoginURL = oidcLoginPath
+		body.OIDCLogoutURL = oidcLogoutPath
+	}
 	return body
 }
 

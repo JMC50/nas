@@ -64,7 +64,7 @@
   <!-- svelte-ignore a11y_click_events_have_key_events -->
   <!-- svelte-ignore a11y_no_static_element_interactions -->
   <div class="fixed inset-0 z-50 lg:hidden">
-    <div class="absolute inset-0 bg-black/55 animate-fade" onclick={() => ui.closeDrawer()}></div>
+    <div class="absolute inset-0 bg-scrim animate-fade" onclick={() => ui.closeDrawer()}></div>
     <div
       bind:this={panel}
       class="absolute top-0 left-0 h-full w-[min(300px,86vw)] flex flex-col bg-bg-base border-r border-border-default shadow-overlay animate-drawer"

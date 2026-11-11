@@ -236,7 +236,7 @@
 <div
   bind:this={container}
   onmousemove={showControls}
-  class="relative h-full w-full bg-black overflow-hidden group [container-type:size]
+  class="relative h-full w-full bg-bg-inset overflow-hidden group [container-type:size]
  {controlsVisible ? '' : 'cursor-none'}"
 >
   <!-- top bar (filename) -->

@@ -208,7 +208,7 @@
   <!-- svelte-ignore a11y_click_events_have_key_events -->
   <!-- svelte-ignore a11y_no_static_element_interactions -->
   <div
-    class="fixed inset-0 z-50 bg-bg-base md:bg-black/55 flex items-start justify-center md:pt-[12dvh] animate-fade"
+    class="fixed inset-0 z-50 bg-bg-base md:bg-scrim flex items-start justify-center md:pt-[12dvh] animate-fade"
     onclick={() => ui.closeQuickOpen()}
   >
     <div

@@ -49,6 +49,7 @@
     --color-accent-fg: #121909;
     --color-accent-muted: #a7dc48;
     --color-bg-danger: #361715;
+    --color-scrim: #0000008c;
     --color-brand-discord: #5865f2;
 
     --font-sans: "Wanted Sans Variable", -apple-system, "Segoe UI", system-ui, sans-serif;
@@ -128,7 +129,7 @@
     }
 
     ::selection {
-        background: #bdf95240;
+        background: color-mix(in srgb, var(--color-accent) 25%, transparent);
     }
 
     .font-mono,

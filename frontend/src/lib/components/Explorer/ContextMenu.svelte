@@ -82,7 +82,7 @@
 </script>
 
 {#if ui.isMobile}
-  <div class="fixed inset-0 z-40 bg-black/55 animate-fade" aria-hidden="true"></div>
+  <div class="fixed inset-0 z-40 bg-scrim animate-fade" aria-hidden="true"></div>
 {/if}
 <div
   bind:this={menuEl}

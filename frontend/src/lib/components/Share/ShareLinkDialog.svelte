@@ -130,7 +130,7 @@
 <!-- svelte-ignore a11y_click_events_have_key_events -->
 <!-- svelte-ignore a11y_no_static_element_interactions -->
 <div
-  class="fixed inset-0 z-50 bg-black/55 flex justify-center {ui.isMobile ? 'items-end' : 'items-center'} animate-fade"
+  class="fixed inset-0 z-50 bg-scrim flex justify-center {ui.isMobile ? 'items-end' : 'items-center'} animate-fade"
   onclick={onClose}
 >
   <div

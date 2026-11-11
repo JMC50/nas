@@ -18,6 +18,7 @@ const DEFAULT_MOVE_TOLERANCE_PX = 8;
 export const longPress: Action<HTMLElement, LongPressParams> = (node, initial) => {
   let params = initial;
   let timer: number | null = null;
+  let fired = false;
   let startX = 0;
   let startY = 0;
 
@@ -33,11 +34,13 @@ export const longPress: Action<HTMLElement, LongPressParams> = (node, initial) =
     // semantics via contextmenu.
     if (event.button !== 0) return;
     cancel();
+    fired = false;
     startX = event.clientX;
     startY = event.clientY;
     const delay = params.delayMs ?? DEFAULT_DELAY_MS;
     timer = window.setTimeout(() => {
       timer = null;
+      fired = true;
       params.onLongPress(startX, startY);
     }, delay);
   }
@@ -50,7 +53,16 @@ export const longPress: Action<HTMLElement, LongPressParams> = (node, initial) =
     if (dx * dx + dy * dy > tolerance * tolerance) cancel();
   }
 
+  // 길게 누른 뒤 손을 떼면 click이 따라와 항목이 열리고 방금 연 메뉴가 닫히므로 그 click을 막음
+  function onClickAfterLongPress(event: MouseEvent) {
+    if (!fired) return;
+    fired = false;
+    event.preventDefault();
+    event.stopPropagation();
+  }
+
   node.addEventListener("pointerdown", onPointerDown);
+  node.addEventListener("click", onClickAfterLongPress, true);
   node.addEventListener("pointermove", onPointerMove);
   node.addEventListener("pointerup", cancel);
   node.addEventListener("pointercancel", cancel);
@@ -63,6 +75,7 @@ export const longPress: Action<HTMLElement, LongPressParams> = (node, initial) =
     destroy() {
       cancel();
       node.removeEventListener("pointerdown", onPointerDown);
+      node.removeEventListener("click", onClickAfterLongPress, true);
       node.removeEventListener("pointermove", onPointerMove);
       node.removeEventListener("pointerup", cancel);
       node.removeEventListener("pointercancel", cancel);

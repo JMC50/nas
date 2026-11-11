@@ -301,9 +301,9 @@
   // Modifier precedence (highest → lowest):
   //   1. Shift (with existing anchor) → range select
   //   2. Ctrl/Cmd (Shift NOT held) → toggle
-  //   3. Mobile + active selection → toggle (build up selection by tap)
-  //   4. Mobile + no selection → OPEN the entry (single-tap is the primary
-  //      mobile gesture; selection is entered explicitly via the context
+  //   3. Touch + active selection → toggle (build up selection by tap)
+  //   4. Touch + no selection → OPEN the entry (single-tap is the primary
+  //      touch gesture; selection is entered explicitly via the context
   //      menu's "Select" item — see ContextMenu.svelte)
   //   5. Desktop, no modifier → set single (selection ring without opening)
   function onSelect(event: MouseEvent, entry: FolderEntry) {
@@ -312,9 +312,9 @@
       updateSelection(selectRange(sorted.map((e) => e.name), anchor, entry.name));
     } else if (event.ctrlKey || event.metaKey) {
       updateSelection(toggleEntry(selection, entry.name));
-    } else if (ui.isMobile && selection.length > 0) {
+    } else if (ui.touchLayout && selection.length > 0) {
       updateSelection(toggleEntry(selection, entry.name));
-    } else if (ui.isMobile) {
+    } else if (ui.touchLayout) {
       openEntry(entry);
     } else {
       updateSelection(setSingle(entry.name));
@@ -625,12 +625,12 @@
     <Folder size="16" class="text-fg-secondary shrink-0" />
     <h2 class="text-sm font-semibold text-fg-primary truncate min-w-0">{folderName}</h2>
     <span class="ml-auto shrink-0 text-xs text-fg-muted tabular-nums">
-      {#if selectedEntries.length > 0 && !ui.isMobile}{selectedEntries.length} selected ·{/if}
+      {#if selectedEntries.length > 0 && !ui.touchLayout}{selectedEntries.length} selected ·{/if}
       {sorted.length} {sorted.length === 1 ? "item" : "items"}
     </span>
   </div>
 
-  {#if ui.isMobile && selection.length > 0}
+  {#if ui.touchLayout && selection.length > 0}
     <!--
       Mobile selection-mode bar. Appears when 1+ entries selected on mobile so
       users have a way to cancel/download/delete without a right-click menu.

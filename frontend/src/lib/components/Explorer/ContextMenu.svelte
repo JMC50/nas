@@ -30,9 +30,9 @@
     onCopy: () => void;
     onDelete: () => void;
     onInspect: () => void;
-    // Mobile-only "Select" menu item — enters multi-select mode anchored at
+    // Touch-only "Select" menu item — enters multi-select mode anchored at
     // this entry. Desktop has shift/ctrl-click + drag-marquee for the same
-    // purpose, so the item is hidden at md+ viewport.
+    // purpose, so the item is hidden on fine-pointer layouts at md+.
     onSelect: () => void;
     onClose: () => void;
   }
@@ -109,7 +109,7 @@
     {/if}
     Open
   </button>
-  {#if ui.isMobile}
+  {#if ui.touchLayout}
     <button
       type="button"
       class="sg-menu-item"

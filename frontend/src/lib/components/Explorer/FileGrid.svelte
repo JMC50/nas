@@ -125,4 +125,11 @@
     background: var(--color-bg-selected);
     box-shadow: inset 0 0 0 1px var(--color-accent);
   }
+  @media (pointer: coarse) {
+    .tile {
+      -webkit-touch-callout: none;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+  }
 </style>

@@ -16,6 +16,7 @@ class UIStore {
   drawerOpen = $state<boolean>(false);
   viewportWidth = $state<number>(0);
   viewportHeight = $state<number>(0);
+  coarsePointer = $state<boolean>(false);
 
   breakpoint = $derived<Breakpoint>(
     this.viewportWidth >= BREAKPOINTS.xl
@@ -28,11 +29,16 @@ class UIStore {
   );
 
   isMobile = $derived<boolean>(this.viewportWidth < BREAKPOINTS.md);
+  // 가로로 든 휴대폰과 태블릿은 폭이 768 이상이어도 손가락으로 다룸
+  touchLayout = $derived<boolean>(this.isMobile || this.coarsePointer);
 
   constructor() {
     if (browser) {
       this.viewportWidth = window.innerWidth;
       this.viewportHeight = window.innerHeight;
+      const coarse = window.matchMedia("(pointer: coarse)");
+      this.coarsePointer = coarse.matches;
+      coarse.addEventListener("change", (event) => (this.coarsePointer = event.matches));
       window.addEventListener("resize", () => {
         this.viewportWidth = window.innerWidth;
         this.viewportHeight = window.innerHeight;

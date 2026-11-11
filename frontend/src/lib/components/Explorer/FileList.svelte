@@ -96,7 +96,7 @@
       <th scope="col" class="text-right font-semibold px-3 w-24">Size</th>
       <th scope="col" class="hidden sm:table-cell text-left font-semibold px-3 w-32 lg:pr-gutter">Modified</th>
       <th class="hidden md:table-cell w-12" aria-hidden="true"></th>
-      <th class="md:hidden w-12" aria-hidden="true"></th>
+      <th class="hidden max-md:table-cell pointer-coarse:table-cell w-12" aria-hidden="true"></th>
     </tr>
   </thead>
   <tbody>
@@ -160,11 +160,11 @@
           </button>
         </td>
         <!--
-          Mobile-only kebab. Hidden at md+ where right-click / two-finger tap
+          Touch kebab. Hidden on fine-pointer layouts at md+ where right-click
           already invokes the context menu. data-marquee-canvas inherited as
           "false" from the parent <table>, so the kebab cannot start a marquee.
         -->
-        <td class="md:hidden pr-1 text-right">
+        <td class="hidden max-md:table-cell pointer-coarse:table-cell pr-1 text-right">
           <button
             type="button"
             class="sg-btn sg-btn-ghost sg-btn-icon"
@@ -217,6 +217,9 @@
   @media (pointer: coarse) {
     .row {
       height: 48px;
+      -webkit-touch-callout: none;
+      -webkit-user-select: none;
+      user-select: none;
     }
   }
 </style>

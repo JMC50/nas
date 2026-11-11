@@ -140,7 +140,7 @@
     aria-modal="true"
     aria-labelledby="share-title"
     aria-describedby="share-note"
-    class="w-full bg-bg-overlay shadow-overlay cursor-default flex flex-col {ui.isMobile
+    class="w-full max-h-[calc(100dvh-1rem)] bg-bg-overlay shadow-overlay cursor-default flex flex-col {ui.isMobile
       ? 'rounded-t-panel pb-[env(safe-area-inset-bottom)] animate-sheet'
       : 'max-w-[440px] mx-4 rounded-panel animate-pop'}"
     onclick={(event) => event.stopPropagation()}
@@ -154,7 +154,7 @@
       </button>
     </header>
 
-    <div class="flex flex-col gap-4 p-4">
+    <div class="flex flex-col gap-4 p-4 min-h-0 overflow-y-auto">
       <div class="flex items-center gap-3 min-w-0">
         <Icon size="20" class="shrink-0 {target.isFolder ? 'text-fg-secondary' : 'text-fg-muted'}" />
         <div class="min-w-0">

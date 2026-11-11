@@ -208,7 +208,7 @@
   <!-- svelte-ignore a11y_click_events_have_key_events -->
   <!-- svelte-ignore a11y_no_static_element_interactions -->
   <div
-    class="fixed inset-0 z-50 bg-bg-base md:bg-black/55 flex items-start justify-center md:pt-[12vh] animate-fade"
+    class="fixed inset-0 z-50 bg-bg-base md:bg-black/55 flex items-start justify-center md:pt-[12dvh] animate-fade"
     onclick={() => ui.closeQuickOpen()}
   >
     <div
@@ -238,7 +238,7 @@
         <kbd class="hidden md:inline px-1.5 rounded-chip border border-border-default text-xs text-fg-secondary">Esc</kbd>
       </div>
 
-      <div class="flex-1 md:max-h-[min(420px,60vh)] overflow-y-auto p-1.5" role="listbox" aria-label="Results">
+      <div class="flex-1 md:max-h-[min(420px,60dvh)] overflow-y-auto p-1.5" role="listbox" aria-label="Results">
         {#if filtered.length === 0 && !fileSearching}
           <div class="px-3 py-8 text-center">
             <p class="text-sm font-semibold text-fg-primary">{query ? "No matches." : "Type to search."}</p>

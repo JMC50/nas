@@ -312,6 +312,8 @@
     .sg-menu {
         min-width: 208px;
         padding: 6px;
+        max-height: calc(100dvh - 16px);
+        overflow-y: auto;
         background: var(--color-bg-overlay);
         border: 1px solid var(--color-border-default);
         border-radius: var(--radius-panel);

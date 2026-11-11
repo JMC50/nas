@@ -170,7 +170,7 @@ Tokens from the old sign-in stay valid until they expire (7 days) or until a bac
 
 ### Going Back
 
-Set `AUTH_TYPE` to the old value and restart. The `oidc` identities and the `tokens_valid_after` column can stay. v0.6.0 also starts with this database and ignores both. A user who was created in `oidc` mode has only the `oidc` identity and cannot sign in in another mode.
+Set `AUTH_TYPE` to the old value and restart. The `oidc` identities and the `tokens_valid_after` column can stay. In the other modes the `/auth/oidc/` addresses do not exist. The Docker image answers them with `200` and the front-end page, so an issuer that still sends back-channel logouts gets `200` while nothing is signed out. Remove the back-channel logout URI at the issuer. v0.6.0 also starts with this database and ignores both. A user who was created in `oidc` mode has only the `oidc` identity and cannot sign in in another mode.
 
 ## Limits
 

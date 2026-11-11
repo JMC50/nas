@@ -141,7 +141,7 @@ Both OAuth endpoints redirect to frontend with token or error parameters.
 
 ### OpenID Connect Single Sign-On
 
-These routes exist only when `AUTH_TYPE=oidc`. In the other modes they answer 404. Setup and rules are in [Single Sign-On with OpenID Connect](../configuration/oidc-sso.md).
+These routes exist only when `AUTH_TYPE=oidc`. In the other modes the server has no such route, and a request is handled like any unknown address. When `FRONTEND_DIR` is set, as in the Docker image, the answer is `200` with the `index.html` of the front end, also for `POST`. Without `FRONTEND_DIR` the answer is `404`. In both cases the answer sets no cookie and changes nothing in the NAS. Setup and rules are in [Single Sign-On with OpenID Connect](../configuration/oidc-sso.md).
 
 In this mode `GET /auth/config` reports only OIDC:
 

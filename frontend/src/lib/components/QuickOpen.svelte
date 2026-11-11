@@ -277,8 +277,8 @@
               onmouseenter={() => (highlighted = index)}
             >
               <Icon size="16" class="shrink-0 text-fg-muted" />
-              <span class="min-w-0 truncate">{hit.name}</span>
-              <span class="flex-1 min-w-0 truncate text-right text-xs text-fg-muted font-mono">{hit.loc || "/"}</span>
+              <span class="flex-1 min-w-0 truncate">{hit.name}</span>
+              <span class="shrink-0 max-w-[40%] truncate text-right text-xs text-fg-muted font-mono">{hit.loc || "/"}</span>
             </button>
           {/if}
         {/each}

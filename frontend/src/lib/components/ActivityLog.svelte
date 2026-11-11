@@ -187,7 +187,8 @@
           </div>
 
           <ol>
-            {#each group.entries as entry (entry.id ?? `${entry.time}-${entry.activity}`)}
+            <!-- 서버가 id를 주지 않고 같은 ms에 같은 종류 기록이 여러 개 생길 수 있어 순번을 붙임 -->
+            {#each group.entries as entry, index (entry.id ?? `${entry.time}-${entry.activity}-${index}`)}
               {@const parsed = parse(entry.description)}
               <li
                 class="grid grid-cols-[48px_24px_minmax(0,1fr)] items-start gap-3 px-gutter py-2 border-b border-border-default hover:bg-bg-hover transition-colors"

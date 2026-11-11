@@ -190,6 +190,7 @@
     bottom: 0;
     height: 2px;
     background: var(--color-accent);
+    pointer-events: none;
   }
   .tab.is-drop {
     background: var(--color-bg-selected);

@@ -477,7 +477,7 @@
     .sg-switch::before {
         content: "";
         position: absolute;
-        inset: -12px -5px;
+        inset: -13px -6px;
     }
 
     .sg-tip {

@@ -29,7 +29,7 @@
 
   <button
     type="button"
-    class="hidden md:flex flex-1 max-w-md mx-auto items-center gap-2 h-8 px-2.5 rounded-control border border-border-default bg-bg-inset text-fg-muted hover:border-border-strong transition-colors"
+    class="hidden md:flex flex-1 max-w-md mx-auto items-center gap-2 h-8 pointer-coarse:h-11 px-2.5 rounded-control border border-border-default bg-bg-inset text-fg-muted hover:border-border-strong transition-colors"
     onclick={() => ui.openQuickOpen()}
     aria-label="Quick open (Ctrl+P)"
   >

@@ -129,7 +129,8 @@
 
   function scrollToPage(page: number) {
     const target = Math.max(1, Math.min(pageCount, page));
-    canvases[target - 1]?.scrollIntoView({ behavior: "smooth", block: "start" });
+    const behavior = matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth";
+    canvases[target - 1]?.scrollIntoView({ behavior, block: "start" });
     currentPage = target;
   }
 

@@ -31,6 +31,7 @@
   let observer: IntersectionObserver | null = null;
   let currentPage = $state(1);
   let scale = $state(1);
+  let pagesEl: HTMLDivElement | undefined = $state();
   // Track in-flight render tasks per page so zoom/rerender can cancel them
   // before starting a new render (PDF.js logs warnings otherwise).
   const renderTasks = new Map<number, import("pdfjs-dist").RenderTask>();
@@ -48,6 +49,9 @@
       const task = pdfjs.getDocument({ url: pdfUrl, rangeChunkSize: 65536 });
       const doc = await task.promise;
       document_ = doc;
+      const pageWidth = (await doc.getPage(1)).getViewport({ scale: 1 }).width;
+      const available = (pagesEl?.clientWidth ?? 0) - 32;
+      if (available > 0 && pageWidth > available) scale = available / pageWidth;
       pageCount = doc.numPages;
       loading = false;
       // tick() lets the {#each} below mount canvases before we touch them.
@@ -235,7 +239,7 @@
       <ChevronLeft size="16" />
     </button>
 
-    <div class="flex items-center gap-1.5 tabular-nums">
+    <div class="flex shrink-0 items-center gap-1.5 whitespace-nowrap tabular-nums">
       <input
         type="number"
         min="1"
@@ -365,12 +369,12 @@
 
     <span class="ml-auto text-xs text-fg-muted" role="status">{loading ? "Loading…" : ""}</span>
   </div>
-  <div class="flex-1 overflow-auto p-4 flex flex-col items-center gap-4">
+  <div bind:this={pagesEl} class="flex-1 overflow-auto p-4 flex flex-col gap-4">
     {#each Array(pageCount) as _, i (i)}
       <canvas
         bind:this={canvases[i]}
         data-page={i + 1}
-        class="bg-bg-elevated rounded-chip shadow-overlay"
+        class="mx-auto shrink-0 bg-bg-elevated rounded-chip shadow-overlay"
       ></canvas>
     {/each}
   </div>

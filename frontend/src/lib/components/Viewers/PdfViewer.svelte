@@ -32,6 +32,8 @@
   let currentPage = $state(1);
   let scale = $state(1);
   let pagesEl: HTMLDivElement | undefined = $state();
+  // 쪽 목록의 p-4 좌우 여백
+  const PAGES_PADDING_PX = 32;
   // Track in-flight render tasks per page so zoom/rerender can cancel them
   // before starting a new render (PDF.js logs warnings otherwise).
   const renderTasks = new Map<number, import("pdfjs-dist").RenderTask>();
@@ -49,9 +51,8 @@
       const task = pdfjs.getDocument({ url: pdfUrl, rangeChunkSize: 65536 });
       const doc = await task.promise;
       document_ = doc;
-      const pageWidth = (await doc.getPage(1)).getViewport({ scale: 1 }).width;
-      const available = (pagesEl?.clientWidth ?? 0) - 32;
-      if (available > 0 && pageWidth > available) scale = available / pageWidth;
+      const fit = widthScale((await doc.getPage(1)).getViewport({ scale: 1 }).width);
+      if (fit !== null && fit < 1) scale = fit;
       pageCount = doc.numPages;
       loading = false;
       // tick() lets the {#each} below mount canvases before we touch them.
@@ -152,14 +153,16 @@
     scale = Math.max(0.25, scale - 0.25);
   }
 
+  function widthScale(pageWidth: number): number | null {
+    const available = (pagesEl?.clientWidth ?? 0) - PAGES_PADDING_PX;
+    return available > 0 ? available / pageWidth : null;
+  }
+
   async function fitWidth() {
     if (!document_) return;
     const firstPage = await document_.getPage(1);
-    const baseViewport = firstPage.getViewport({ scale: 1 });
-    const container = canvases[0]?.parentElement;
-    if (!container) return;
-    const available = container.clientWidth - 32;
-    scale = available / baseViewport.width;
+    const fit = widthScale(firstPage.getViewport({ scale: 1 }).width);
+    if (fit !== null) scale = fit;
   }
 
   async function applyScale() {

@@ -9,6 +9,7 @@ The other modes (`local`, `oauth`, `both`) do not use any setting on this page. 
 - The NAS is served over HTTPS. The sign-in cookies are `Secure`, so a browser does not keep them on plain HTTP (a browser makes an exception for `localhost`).
 - The issuer supports discovery (`/.well-known/openid-configuration`), the authorization code flow, and PKCE with `S256`.
 - The ID token contains a claim that lists the group names of the user as a JSON array of strings.
+- An RSA signing key of the issuer has at most 4096 bits. The JOSE library of the NAS refuses larger RSA keys.
 
 ## Settings
 

@@ -3,8 +3,10 @@ package auth
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log/slog"
 	"net/http"
+	"strings"
 	"sync"
 	"time"
 
@@ -20,11 +22,19 @@ const (
 	logoutFormLimit = 8 << 10
 )
 
+var errIssuerUnavailable = errors.New("issuer unavailable")
+
 // BackchannelLogout은 발급자가 보낸 logout_token을 확인하고, 그 사용자가 이미 받은 NAS 토큰을 모두 무효로 만듭니다.
 func (h *OIDCHandlers) BackchannelLogout(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Cache-Control", "no-store")
 	r.Body = http.MaxBytesReader(w, r.Body, logoutFormLimit)
 	token, err := h.readLogoutToken(r.Context(), r.PostFormValue("logout_token"))
+	if errors.Is(err, errIssuerUnavailable) {
+		// 토큰이 틀린 것이 아니라 확인하지 못한 것이므로 일시 장애로 답함
+		slog.Error("oidc logout_token not checked", "err", err)
+		http.Error(w, "issuer unavailable", http.StatusServiceUnavailable)
+		return
+	}
 	if err != nil {
 		slog.Warn("oidc logout_token refused", "err", err)
 		http.Error(w, "invalid logout_token", http.StatusBadRequest)
@@ -46,9 +56,12 @@ func (h *OIDCHandlers) readLogoutToken(ctx context.Context, raw string) (*oidc.L
 	}
 	issuer, err := h.discover()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%w: %v", errIssuerUnavailable, err)
 	}
 	token, err := issuer.verifier.VerifyLogout(oidc.ClientContext(ctx, h.client), raw)
+	if err != nil && keysUnavailable(err) {
+		return nil, fmt.Errorf("%w: %v", errIssuerUnavailable, err)
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -64,6 +77,11 @@ func (h *OIDCHandlers) readLogoutToken(ctx context.Context, raw string) (*oidc.L
 		return nil, errors.New("logout token was already used")
 	}
 	return token, nil
+}
+
+// go-oidc는 JWKS를 읽지 못한 오류를 타입으로 알리지 않고 문구로만 알림. 요청이 정하는 alg 값이 오류 문구에 들어갈 수 있어서 앞부분만 비교함
+func keysUnavailable(err error) bool {
+	return strings.HasPrefix(err.Error(), "failed to verify signature: fetching keys")
 }
 
 func (h *OIDCHandlers) endSessions(subject string) error {

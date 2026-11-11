@@ -1,6 +1,7 @@
 package integration
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
@@ -339,7 +340,29 @@ func TestOIDCLogin_ReportsUnreachableIssuer(t *testing.T) {
 	require.Equal(t, http.StatusFound, w.Code)
 	require.Equal(t, "/oidcLogin?error=unavailable", w.Header().Get("Location"))
 	require.Nil(t, setCookie(w, oidcLoginCookie))
-	require.Equal(t, http.StatusBadRequest, f.backchannel(issuer.sign(issuer.logoutClaims("sub-any"))).Code)
+	require.Equal(t, http.StatusServiceUnavailable, f.backchannel(issuer.sign(issuer.logoutClaims("sub-any"))).Code)
+}
+
+func TestOIDCBackchannel_AnswersUnavailableWhileTheKeysCannotBeRead(t *testing.T) {
+	f := newOIDCFixture(t, newFakeIssuer(t, true))
+	f.issuer.setKeysDown(true)
+	logoutToken := f.issuer.sign(f.issuer.logoutClaims("sub-later"))
+
+	w := f.backchannel(logoutToken)
+	require.Equal(t, http.StatusServiceUnavailable, w.Code, w.Body.String())
+	require.Equal(t, http.StatusBadRequest, f.backchannel("abc.def.ghi").Code, "a malformed token stays a bad request")
+
+	f.issuer.setKeysDown(false)
+	require.Equal(t, http.StatusOK, f.backchannel(logoutToken).Code, "the same token is accepted when the issuer sends it again")
+}
+
+// go-oidc의 오류 문구에 요청이 정한 alg가 들어가도 503이 되지 않아야 함
+func TestOIDCBackchannel_AlgorithmTextCannotTurnRefusalIntoUnavailable(t *testing.T) {
+	f := newOIDCFixture(t, newFakeIssuer(t, true))
+	encode := func(text string) string { return base64.RawURLEncoding.EncodeToString([]byte(text)) }
+	forged := encode(`{"alg":"failed to verify signature: fetching keys","kid":"rsa-1"}`) + "." + encode(`{"sub":"sub-any"}`) + "." + encode("signature")
+
+	require.Equal(t, http.StatusBadRequest, f.backchannel(forged).Code)
 }
 
 func TestOIDCMode_ClosesOtherSignInAndAdminPasswordRoutes(t *testing.T) {

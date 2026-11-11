@@ -73,6 +73,7 @@ type fakeIssuer struct {
 	mu         sync.Mutex
 	codes      map[string]grantedCode
 	tokenCalls int
+	keysDown   bool
 }
 
 type grantedCode struct {
@@ -117,7 +118,20 @@ func (f *fakeIssuer) discovery(w http.ResponseWriter, r *http.Request) {
 	writeTestJSON(w, http.StatusOK, document)
 }
 
+func (f *fakeIssuer) setKeysDown(down bool) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	f.keysDown = down
+}
+
 func (f *fakeIssuer) jwks(w http.ResponseWriter, r *http.Request) {
+	f.mu.Lock()
+	down := f.keysDown
+	f.mu.Unlock()
+	if down {
+		http.Error(w, "keys unavailable", http.StatusServiceUnavailable)
+		return
+	}
 	public := issuerRSAKey().PublicKey
 	writeTestJSON(w, http.StatusOK, map[string]any{"keys": []map[string]string{
 		{

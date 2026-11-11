@@ -221,8 +221,9 @@ The issuer calls this route. The NAS verifies the `logout_token` (signature, `is
 | Status | Meaning |
 |--------|---------|
 | 200 | Accepted. Also when no NAS user has this `sub` |
-| 400 | The `logout_token` is missing, not valid, too old, or already used |
+| 400 | The `logout_token` is missing, not valid, too old, or already used. The body is larger than 8 KiB |
 | 500 | The time could not be saved. The issuer can send the same token again |
+| 503 | The NAS could not read the discovery document or the keys of the issuer, so the token was not checked. The issuer can send the same token again |
 
 #### Routes Closed in This Mode
 

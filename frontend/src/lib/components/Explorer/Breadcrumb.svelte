@@ -14,6 +14,12 @@
   let { loc, onGoto, onRoot, onDropToRoot, onDropToSegment }: Props = $props();
 
   let dropTarget = $state<number | null>(null); // -1 = root, n = segment index
+  let navEl: HTMLElement | undefined = $state();
+
+  $effect(() => {
+    void loc;
+    if (navEl) navEl.scrollLeft = navEl.scrollWidth;
+  });
 
   function rootDragOver(event: DragEvent) {
     if (!hasPayload(event) || loc.length === 0) return;
@@ -48,6 +54,7 @@
 </script>
 
 <nav
+  bind:this={navEl}
   class="flex items-center gap-0.5 min-h-9 px-2 md:px-gutter overflow-x-auto text-sm text-fg-secondary border-b border-border-default bg-bg-base [scrollbar-width:none]"
   aria-label="Folder path"
 >

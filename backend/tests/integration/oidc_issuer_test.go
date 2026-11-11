@@ -67,6 +67,9 @@ type fakeIssuer struct {
 	server     *httptest.Server
 	endSession bool
 
+	// 발급자 이름이 /로 끝나는 발급자를 흉내 냄. 주소들은 그대로임
+	trailingSlash bool
+
 	mu         sync.Mutex
 	codes      map[string]grantedCode
 	tokenCalls int
@@ -91,9 +94,16 @@ func newFakeIssuer(t *testing.T, endSession bool) *fakeIssuer {
 
 func (f *fakeIssuer) url() string { return f.server.URL }
 
+func (f *fakeIssuer) name() string {
+	if f.trailingSlash {
+		return f.url() + "/"
+	}
+	return f.url()
+}
+
 func (f *fakeIssuer) discovery(w http.ResponseWriter, r *http.Request) {
 	document := map[string]any{
-		"issuer":                                f.url(),
+		"issuer":                                f.name(),
 		"authorization_endpoint":                f.url() + "/authorize",
 		"token_endpoint":                        f.url() + "/token",
 		"jwks_uri":                              f.url() + "/jwks",
@@ -172,7 +182,7 @@ func (f *fakeIssuer) grant(authURL *url.URL, idToken string) string {
 func (f *fakeIssuer) idClaims(authURL *url.URL, subject string, groups any) jwt.MapClaims {
 	now := time.Now()
 	claims := jwt.MapClaims{
-		"iss":                f.url(),
+		"iss":                f.name(),
 		"aud":                oidcClientID,
 		"sub":                subject,
 		"iat":                now.Unix(),
@@ -191,7 +201,7 @@ func (f *fakeIssuer) idClaims(authURL *url.URL, subject string, groups any) jwt.
 func (f *fakeIssuer) logoutClaims(subject string) jwt.MapClaims {
 	now := time.Now()
 	return jwt.MapClaims{
-		"iss":    f.url(),
+		"iss":    f.name(),
 		"aud":    oidcClientID,
 		"sub":    subject,
 		"iat":    now.Unix(),
@@ -250,7 +260,7 @@ func newOIDCFixture(t *testing.T, issuer *fakeIssuer, adjust ...func(*config.OID
 		AuthType:             config.AuthTypeOIDC,
 		PasswordRequirements: config.PasswordRequirements{MinLength: 4},
 		OIDC: config.OIDCConfig{
-			Issuer:       issuer.url(),
+			Issuer:       issuer.name(),
 			ClientID:     oidcClientID,
 			ClientSecret: oidcClientSecret,
 			RedirectURI:  oidcRedirectURI,

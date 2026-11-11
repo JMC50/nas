@@ -515,3 +515,20 @@ func TestOIDCLogout_RedirectsToTheIssuerEndSession(t *testing.T) {
 	plain := newOIDCFixture(t, newFakeIssuer(t, false))
 	require.Equal(t, "/localLogin?signedout=1", plain.request("GET", "/auth/oidc/logout", "").Header().Get("Location"))
 }
+
+func TestOIDC_WorksWithIssuerNameThatEndsWithSlash(t *testing.T) {
+	issuer := newFakeIssuer(t, true)
+	issuer.trailingSlash = true
+	f := newOIDCFixture(t, issuer)
+
+	session := f.signIn("sub-slash", []string{"nas_member"})
+	require.Equal(t, http.StatusOK, f.tokenStatus(session.Token))
+	require.Equal(t, http.StatusOK, f.backchannel(issuer.sign(issuer.logoutClaims("sub-slash"))).Code)
+	require.Equal(t, http.StatusUnauthorized, f.tokenStatus(session.Token))
+
+	// 설정에서 끝의 /만 빠져도 발급자가 알린 이름과 달라서 로그인을 시작하지 않음
+	mismatched := newOIDCFixture(t, issuer, func(oidc *config.OIDCConfig) { oidc.Issuer = issuer.url() })
+	w := mismatched.request("GET", "/auth/oidc/login", "")
+	require.Equal(t, "/oidcLogin?error=unavailable", w.Header().Get("Location"))
+	require.Nil(t, setCookie(w, oidcLoginCookie))
+}

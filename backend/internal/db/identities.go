@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"time"
 )
 
 // Identity links a NAS user to an external sign-in source. Provider is one
@@ -75,6 +76,8 @@ func DropIdentity(conn *sql.DB, userID int64, provider string) error {
 
 // CreateIdentityUser inserts a user together with its first sign-in identity
 // and intents. Nothing is written when userId or the identity already exists.
+// tokens_valid_after starts at the creation time, so a token of a deleted user
+// with the same userId does not become valid again.
 func CreateIdentityUser(conn *sql.DB, user User, provider, externalID string) (int64, error) {
 	tx, err := conn.Begin()
 	if err != nil {
@@ -83,8 +86,9 @@ func CreateIdentityUser(conn *sql.DB, user User, provider, externalID string) (i
 	defer tx.Rollback()
 
 	result, err := tx.Exec(`
-		INSERT INTO users (userId, username, global_name, krname, auth_type)
-		VALUES (?, ?, ?, ?, ?)`, user.UserID, user.Username, user.GlobalName, user.KrName, user.AuthType)
+		INSERT INTO users (userId, username, global_name, krname, auth_type, tokens_valid_after)
+		VALUES (?, ?, ?, ?, ?, ?)`,
+		user.UserID, user.Username, user.GlobalName, user.KrName, user.AuthType, time.Now().UnixMilli())
 	if err != nil {
 		return 0, fmt.Errorf("insert user: %w", err)
 	}

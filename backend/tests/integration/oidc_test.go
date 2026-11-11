@@ -527,6 +527,20 @@ func TestOIDCMode_RejectsTokenOfRemovedUser(t *testing.T) {
 	require.Equal(t, http.StatusUnauthorized, getAs(f.router, "/server/getActivityLog", session.Token).Code)
 }
 
+func TestOIDCMode_RecreatedUserDoesNotRevivePreviousToken(t *testing.T) {
+	f := newOIDCFixture(t, newFakeIssuer(t, true))
+	previous := f.signIn("sub-again", []string{"nas_member"})
+	require.NoError(t, db.DeleteUser(f.conn, "sub-again"))
+
+	// 무효 시각은 밀리초 단위라서 다시 만드는 시각이 옛 토큰보다 뒤가 되게 함
+	time.Sleep(5 * time.Millisecond)
+	recreated := f.signIn("sub-again", []string{"nas_member"})
+	require.Equal(t, "sub-again", recreated.UserID)
+
+	require.Equal(t, http.StatusUnauthorized, f.tokenStatus(previous.Token))
+	require.Equal(t, http.StatusOK, f.tokenStatus(recreated.Token), "the token issued right after the creation is valid")
+}
+
 func TestOIDCLogout_RedirectsToTheIssuerEndSession(t *testing.T) {
 	issuer := newFakeIssuer(t, true)
 	f := newOIDCFixture(t, issuer)

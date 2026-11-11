@@ -112,7 +112,7 @@ The issuer can end the NAS sessions of a user with `POST /auth/oidc/backchannel`
 
 The NAS then writes the current time to `users.tokens_valid_after` (Unix time in milliseconds). From that moment the NAS rejects each token of this user that was issued earlier, with `401`. A token from before v0.7.0 has no `issued_at` claim. Such a token stays valid while `tokens_valid_after` is empty, and is rejected after the first back-channel logout of its user.
 
-In `oidc` mode the NAS also rejects the token of a user who was deleted from the NAS.
+In `oidc` mode the NAS also rejects the token of a user who was deleted from the NAS. When the NAS creates a user at the first sign-in, it sets `tokens_valid_after` to the time of creation. So if a deleted user signs in again and gets a new user with the same `userId`, the tokens of the deleted user stay rejected.
 
 ## Closed Routes
 

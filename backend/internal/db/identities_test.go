@@ -3,6 +3,7 @@ package db
 import (
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 )
@@ -25,6 +26,22 @@ func TestCreateIdentityUser_WritesUserIdentityAndIntents(t *testing.T) {
 	identity, err := GetIdentity(conn, "oidc", "sub-1")
 	require.NoError(t, err)
 	require.Equal(t, id, identity.UserID)
+}
+
+func TestCreateIdentityUser_StartsTokensValidAfterAtCreation(t *testing.T) {
+	conn := openEmptyDB(t)
+	require.NoError(t, InitSchema(conn))
+
+	before := time.Now().UnixMilli()
+	_, err := CreateIdentityUser(conn, User{UserID: "sub-1", Username: "dave", AuthType: "oidc"}, "oidc", "sub-1")
+	require.NoError(t, err)
+	after := time.Now().UnixMilli()
+
+	validAfter, found, err := TokensValidAfter(conn, "sub-1")
+	require.NoError(t, err)
+	require.True(t, found)
+	require.GreaterOrEqual(t, validAfter, before)
+	require.LessOrEqual(t, validAfter, after)
 }
 
 func TestCreateIdentityUser_LeavesNothingWhenUserIDIsTaken(t *testing.T) {

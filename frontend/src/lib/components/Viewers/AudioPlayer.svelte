@@ -118,8 +118,8 @@
   });
 </script>
 
-<div bind:this={playerRoot} class="flex flex-col h-full w-full bg-bg-base items-center justify-center p-gutter">
-  <div class="w-full max-w-[360px] flex flex-col items-center gap-6">
+<div bind:this={playerRoot} class="flex flex-col h-full w-full overflow-y-auto bg-bg-base items-center p-gutter">
+  <div class="my-auto w-full max-w-[360px] flex flex-col items-center gap-6">
     <h2 class="text-lg font-semibold text-fg-primary truncate w-full text-center" title={name}>
       {name}
     </h2>
@@ -155,20 +155,19 @@
     <div class="w-full flex flex-col gap-1">
       <!-- svelte-ignore a11y_click_events_have_key_events -->
       <!-- svelte-ignore a11y_no_static_element_interactions -->
-      <div
-        onclick={seek}
-        class="relative h-2 rounded-full overflow-hidden bg-bg-overlay cursor-pointer"
-      >
-        <div
-          class="absolute top-0 left-0 h-full bg-border-strong/50"
-          style="width: {bufferedRatio * 100}%"
-        ></div>
-        <div
-          class="absolute top-0 left-0 h-full bg-accent"
-          style="width: {playedRatio * 100}%"
-        ></div>
+      <div onclick={seek} class="cursor-pointer pointer-coarse:-my-[18px] pointer-coarse:py-[18px]">
+        <div class="relative h-2 rounded-full overflow-hidden bg-bg-overlay">
+          <div
+            class="absolute top-0 left-0 h-full bg-border-strong/50"
+            style="width: {bufferedRatio * 100}%"
+          ></div>
+          <div
+            class="absolute top-0 left-0 h-full bg-accent"
+            style="width: {playedRatio * 100}%"
+          ></div>
+        </div>
       </div>
-      <div class="flex justify-between text-xs text-fg-secondary tabular-nums">
+      <div class="flex justify-between text-xs text-fg-secondary tabular-nums pointer-events-none">
         <span>{formatTime(currentTime)}</span>
         <span>{formatTime(duration)}</span>
       </div>
@@ -186,14 +185,13 @@
       </button>
       <!-- svelte-ignore a11y_click_events_have_key_events -->
       <!-- svelte-ignore a11y_no_static_element_interactions -->
-      <div
-        onclick={setVolume}
-        class="flex-1 relative h-2 rounded-full overflow-hidden bg-bg-overlay cursor-pointer"
-      >
-        <div
-          class="absolute top-0 left-0 h-full bg-fg-secondary"
-          style="width: {muted ? 0 : volume * 100}%"
-        ></div>
+      <div onclick={setVolume} class="flex-1 cursor-pointer pointer-coarse:py-[18px]">
+        <div class="relative h-2 rounded-full overflow-hidden bg-bg-overlay">
+          <div
+            class="absolute top-0 left-0 h-full bg-fg-secondary"
+            style="width: {muted ? 0 : volume * 100}%"
+          ></div>
+        </div>
       </div>
     </div>
   </div>

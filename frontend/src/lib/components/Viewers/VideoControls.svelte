@@ -94,24 +94,26 @@
   <!-- svelte-ignore a11y_no_static_element_interactions -->
   <div
     onclick={onSeek}
-    class="relative h-2 rounded-full bg-bg-hover cursor-pointer group/scrub"
+    class="cursor-pointer group/scrub pointer-coarse:-mt-3 pointer-coarse:-mb-1 pointer-coarse:py-[18px]"
   >
-    <!-- buffered -->
-    <div
-      class="absolute top-0 left-0 h-full rounded-full bg-border-strong/50"
-      style="width: {bufferedRatio * 100}%"
-    ></div>
-    <!-- played -->
-    <div
-      class="absolute top-0 left-0 h-full rounded-full bg-accent"
-      style="width: {playedRatio * 100}%"
-    ></div>
-    <!-- thumb -->
-    <div
-      class="absolute top-1/2 -translate-x-1/2 -translate-y-1/2 size-3 rounded-full bg-accent
+    <div class="relative h-2 rounded-full bg-bg-hover">
+      <!-- buffered -->
+      <div
+        class="absolute top-0 left-0 h-full rounded-full bg-border-strong/50"
+        style="width: {bufferedRatio * 100}%"
+      ></div>
+      <!-- played -->
+      <div
+        class="absolute top-0 left-0 h-full rounded-full bg-accent"
+        style="width: {playedRatio * 100}%"
+      ></div>
+      <!-- thumb -->
+      <div
+        class="absolute top-1/2 -translate-x-1/2 -translate-y-1/2 size-3 rounded-full bg-accent
  opacity-0 group-hover/scrub:opacity-100 transition-opacity"
-      style="left: {playedRatio * 100}%"
-    ></div>
+        style="left: {playedRatio * 100}%"
+      ></div>
+    </div>
   </div>
 
   <!-- controls row -->
@@ -172,7 +174,7 @@
       </button>
       {#if speedMenuOpen}
         <div
-          class="absolute bottom-full right-0 mb-2 z-30 sg-menu min-w-[96px] animate-pop origin-bottom-right"
+          class="absolute bottom-full right-0 mb-2 z-30 sg-menu min-w-[96px] max-h-[calc(100cqh-4.5rem)] animate-pop origin-bottom-right"
           role="menu"
         >
           {#each SPEEDS as rate (rate)}
@@ -218,7 +220,7 @@
         </button>
         {#if moreOpen}
           <div
-            class="absolute bottom-full right-0 mb-2 z-30 sg-menu min-w-[180px] animate-pop origin-bottom-right"
+            class="absolute bottom-full right-0 mb-2 z-30 sg-menu min-w-[180px] max-h-[calc(100cqh-4.5rem)] animate-pop origin-bottom-right"
             role="menu"
           >
             <div class="px-2.5 pt-1 pb-1.5 text-xs font-semibold text-fg-muted">

@@ -236,7 +236,7 @@
 <div
   bind:this={container}
   onmousemove={showControls}
-  class="relative h-full w-full bg-black overflow-hidden group
+  class="relative h-full w-full bg-black overflow-hidden group [container-type:size]
  {controlsVisible ? '' : 'cursor-none'}"
 >
   <!-- top bar (filename) -->
@@ -290,7 +290,7 @@
   {/if}
 
   <!-- center overlay (visible when paused) -->
-  {#if !playing}
+  {#if !playing && !loadError}
     <button
       type="button"
       onclick={toggle}
@@ -298,34 +298,36 @@
       class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2
  size-20 rounded-full bg-bg-overlay/90 border border-border-default
  text-fg-primary flex items-center justify-center
- hover:bg-bg-overlay hover:text-fg-accent transition-colors z-20"
+ hover:bg-bg-overlay hover:text-fg-accent transition-colors z-10"
     >
       <Play size="40" fill="currentColor" />
     </button>
   {/if}
 
-  <VideoControls
-    {controlsVisible}
-    {playing}
-    {currentTime}
-    {duration}
-    {playedRatio}
-    {bufferedRatio}
-    {volume}
-    {muted}
-    {VolumeIcon}
-    {speed}
-    {speedMenuOpen}
-    {SPEEDS}
-    {isFullscreen}
-    {pipSupported}
-    onToggle={toggle}
-    onSeek={seek}
-    onToggleMute={toggleMute}
-    onSetVolume={setVolume}
-    onSetSpeed={setSpeed}
-    {onToggleSpeedMenu}
-    onTogglePip={togglePip}
-    onToggleFullscreen={toggleFullscreen}
-  />
+  {#if !loadError}
+    <VideoControls
+      {controlsVisible}
+      {playing}
+      {currentTime}
+      {duration}
+      {playedRatio}
+      {bufferedRatio}
+      {volume}
+      {muted}
+      {VolumeIcon}
+      {speed}
+      {speedMenuOpen}
+      {SPEEDS}
+      {isFullscreen}
+      {pipSupported}
+      onToggle={toggle}
+      onSeek={seek}
+      onToggleMute={toggleMute}
+      onSetVolume={setVolume}
+      onSetSpeed={setSpeed}
+      {onToggleSpeedMenu}
+      onTogglePip={togglePip}
+      onToggleFullscreen={toggleFullscreen}
+    />
+  {/if}
 </div>

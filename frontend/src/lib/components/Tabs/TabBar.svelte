@@ -100,9 +100,23 @@
         : [];
     tabs.cloneExplorer(loc);
   }
+
+  let listEl: HTMLDivElement | undefined = $state();
+
+  $effect(() => {
+    void tabs.activeId;
+    void tabs.list.length;
+    const active = listEl?.querySelector<HTMLElement>('[role="tab"][aria-selected="true"]');
+    if (!listEl || !active) return;
+    const list = listEl.getBoundingClientRect();
+    const tab = active.getBoundingClientRect();
+    if (tab.left < list.left) listEl.scrollLeft += tab.left - list.left;
+    else if (tab.right > list.right) listEl.scrollLeft += tab.right - list.right;
+  });
 </script>
 
 <div
+  bind:this={listEl}
   class="h-10 pointer-coarse:h-11 pointer-coarse:box-content flex items-stretch gap-1 pl-1 pr-1 overflow-x-auto bg-bg-base border-b border-border-default [scrollbar-width:none]"
   role="tablist"
   aria-label="Open tabs"

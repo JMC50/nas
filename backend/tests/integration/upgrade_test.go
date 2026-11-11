@@ -244,6 +244,23 @@ func TestLegacyModes_AuthConfigHasTheV060Fields(t *testing.T) {
 	}
 }
 
+func TestLegacyModes_KeepTheAdminPasswordRoute(t *testing.T) {
+	for _, authType := range []config.AuthType{config.AuthTypeBoth, config.AuthTypeLocal, config.AuthTypeOAuth} {
+		router, conn := upgradedV060Server(t, authType)
+		token := tokenFromV060(t, "google-555")
+
+		wrong := postJSONBody(router, "/requestAdminIntent?token="+token, map[string]string{"pwd": "not-the-password"})
+		require.Equal(t, http.StatusInternalServerError, wrong.Code, authType)
+		right := postJSONBody(router, "/server/requestAdminIntent?token="+token, map[string]string{"pwd": "admin-pass"})
+		require.Equal(t, http.StatusOK, right.Code, authType)
+		require.Equal(t, "complete", right.Body.String(), authType)
+
+		user, err := db.GetUser(conn, "google-555")
+		require.NoError(t, err)
+		require.Contains(t, user.Intents, "ADMIN", authType)
+	}
+}
+
 func TestLegacyModes_HaveNoOIDCRoutes(t *testing.T) {
 	for _, authType := range []config.AuthType{config.AuthTypeBoth, config.AuthTypeLocal, config.AuthTypeOAuth} {
 		router, _ := upgradedV060Server(t, authType)

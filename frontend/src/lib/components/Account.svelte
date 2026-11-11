@@ -143,7 +143,7 @@
               <Shield size="18" class="text-fg-secondary" />
               <h2 class="text-sm font-semibold text-fg-primary">Permissions</h2>
             </div>
-            {#if !intents.includes("ADMIN")}
+            {#if !intents.includes("ADMIN") && authConfig?.authType !== "oidc"}
               <button type="button" class="sg-btn sg-btn-ghost" onclick={requestAdmin}>
                 <KeyRound size="16" />
                 Request admin

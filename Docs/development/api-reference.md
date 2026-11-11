@@ -226,10 +226,10 @@ The issuer calls this route. The NAS verifies the `logout_token` (signature, `is
 
 #### Routes Closed in This Mode
 
-`POST /auth/register`, `POST /auth/login`, `POST /auth/change-password`, `GET /auth/discord/callback`, `GET /auth/google/callback`, `POST /auth/discord/register`, `POST /auth/google/register`, `POST /auth/link/start`, `POST /auth/link/discord/complete`, `POST /auth/link/google/complete`, and `DELETE /auth/identities/{provider}` answer `403`. The link and identity routes still answer `401` first when the request has no valid token.
+`POST /auth/register`, `POST /auth/login`, `POST /auth/change-password`, `GET /auth/discord/callback`, `GET /auth/google/callback`, `POST /auth/discord/register`, `POST /auth/google/register`, `POST /auth/link/start`, `POST /auth/link/discord/complete`, `POST /auth/link/google/complete`, `DELETE /auth/identities/{provider}`, and `POST /requestAdminIntent` answer `403`. The link, identity, and admin password routes still answer `401` first when the request has no valid token.
 
 ```json
-{ "success": false, "message": "This sign-in method is disabled. Sign in through single sign-on." }
+{ "success": false, "message": "This is disabled. This server allows single sign-on only." }
 ```
 
 ---
@@ -685,9 +685,11 @@ POST /requestAdminIntent?token=jwt_token
 Content-Type: application/json
 
 {
-  "adminPassword": "admin_password"
+  "pwd": "admin_password"
 }
 ```
+
+In `oidc` mode this route answers `403`. See [Routes Closed in This Mode](#routes-closed-in-this-mode).
 
 ---
 

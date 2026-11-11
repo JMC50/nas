@@ -342,7 +342,7 @@ func TestOIDCLogin_ReportsUnreachableIssuer(t *testing.T) {
 	require.Equal(t, http.StatusBadRequest, f.backchannel(issuer.sign(issuer.logoutClaims("sub-any"))).Code)
 }
 
-func TestOIDCMode_ClosesEveryOtherSignInRoute(t *testing.T) {
+func TestOIDCMode_ClosesOtherSignInAndAdminPasswordRoutes(t *testing.T) {
 	f := newOIDCFixture(t, newFakeIssuer(t, true))
 	session := f.signIn("sub-closed", []string{"nas_member"})
 	user, err := db.GetUser(f.conn, "sub-closed")
@@ -362,6 +362,7 @@ func TestOIDCMode_ClosesEveryOtherSignInRoute(t *testing.T) {
 		{"POST", "/auth/link/google/complete?token=" + session.Token, `{"state":"link.x","code":"x"}`},
 		{"DELETE", "/auth/identities/oidc?token=" + session.Token, ""},
 		{"DELETE", "/auth/identities/google?token=" + session.Token, ""},
+		{"POST", "/requestAdminIntent?token=" + session.Token, `{"pwd":"admin-pass"}`},
 	}
 	for _, route := range closed {
 		for _, prefix := range []string{"", "/server"} {
@@ -378,6 +379,10 @@ func TestOIDCMode_ClosesEveryOtherSignInRoute(t *testing.T) {
 	identities, err := db.ListIdentity(f.conn, user.ID)
 	require.NoError(t, err)
 	require.Len(t, identities, 2)
+	user, err = db.GetUser(f.conn, "sub-closed")
+	require.NoError(t, err)
+	require.ElementsMatch(t, memberIntents, user.Intents, "the admin password must not give ADMIN")
+	require.Equal(t, http.StatusForbidden, getAs(f.router, "/server/getAllUsers", session.Token).Code)
 }
 
 func TestOIDCMode_AuthConfigReportsOnlyOIDC(t *testing.T) {

@@ -278,7 +278,7 @@ GET /kakaoLogin?code=kakao_authorization_code
 
 ## Single Sign-On with OpenID Connect
 
-`AUTH_TYPE=oidc` makes one OpenID Connect issuer the only way to sign in. In this mode the sign-in page has no ID or password form and no Discord or Google button, and the server closes those sign-in routes. The other modes do not change and do not read the `OIDC_*` variables.
+`AUTH_TYPE=oidc` makes one OpenID Connect issuer the only way to sign in. In this mode the sign-in page has no ID or password form and no Discord or Google button, and the server closes those sign-in routes and the admin password route. The `ADMIN` intent comes only from the admin group of the issuer. The other modes do not change and do not read the `OIDC_*` variables.
 
 ```env
 AUTH_TYPE=oidc
@@ -337,9 +337,11 @@ interface User {
    Content-Type: application/json
    
    {
-     "adminPassword": "your-secure-admin-password"
+     "pwd": "your-secure-admin-password"
    }
    ```
+
+In `oidc` mode this route answers `403`, and the admin password gives no permission. Members of `OIDC_ADMIN_GROUP` get `ADMIN` when the NAS creates their user.
 
 ## Permission System
 

@@ -1,7 +1,9 @@
 <script lang="ts">
+  import { onMount } from "svelte";
   import Lock from "lucide-svelte/icons/lock";
   import ShieldCheck from "lucide-svelte/icons/shield-check";
   import { claimAdmin } from "$lib/auth-actions";
+  import { oidcAddresses } from "$lib/oidc";
   import { notifications } from "$lib/store/notifications.svelte";
 
   interface Props {
@@ -17,6 +19,12 @@
   }: Props = $props();
 
   let busy = $state(false);
+  // 통합 로그인 서버는 관리자 비밀번호를 받지 않음. 관리자 권한은 발급자의 그룹으로만 옴
+  let ssoOnly = $state(false);
+
+  onMount(async () => {
+    ssoOnly = (await oidcAddresses()) !== null;
+  });
 
   async function tryClaim() {
     const password = prompt("Enter the admin password:");
@@ -45,20 +53,26 @@
     </div>
 
     <h2 class="text-lg font-semibold text-fg-primary mb-2">{title}</h2>
-    <p class="text-sm text-fg-secondary mb-6 leading-relaxed">{description}</p>
+    {#if ssoOnly}
+      <p class="text-sm text-fg-secondary leading-relaxed">
+        You don't have access to this view. Ask an administrator to grant you the right intent.
+      </p>
+    {:else}
+      <p class="text-sm text-fg-secondary mb-6 leading-relaxed">{description}</p>
 
-    <button
-      type="button"
-      class="sg-btn sg-btn-primary"
-      onclick={tryClaim}
-      disabled={busy}
-    >
-      <ShieldCheck size="16" />
-      {busy ? "Verifying…" : "Request admin permission"}
-    </button>
+      <button
+        type="button"
+        class="sg-btn sg-btn-primary"
+        onclick={tryClaim}
+        disabled={busy}
+      >
+        <ShieldCheck size="16" />
+        {busy ? "Verifying…" : "Request admin permission"}
+      </button>
 
-    <p class="mt-4 text-xs text-fg-muted">
-      Or contact your administrator to grant the required permission.
-    </p>
+      <p class="mt-4 text-xs text-fg-muted">
+        Or contact your administrator to grant the required permission.
+      </p>
+    {/if}
   </div>
 </div>

@@ -116,15 +116,18 @@ In `oidc` mode the NAS also rejects the token of a user who was deleted from the
 
 ## Closed Routes
 
-In `oidc` mode these routes answer `403` with the message `This sign-in method is disabled. Sign in through single sign-on.`
+In `oidc` mode these routes answer `403` with the message `This is disabled. This server allows single sign-on only.`
 
 - `POST /auth/register`, `POST /auth/login`, `POST /auth/change-password`
 - `GET /auth/discord/callback`, `GET /auth/google/callback`
 - `POST /auth/discord/register`, `POST /auth/google/register`
 - `POST /auth/link/start`, `POST /auth/link/discord/complete`, `POST /auth/link/google/complete`
 - `DELETE /auth/identities/{provider}`
+- `POST /requestAdminIntent` (the admin password)
 
-`GET /auth/config` reports only OIDC. `POST /requestAdminIntent` (the admin password) and `/admin/oauth-config` stay as they are.
+A password gives no permission in this mode. `ADMIN` comes only from the admin group when the NAS creates the user, or from an administrator in the user manager. `ADMIN_PASSWORD` is still required for the server to start in production, but this mode does not use it. The front end does not show the buttons that ask for the admin password.
+
+`GET /auth/config` reports only OIDC. `/admin/oauth-config` stays as it is.
 
 ## Switching an Existing Deployment to OIDC
 

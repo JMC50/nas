@@ -64,11 +64,11 @@ func (h *OIDCHandlers) logoutURL() string {
 	return endSession.String()
 }
 
-// RefuseOtherSignIn은 AUTH_TYPE=oidc에서 닫는 로그인 경로의 응답입니다.
-func RefuseOtherSignIn(http.Handler) http.Handler {
+// RefuseNonSSO는 AUTH_TYPE=oidc에서 닫는 경로의 응답입니다. 발급자를 거치지 않는 로그인과 비밀번호로 얻는 권한이 여기에 듭니다.
+func RefuseNonSSO(http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, http.StatusForbidden, authResponse{
-			Message: "This sign-in method is disabled. Sign in through single sign-on.",
+			Message: "This is disabled. This server allows single sign-on only.",
 		})
 	})
 }

@@ -79,7 +79,7 @@ func NewRouter(cfg *config.Config, conn *sql.DB) http.Handler {
 	// AUTH_TYPE=oidc에서는 발급자를 거치는 로그인만 남기고, 아래 otherSignIn에 건 경로는 모두 거절함
 	otherSignIn := chi.Router(r)
 	if cfg.AuthType == config.AuthTypeOIDC {
-		otherSignIn = r.With(auth.RefuseOtherSignIn)
+		otherSignIn = r.With(auth.RefuseNonSSO)
 		oidcHandlers := auth.NewOIDCHandlers(cfg, conn)
 		r.Get("/auth/oidc/login", oidcHandlers.Login)
 		r.Get("/auth/oidc/callback", oidcHandlers.Callback)
@@ -107,6 +107,11 @@ func NewRouter(cfg *config.Config, conn *sql.DB) http.Handler {
 	// Token-required intent checks
 	r.Group(func(r chi.Router) {
 		r.Use(requireToken)
+		// oidc 모드에서는 비밀번호로 얻는 권한과 다른 로그인 수단 연결도 거절함. 관리자 권한은 발급자의 관리자 그룹으로만 받음
+		nonSSO := r
+		if cfg.AuthType == config.AuthTypeOIDC {
+			nonSSO = r.With(auth.RefuseNonSSO)
+		}
 		r.Get("/getIntents", authHandlers.GetIntents)
 		r.With(auth.RequireIntent(conn, auth.IntentAdmin)).Get("/getAllUsers", authHandlers.GetAllUsers)
 		r.Get("/getActivityLog", adminHandlers.GetActivityLog)
@@ -114,19 +119,15 @@ func NewRouter(cfg *config.Config, conn *sql.DB) http.Handler {
 		r.Get("/checkIntent", authHandlers.CheckIntent)
 		r.Get("/authorize", adminHandlers.ToggleIntent)
 		r.Get("/unauthorize", adminHandlers.ToggleIntent)
-		r.Post("/requestAdminIntent", adminHandlers.RequestAdminIntent)
+		nonSSO.Post("/requestAdminIntent", adminHandlers.RequestAdminIntent)
 		r.Delete("/users/{userId}", adminHandlers.DeleteUser)
 		r.Get("/admin/oauth-config", adminHandlers.GetOAuthConfig)
 		r.Put("/admin/oauth-config", adminHandlers.UpdateOAuthConfig)
-		linking := r
-		if cfg.AuthType == config.AuthTypeOIDC {
-			linking = r.With(auth.RefuseOtherSignIn)
-		}
-		linking.Post("/auth/link/start", authHandlers.LinkStart)
-		linking.Post("/auth/link/discord/complete", authHandlers.LinkDiscord)
-		linking.Post("/auth/link/google/complete", authHandlers.LinkGoogle)
+		nonSSO.Post("/auth/link/start", authHandlers.LinkStart)
+		nonSSO.Post("/auth/link/discord/complete", authHandlers.LinkDiscord)
+		nonSSO.Post("/auth/link/google/complete", authHandlers.LinkGoogle)
 		r.Get("/auth/identities", authHandlers.Identities)
-		linking.Delete("/auth/identities/{provider}", authHandlers.Unlink)
+		nonSSO.Delete("/auth/identities/{provider}", authHandlers.Unlink)
 		r.Get("/stat", fileHandlers.Stat)
 	})
 

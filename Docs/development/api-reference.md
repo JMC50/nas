@@ -165,7 +165,7 @@ The response also has `discordLoginUrl`, `googleLoginUrl` (both empty), and `pas
 GET /auth/oidc/login
 ```
 
-**Response:** `302` to the authorization endpoint of the issuer, with `response_type=code`, `state`, `nonce`, `code_challenge` (`S256`), and the configured `redirect_uri`. The response sets the cookie `__Host-nas_oidc_login` (`Secure`, `HttpOnly`, `SameSite=Lax`, 10 minutes). Query parameters of this request do not change a redirect target.
+**Response:** `302` to the authorization endpoint of the issuer, with `response_type=code`, `state`, `nonce`, `code_challenge` (`S256`), and the configured `redirect_uri`. The response sets the cookie `__Host-nas_oidc_login_<state>` (`Secure`, `HttpOnly`, `SameSite=Lax`, 10 minutes). Each sign-in has its own cookie, so sign-ins in two tabs do not replace each other. When the browser already has 5 of these cookies, the response also removes them. Query parameters of this request do not change a redirect target.
 
 #### Callback
 ```http

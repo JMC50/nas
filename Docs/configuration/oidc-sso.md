@@ -67,7 +67,7 @@ sequenceDiagram
   participant N as NAS
   participant I as Issuer
   B->>N: GET /auth/oidc/login
-  N-->>B: 302 to the issuer, cookie with state, nonce, PKCE verifier
+  N-->>B: 302 to the issuer, cookie named after the state, with nonce and PKCE verifier
   B->>I: Authorization request
   I-->>B: 302 /auth/oidc/callback?code&state
   B->>N: GET /auth/oidc/callback
@@ -79,7 +79,7 @@ sequenceDiagram
   N-->>B: NAS token and user
 ```
 
-- The state cookie is `Secure`, `HttpOnly`, `SameSite=Lax`, has the `__Host-` prefix, and expires after 10 minutes.
+- The state cookie is `Secure`, `HttpOnly`, `SameSite=Lax`, has the `__Host-` prefix, and expires after 10 minutes. Its name ends with the state, so each sign-in has its own cookie and two tabs can sign in at the same time. When a browser has 5 unfinished sign-ins, the next sign-in removes their cookies.
 - The NAS token is never part of an address. The front end reads it one time with `POST /auth/oidc/session`.
 - A failed sign-in ends on `/oidcLogin?error=<code>`. The codes are `denied` (no NAS group), `failed` (the response could not be verified), `unavailable` (the issuer did not answer), and `conflict` (see below).
 

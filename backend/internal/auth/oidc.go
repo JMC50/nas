@@ -4,10 +4,10 @@ import (
 	"context"
 	"crypto/subtle"
 	"database/sql"
+	"encoding/hex"
 	"log/slog"
 	"net/http"
 	"net/url"
-	"slices"
 	"strings"
 	"sync"
 	"time"
@@ -28,11 +28,13 @@ const (
 	oidcResultPath    = "/oidcLogin"
 	oidcSignedOutPath = "/localLogin?signedout=1"
 
-	oidcLoginCookie   = "__Host-nas_oidc_login"
+	// 뒤에 state가 붙음. 로그인 시도마다 이름이 달라서 탭 여러 개가 동시에 로그인해도 서로 덮어쓰지 않음
+	oidcLoginCookie   = "__Host-nas_oidc_login_"
 	oidcSessionCookie = "__Host-nas_oidc_session"
 	oidcLoginTTL      = 10 * time.Minute
 	oidcSessionTTL    = time.Minute
 	oidcHTTPTimeout   = 10 * time.Second
+	oidcLoginLimit    = 5
 
 	oidcFailed      = "failed"
 	oidcDenied      = "denied"
@@ -94,7 +96,7 @@ func (h *OIDCHandlers) discover() (*oidcIssuer, error) {
 	return h.issuer, nil
 }
 
-// Login은 인가 코드 흐름을 시작합니다. state, nonce, PKCE verifier는 콜백까지 이 브라우저의 쿠키에 둡니다.
+// Login은 인가 코드 흐름을 시작합니다. nonce와 PKCE verifier는 콜백까지 이 브라우저의 쿠키에 두고, 쿠키 이름에 state를 넣습니다.
 func (h *OIDCHandlers) Login(w http.ResponseWriter, r *http.Request) {
 	issuer, err := h.discover()
 	if err != nil {
@@ -108,7 +110,8 @@ func (h *OIDCHandlers) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	verifier := oauth2.GenerateVerifier()
-	setOIDCCookie(w, oidcLoginCookie, strings.Join([]string{state, nonce, verifier}, "."), oidcLoginTTL)
+	dropUnfinishedLogins(w, r)
+	setOIDCCookie(w, oidcLoginCookie+state, nonce+"."+verifier, oidcLoginTTL)
 
 	options := []oauth2.AuthCodeOption{oidc.Nonce(nonce), oauth2.S256ChallengeOption(verifier)}
 	if hint := h.Config.OIDC.IDPHint; hint != "" {
@@ -118,30 +121,54 @@ func (h *OIDCHandlers) Login(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, issuer.oauth.AuthCodeURL(state, options...), http.StatusFound)
 }
 
+// 끝내지 않은 로그인의 쿠키가 쌓여 Cookie 헤더가 커지지 않게, 한도에 닿으면 먼저 시작한 것들을 버림
+func dropUnfinishedLogins(w http.ResponseWriter, r *http.Request) {
+	var names []string
+	for _, cookie := range r.Cookies() {
+		if strings.HasPrefix(cookie.Name, oidcLoginCookie) {
+			names = append(names, cookie.Name)
+		}
+	}
+	if len(names) < oidcLoginLimit {
+		return
+	}
+	for _, name := range names {
+		clearOIDCCookie(w, name)
+	}
+}
+
 type oidcPending struct {
-	state    string
+	cookie   string
 	nonce    string
 	verifier string
 }
 
+// 콜백의 state와 같은 이름의 쿠키가 이 브라우저에 있어야 통과함. 다른 브라우저에서 시작한 로그인은 여기서 걸림
 func readPending(r *http.Request) (oidcPending, bool) {
-	cookie, err := r.Cookie(oidcLoginCookie)
+	state := r.URL.Query().Get("state")
+	// 요청이 준 값을 쿠키 이름에 넣기 전에 Login이 만든 모양인지 확인함
+	if raw, err := hex.DecodeString(state); err != nil || len(raw) != nonceBytes {
+		return oidcPending{}, false
+	}
+	cookie, err := r.Cookie(oidcLoginCookie + state)
 	if err != nil {
 		return oidcPending{}, false
 	}
-	parts := strings.Split(cookie.Value, ".")
-	if len(parts) != 3 || slices.Contains(parts, "") {
+	nonce, verifier, found := strings.Cut(cookie.Value, ".")
+	if !found || nonce == "" || verifier == "" {
 		return oidcPending{}, false
 	}
-	return oidcPending{state: parts[0], nonce: parts[1], verifier: parts[2]}, true
+	return oidcPending{cookie: cookie.Name, nonce: nonce, verifier: verifier}, true
 }
 
 // Callback은 흐름을 끝냅니다. NAS 토큰은 주소에 싣지 않고 수명이 짧은 쿠키로 프런트엔드에 넘깁니다.
 func (h *OIDCHandlers) Callback(w http.ResponseWriter, r *http.Request) {
 	pending, bound := readPending(r)
-	clearOIDCCookie(w, oidcLoginCookie)
+	if bound {
+		clearOIDCCookie(w, pending.cookie)
+	}
 	query := r.URL.Query()
-	if problem := callbackProblem(query, pending, bound); problem != "" {
+	if problem := callbackProblem(query, bound); problem != "" {
 		finishOIDC(w, r, problem)
 		return
 	}
@@ -152,9 +179,9 @@ func (h *OIDCHandlers) Callback(w http.ResponseWriter, r *http.Request) {
 	finishOIDC(w, r, problem)
 }
 
-func callbackProblem(query url.Values, pending oidcPending, bound bool) string {
+func callbackProblem(query url.Values, bound bool) string {
 	switch {
-	case !bound || !sameText(query.Get("state"), pending.state):
+	case !bound:
 		return oidcFailed
 	case query.Get("error") == "access_denied":
 		return oidcDenied

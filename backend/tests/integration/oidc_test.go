@@ -41,9 +41,51 @@ func TestOIDCLogin_SendsCodeFlowWithPKCEStateAndNonce(t *testing.T) {
 	require.NotEqual(t, query.Get("state"), other.Query().Get("state"))
 	require.NotEqual(t, query.Get("code_challenge"), other.Query().Get("code_challenge"))
 
+	require.Equal(t, oidcLoginCookie+query.Get("state"), cookie.Name)
 	parts := strings.Split(cookie.Value, ".")
-	require.Len(t, parts, 3)
-	require.Equal(t, query.Get("state"), parts[0])
+	require.Len(t, parts, 2)
+	require.Equal(t, query.Get("nonce"), parts[0])
+}
+
+func TestOIDCLogin_TwoTabsCanSignInAtTheSameTime(t *testing.T) {
+	f := newOIDCFixture(t, newFakeIssuer(t, true))
+	firstURL, firstCookie := f.start()
+	secondURL, secondCookie := f.start(firstCookie)
+	require.NotEqual(t, firstCookie.Name, secondCookie.Name)
+
+	grant := func(authURL *url.URL) string {
+		return f.issuer.grant(authURL, f.issuer.sign(f.issuer.idClaims(authURL, "sub-tabs", []string{"nas_member"})))
+	}
+	second := f.callback(grant(secondURL), secondURL.Query().Get("state"), firstCookie, secondCookie)
+	require.Equal(t, "/oidcLogin", second.Header().Get("Location"))
+	require.Negative(t, setCookie(second, secondCookie.Name).MaxAge)
+	require.Nil(t, setCookie(second, firstCookie.Name), "the other login keeps its cookie")
+
+	first := f.callback(grant(firstURL), firstURL.Query().Get("state"), firstCookie)
+	require.Equal(t, "/oidcLogin", first.Header().Get("Location"))
+	require.NotNil(t, setCookie(first, oidcTokenCookie))
+	require.Equal(t, 1, f.userCount())
+}
+
+func TestOIDCLogin_DropsOldUnfinishedLoginsAtTheLimit(t *testing.T) {
+	f := newOIDCFixture(t, newFakeIssuer(t, true))
+	var pending []*http.Cookie
+	for range 4 {
+		_, cookie := f.start(pending...)
+		pending = append(pending, cookie)
+	}
+	_, fifth := f.start(pending...)
+	require.NotNil(t, fifth)
+
+	pending = append(pending, fifth)
+	w := f.request("GET", "/auth/oidc/login", "", pending...)
+	require.Equal(t, http.StatusFound, w.Code)
+	for _, old := range pending {
+		require.Negative(t, setCookie(w, old.Name).MaxAge, old.Name)
+	}
+	authURL, err := url.Parse(w.Header().Get("Location"))
+	require.NoError(t, err)
+	require.Equal(t, 600, setCookie(w, oidcLoginCookie+authURL.Query().Get("state")).MaxAge)
 }
 
 func TestOIDCCookies_AreSecureHttpOnlyAndShortLived(t *testing.T) {
@@ -70,7 +112,7 @@ func TestOIDCCallback_CreatesMemberAndHandsOverToken(t *testing.T) {
 	require.Equal(t, http.StatusFound, w.Code)
 	require.Equal(t, "/oidcLogin", w.Header().Get("Location"))
 	require.NotContains(t, w.Header().Get("Location"), "token")
-	cleared := setCookie(w, oidcLoginCookie)
+	cleared := loginCookie(w)
 	require.NotNil(t, cleared)
 	require.Negative(t, cleared.MaxAge)
 	handoff := setCookie(w, oidcTokenCookie)
@@ -189,7 +231,7 @@ func TestOIDCCallback_RejectsStateMismatchAndMissingCookie(t *testing.T) {
 		"empty state":           f.callback(code, "", cookie),
 		"no cookie":             f.callback(code, state),
 		"cookie of other login": f.callback(code, state, otherCookie),
-		"malformed cookie":      f.callback(code, state, &http.Cookie{Name: oidcLoginCookie, Value: state}),
+		"malformed cookie":      f.callback(code, state, &http.Cookie{Name: oidcLoginCookie + state, Value: state}),
 	} {
 		require.Equal(t, http.StatusFound, w.Code, name)
 		require.Equal(t, "/oidcLogin?error=failed", w.Header().Get("Location"), name)
@@ -204,7 +246,7 @@ func TestOIDCCallback_RejectsWrongPKCEVerifier(t *testing.T) {
 	authURL, cookie := f.start()
 	code := f.issuer.grant(authURL, f.issuer.sign(f.issuer.idClaims(authURL, "sub-pkce", []string{"nas_member"})))
 	parts := strings.Split(cookie.Value, ".")
-	tampered := &http.Cookie{Name: oidcLoginCookie, Value: parts[0] + "." + parts[1] + ".another-verifier-another-verifier-another-ver"}
+	tampered := &http.Cookie{Name: cookie.Name, Value: parts[0] + ".another-verifier-another-verifier-another-ver"}
 
 	w := f.callback(code, authURL.Query().Get("state"), tampered)
 	require.Equal(t, "/oidcLogin?error=failed", w.Header().Get("Location"))
@@ -322,7 +364,7 @@ func TestOIDC_RedirectTargetsCannotBeChangedByTheRequest(t *testing.T) {
 	require.Equal(t, []string{oidcRedirectURI}, authURL.Query()["redirect_uri"])
 	require.NotContains(t, w.Header().Get("Location"), "evil.example")
 
-	cookie := setCookie(w, oidcLoginCookie)
+	cookie := loginCookie(w)
 	code := f.issuer.grant(authURL, f.issuer.sign(f.issuer.idClaims(authURL, "sub-redirect", []string{"nas_member"})))
 	target := "/auth/oidc/callback?code=" + code + "&state=" + url.QueryEscape(authURL.Query().Get("state")) + "&" + hostile
 	done := f.request("GET", target, "", cookie)
@@ -339,7 +381,7 @@ func TestOIDCLogin_ReportsUnreachableIssuer(t *testing.T) {
 	w := f.request("GET", "/auth/oidc/login", "")
 	require.Equal(t, http.StatusFound, w.Code)
 	require.Equal(t, "/oidcLogin?error=unavailable", w.Header().Get("Location"))
-	require.Nil(t, setCookie(w, oidcLoginCookie))
+	require.Nil(t, loginCookie(w))
 	require.Equal(t, http.StatusServiceUnavailable, f.backchannel(issuer.sign(issuer.logoutClaims("sub-any"))).Code)
 }
 
@@ -573,5 +615,5 @@ func TestOIDC_WorksWithIssuerNameThatEndsWithSlash(t *testing.T) {
 	mismatched := newOIDCFixture(t, issuer, func(oidc *config.OIDCConfig) { oidc.Issuer = issuer.url() })
 	w := mismatched.request("GET", "/auth/oidc/login", "")
 	require.Equal(t, "/oidcLogin?error=unavailable", w.Header().Get("Location"))
-	require.Nil(t, setCookie(w, oidcLoginCookie))
+	require.Nil(t, loginCookie(w))
 }

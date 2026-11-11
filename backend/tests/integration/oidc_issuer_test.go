@@ -31,7 +31,7 @@ const (
 	oidcClientID     = "nas"
 	oidcClientSecret = "issuer-test-secret"
 	oidcRedirectURI  = "https://nas.example/auth/oidc/callback"
-	oidcLoginCookie  = "__Host-nas_oidc_login"
+	oidcLoginCookie  = "__Host-nas_oidc_login_"
 	oidcTokenCookie  = "__Host-nas_oidc_session"
 	logoutEvent      = "http://schemas.openid.net/event/backchannel-logout"
 )
@@ -313,14 +313,24 @@ func setCookie(w *httptest.ResponseRecorder, name string) *http.Cookie {
 	return nil
 }
 
+// 로그인 쿠키는 이름 끝에 state가 붙어서 앞부분으로 찾음
+func loginCookie(w *httptest.ResponseRecorder) *http.Cookie {
+	for _, cookie := range w.Result().Cookies() {
+		if strings.HasPrefix(cookie.Name, oidcLoginCookie) {
+			return cookie
+		}
+	}
+	return nil
+}
+
 // 로그인 시작 경로를 부르고, 발급자로 가는 주소와 브라우저가 받은 쿠키를 돌려줌
-func (f *oidcFixture) start() (*url.URL, *http.Cookie) {
+func (f *oidcFixture) start(cookies ...*http.Cookie) (*url.URL, *http.Cookie) {
 	f.t.Helper()
-	w := f.request("GET", "/auth/oidc/login", "")
+	w := f.request("GET", "/auth/oidc/login", "", cookies...)
 	require.Equal(f.t, http.StatusFound, w.Code, w.Body.String())
 	authURL, err := url.Parse(w.Header().Get("Location"))
 	require.NoError(f.t, err)
-	cookie := setCookie(w, oidcLoginCookie)
+	cookie := setCookie(w, oidcLoginCookie+authURL.Query().Get("state"))
 	require.NotNil(f.t, cookie)
 	return authURL, cookie
 }

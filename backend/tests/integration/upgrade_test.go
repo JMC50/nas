@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -76,7 +77,7 @@ CREATE INDEX IF NOT EXISTS idx_share_links_user ON share_links(user_id);
 `
 
 // v0.6.0이 쓰던 데이터베이스를 만든 뒤, 새 서버가 시작할 때 하는 순서대로 올림
-func upgradedV060Server(t *testing.T, authType config.AuthType) (http.Handler, *sql.DB) {
+func upgradedV060Server(t *testing.T, authType config.AuthType, adjust ...func(*config.Config)) (http.Handler, *sql.DB) {
 	t.Helper()
 	conn, err := db.Open(filepath.Join(t.TempDir(), "nas.sqlite"))
 	require.NoError(t, err)
@@ -106,6 +107,9 @@ func upgradedV060Server(t *testing.T, authType config.AuthType) (http.Handler, *
 		AuthType:             authType,
 		NASDataDir:           t.TempDir(),
 		PasswordRequirements: config.PasswordRequirements{MinLength: 4},
+	}
+	for _, change := range adjust {
+		change(cfg)
 	}
 	return server.NewRouter(cfg, conn), conn
 }
@@ -261,20 +265,40 @@ func TestLegacyModes_KeepTheAdminPasswordRoute(t *testing.T) {
 	}
 }
 
+var oidcRoutes = [][2]string{
+	{"GET", "/auth/oidc/login"},
+	{"GET", "/auth/oidc/callback?code=x&state=y"},
+	{"POST", "/auth/oidc/session"},
+	{"GET", "/auth/oidc/logout"},
+	{"POST", "/auth/oidc/backchannel"},
+}
+
 func TestLegacyModes_HaveNoOIDCRoutes(t *testing.T) {
 	for _, authType := range []config.AuthType{config.AuthTypeBoth, config.AuthTypeLocal, config.AuthTypeOAuth} {
 		router, _ := upgradedV060Server(t, authType)
-		for _, route := range [][2]string{
-			{"GET", "/auth/oidc/login"},
-			{"GET", "/auth/oidc/callback?code=x&state=y"},
-			{"POST", "/auth/oidc/session"},
-			{"GET", "/auth/oidc/logout"},
-			{"POST", "/auth/oidc/backchannel"},
-		} {
+		for _, route := range oidcRoutes {
 			w := httptest.NewRecorder()
 			router.ServeHTTP(w, httptest.NewRequest(route[0], route[1], nil))
 			require.Equal(t, http.StatusNotFound, w.Code, string(authType)+" "+route[1])
 			require.Empty(t, w.Header().Values("Set-Cookie"))
+		}
+	}
+}
+
+// Docker 이미지처럼 FRONTEND_DIR이 있으면 모르는 주소는 404 대신 프런트엔드의 index.html이 됨
+func TestLegacyModes_OIDCAddressesFallBackToTheFrontEnd(t *testing.T) {
+	frontend := t.TempDir()
+	require.NoError(t, os.WriteFile(filepath.Join(frontend, "index.html"), []byte("<!doctype html><title>NAS page</title>"), 0o644))
+	for _, authType := range []config.AuthType{config.AuthTypeBoth, config.AuthTypeLocal, config.AuthTypeOAuth} {
+		router, _ := upgradedV060Server(t, authType, func(cfg *config.Config) { cfg.FrontendDir = frontend })
+		for _, route := range oidcRoutes {
+			for _, prefix := range []string{"", "/server"} {
+				w := httptest.NewRecorder()
+				router.ServeHTTP(w, httptest.NewRequest(route[0], prefix+route[1], nil))
+				require.Equal(t, http.StatusOK, w.Code, string(authType)+" "+route[0]+" "+prefix+route[1])
+				require.Contains(t, w.Body.String(), "<title>NAS page</title>")
+				require.Empty(t, w.Header().Values("Set-Cookie"))
+			}
 		}
 	}
 }

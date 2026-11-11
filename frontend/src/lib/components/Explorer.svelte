@@ -621,7 +621,8 @@
     onDropToSegment={(event, index) => onDropOnLoc(event, loc.slice(0, index + 1))}
   />
 
-  <div class="h-10 flex items-center gap-2 px-gutter border-b border-border-default bg-bg-base">
+  <!-- 가로로 든 휴대폰처럼 낮은 화면에서는 경로 줄과 겹치는 이 줄을 빼고 목록에 높이를 줌 -->
+  <div class="h-10 flex [@media(max-height:500px)]:hidden items-center gap-2 px-gutter border-b border-border-default bg-bg-base">
     <Folder size="16" class="text-fg-secondary shrink-0" />
     <h2 class="text-sm font-semibold text-fg-primary truncate min-w-0">{folderName}</h2>
     <span class="ml-auto shrink-0 text-xs text-fg-muted tabular-nums">

@@ -2,6 +2,7 @@ package config
 
 import (
 	"bytes"
+	"fmt"
 	"log/slog"
 	"os"
 	"path/filepath"
@@ -153,6 +154,87 @@ func TestLoadFromEnv_OIDCSettingsAreIgnoredOutsideOIDCMode(t *testing.T) {
 		t.Setenv("OIDC_SCOPES", "profile")
 		_, err := LoadFromEnv()
 		require.NoError(t, err, authType)
+	}
+}
+
+func captureLog(t *testing.T) *bytes.Buffer {
+	t.Helper()
+	var buf bytes.Buffer
+	previous := slog.Default()
+	slog.SetDefault(slog.New(slog.NewTextHandler(&buf, nil)))
+	t.Cleanup(func() { slog.SetDefault(previous) })
+	return &buf
+}
+
+func TestLoadFromEnv_KnownModesStartWithoutWarning(t *testing.T) {
+	for _, authType := range []string{"local", "oauth", "both", "oidc"} {
+		for _, oidcSettings := range []bool{false, true} {
+			if authType == "oidc" && !oidcSettings {
+				continue
+			}
+			t.Run(fmt.Sprintf("%s/OIDC settings %t", authType, oidcSettings), func(t *testing.T) {
+				if oidcSettings {
+					setOIDCEnv(t)
+				}
+				t.Setenv("AUTH_TYPE", authType)
+				logs := captureLog(t)
+				cfg, err := LoadFromEnv()
+				require.NoError(t, err)
+				require.Equal(t, AuthType(authType), cfg.AuthType)
+				require.NotContains(t, logs.String(), "AUTH_TYPE")
+			})
+		}
+	}
+}
+
+func TestLoadFromEnv_RefusesValueMeantAsOIDC(t *testing.T) {
+	values := []string{" oidc", "oidc ", "\toidc\n", "OIDC", "Oidc", `"oidc"`, `'oidc'`, "oidc                # both | local | oauth | oidc"}
+	for _, value := range values {
+		for _, oidcSettings := range []bool{false, true} {
+			t.Run(fmt.Sprintf("%q/OIDC settings %t", value, oidcSettings), func(t *testing.T) {
+				if oidcSettings {
+					setOIDCEnv(t)
+				}
+				t.Setenv("AUTH_TYPE", value)
+				_, err := LoadFromEnv()
+				require.ErrorContains(t, err, "must be exactly oidc")
+				require.NotContains(t, err.Error(), "client-secret")
+			})
+		}
+	}
+}
+
+func TestLoadFromEnv_RefusesUnknownModeWithOIDCSettings(t *testing.T) {
+	for _, value := range []string{"", "sso", "openid", "Both", "both                # both | local | oauth | oidc"} {
+		t.Run(fmt.Sprintf("%q", value), func(t *testing.T) {
+			setOIDCEnv(t)
+			t.Setenv("AUTH_TYPE", value)
+			_, err := LoadFromEnv()
+			require.ErrorContains(t, err, "OIDC_* settings are present")
+			require.NotContains(t, err.Error(), "client-secret")
+		})
+	}
+	t.Run("only the client secret file", func(t *testing.T) {
+		path := filepath.Join(t.TempDir(), "secret")
+		require.NoError(t, os.WriteFile(path, []byte("secret-from-file\n"), 0o600))
+		t.Setenv("OIDC_CLIENT_SECRET_FILE", path)
+		t.Setenv("AUTH_TYPE", "sso")
+		_, err := LoadFromEnv()
+		require.ErrorContains(t, err, "OIDC_* settings are present")
+	})
+}
+
+// v0.6.0과 같이 시작하고 경고만 남김
+func TestLoadFromEnv_UnknownModeWithoutOIDCSettingsStartsWithWarning(t *testing.T) {
+	for _, value := range []string{"", "sso", "Both", "both                # both | local | oauth | oidc"} {
+		t.Run(fmt.Sprintf("%q", value), func(t *testing.T) {
+			t.Setenv("AUTH_TYPE", value)
+			logs := captureLog(t)
+			cfg, err := LoadFromEnv()
+			require.NoError(t, err)
+			require.Equal(t, AuthType(value), cfg.AuthType)
+			require.Contains(t, logs.String(), "AUTH_TYPE is not one of local, oauth, both, oidc")
+		})
 	}
 }
 

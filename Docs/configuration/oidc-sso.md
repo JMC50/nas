@@ -28,6 +28,13 @@ The other modes (`local`, `oauth`, `both`) do not use any setting on this page. 
 
 When `AUTH_TYPE=oidc` and a required value is missing, the server does not start. The error message names the missing variables, for example `AUTH_TYPE=oidc requires OIDC_CLIENT_SECRET, OIDC_REDIRECT_URI`. The message never contains a value.
 
+Write `AUTH_TYPE=oidc` in lower case, with nothing before or after the value. `docker run --env-file` keeps quotes, trailing spaces, and a `# comment` as part of the value. The server also does not start in these two cases:
+
+- `AUTH_TYPE` becomes `oidc` only after spaces, quotes, and a comment are removed and the letters are changed to lower case, for example `OIDC` or `oidc   # comment`.
+- `AUTH_TYPE` is not `local`, `oauth`, `both`, or `oidc`, and one of `OIDC_ISSUER`, `OIDC_CLIENT_ID`, `OIDC_CLIENT_SECRET`, `OIDC_REDIRECT_URI` is set.
+
+Any other unknown `AUTH_TYPE` value starts the server as in v0.6.0, and the log shows the warning `AUTH_TYPE is not one of local, oauth, both, oidc`.
+
 With Docker Compose, put these variables in `.env`. The `env_file` entry of `docker-compose.yml` passes them to the container.
 
 ```env

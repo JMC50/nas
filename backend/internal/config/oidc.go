@@ -58,15 +58,22 @@ func (o OIDCConfig) problems() []string {
 	return problems
 }
 
-func (o OIDCConfig) missing() []string {
-	required := [][2]string{
+func (o OIDCConfig) required() [][2]string {
+	return [][2]string{
 		{"OIDC_ISSUER", o.Issuer},
 		{"OIDC_CLIENT_ID", o.ClientID},
 		{"OIDC_CLIENT_SECRET", o.ClientSecret},
 		{"OIDC_REDIRECT_URI", o.RedirectURI},
 	}
+}
+
+func (o OIDCConfig) configured() bool {
+	return len(o.missing()) < len(o.required())
+}
+
+func (o OIDCConfig) missing() []string {
 	var missing []string
-	for _, setting := range required {
+	for _, setting := range o.required() {
 		if setting[1] == "" {
 			missing = append(missing, setting[0])
 		}

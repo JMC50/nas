@@ -123,6 +123,7 @@ func LoadFromEnv() (*Config, error) {
 	if err := c.validate(); err != nil {
 		return nil, err
 	}
+	c.warnUnknownAuthType()
 	c.auditPaths()
 	return c, nil
 }
@@ -136,6 +137,9 @@ func (c *Config) validate() error {
 		if c.AdminPassword == "" {
 			errs = append(errs, "ADMIN_PASSWORD required in production")
 		}
+	}
+	if problem := c.authTypeProblem(); problem != "" {
+		errs = append(errs, problem)
 	}
 	if c.AuthType == AuthTypeOIDC {
 		errs = append(errs, c.OIDC.problems()...)

@@ -464,6 +464,7 @@ func TestOIDCBackchannel_RejectsForgedAndMalformedLogoutTokens(t *testing.T) {
 		"old iat":                       change("iat", time.Now().Add(-10*time.Minute).Unix()),
 		"future iat":                    change("iat", time.Now().Add(5*time.Minute).Unix()),
 		"no sub":                        change("sub", nil),
+		"larger than 8 KiB":             change("padding", strings.Repeat("x", 8<<10)),
 		"id_token of the user":          f.issuer.sign(f.issuer.idClaims(authURL, "sub-victim", []string{"nas_member"})),
 		"empty":                         "",
 		"not a token":                   "abc.def.ghi",

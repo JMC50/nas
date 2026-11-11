@@ -16,7 +16,8 @@ import (
 const (
 	logoutTokenMaxAge = 5 * time.Minute
 	logoutClockSkew   = 30 * time.Second
-	logoutFormLimit   = 64 << 10
+	// go-jose가 4096비트보다 큰 RSA 키를 받지 않아서 서명은 683자를 넘지 않음. 그 키로 서명한 logout_token이 1.3 KiB쯤임
+	logoutFormLimit = 8 << 10
 )
 
 // BackchannelLogout은 발급자가 보낸 logout_token을 확인하고, 그 사용자가 이미 받은 NAS 토큰을 모두 무효로 만듭니다.

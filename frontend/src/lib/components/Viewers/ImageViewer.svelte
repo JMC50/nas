@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { tick } from "svelte";
   import { auth } from "$lib/store/auth.svelte";
   import ZoomIn from "lucide-svelte/icons/zoom-in";
   import ZoomOut from "lucide-svelte/icons/zoom-out";
@@ -13,6 +14,7 @@
 
   let zoom = $state(1);
   let natural = $state<{ width: number; height: number } | null>(null);
+  let animate = $state(false);
   let viewport: HTMLDivElement | undefined = $state();
 
   const imageUrl = $derived(
@@ -32,10 +34,14 @@
   function zoomReset() {
     zoom = fitZoom();
   }
-  function onLoad(event: Event) {
+  async function onLoad(event: Event) {
     const image = event.currentTarget as HTMLImageElement;
     natural = image.naturalWidth > 0 ? { width: image.naturalWidth, height: image.naturalHeight } : null;
     zoom = fitZoom();
+    // 첫 배율은 움직임 없이 적용하려고 스타일을 한 번 계산시킨 뒤 전환을 켬
+    await tick();
+    void getComputedStyle(image).transform;
+    animate = true;
   }
 </script>
 
@@ -76,7 +82,7 @@
         alt={name}
         onload={onLoad}
         style="transform: scale({zoom}); transform-origin: 0 0;"
-        class="max-w-none transition-transform duration-100 ease-snap"
+        class="max-w-none {animate ? 'transition-transform duration-100 ease-snap' : ''}"
       />
     </div>
   </div>

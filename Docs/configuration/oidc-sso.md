@@ -144,6 +144,8 @@ Existing users keep their account, permissions, and files when the NAS knows whi
    104987654321098765432,7d1a3c5e9f2b4d6a8c0e
    ```
 
+   The command ignores a UTF-8 BOM at the start of the file (Excel writes one) and spaces around each value.
+
    For `--from google` the old ID is the Google subject. For `--from discord` it is the Discord user ID. For `--from local` it is the local user ID. Some issuers that sign users in through Google keep the Google subject of each user, for example as a federation ID in their user API. That value is the old ID.
 5. Run the command with `--dry-run`. It prints one line for each CSV line and writes nothing.
 

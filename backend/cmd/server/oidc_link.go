@@ -1,6 +1,8 @@
 package main
 
 import (
+	"bufio"
+	"bytes"
 	"database/sql"
 	"encoding/csv"
 	"errors"
@@ -9,6 +11,7 @@ import (
 	"io"
 	"os"
 	"slices"
+	"strings"
 
 	"github.com/JMC50/nas/internal/auth"
 	"github.com/JMC50/nas/internal/db"
@@ -28,7 +31,10 @@ Lines that start with # are ignored. The command can run again with the same fil
   --dry-run  report what would change and write nothing
 `
 
-var linkSources = []string{"google", "discord", "local"}
+var (
+	linkSources = []string{"google", "discord", "local"}
+	utf8BOM     = []byte{0xEF, 0xBB, 0xBF}
+)
 
 // runOIDCLink는 종료 코드를 돌려줍니다. 0은 정상, 1은 충돌이나 실행 오류, 2는 잘못된 인자입니다.
 func runOIDCLink(args []string) int {
@@ -77,11 +83,20 @@ func linkFromFile(dbPath, mapPath, from string, dryRun bool) (map[auth.LinkStatu
 	}
 	defer conn.Close()
 
-	reader := csv.NewReader(file)
+	reader := csv.NewReader(withoutBOM(file))
 	reader.Comment = '#'
 	reader.FieldsPerRecord = 2
 	reader.TrimLeadingSpace = true
 	return linkRecords(conn, reader, from, dryRun)
+}
+
+// 엑셀의 "CSV UTF-8" 저장은 맨 앞에 BOM을 붙임. 그대로 두면 첫 값에 BOM이 붙고 첫 줄의 #도 주석으로 읽히지 않음
+func withoutBOM(file io.Reader) io.Reader {
+	buffered := bufio.NewReader(file)
+	if start, err := buffered.Peek(len(utf8BOM)); err == nil && bytes.Equal(start, utf8BOM) {
+		buffered.Discard(len(utf8BOM))
+	}
+	return buffered
 }
 
 func linkRecords(conn *sql.DB, reader *csv.Reader, from string, dryRun bool) (map[auth.LinkStatus]int, error) {
@@ -95,10 +110,11 @@ func linkRecords(conn *sql.DB, reader *csv.Reader, from string, dryRun bool) (ma
 			return nil, err
 		}
 		line, _ := reader.FieldPos(0)
-		if record[0] == "" || record[1] == "" {
+		oldID, subject := strings.TrimSpace(record[0]), strings.TrimSpace(record[1])
+		if oldID == "" || subject == "" {
 			return nil, fmt.Errorf("line %d: both values are required", line)
 		}
-		result, err := auth.LinkOIDCIdentity(conn, from, record[0], record[1], dryRun)
+		result, err := auth.LinkOIDCIdentity(conn, from, oldID, subject, dryRun)
 		if err != nil {
 			return nil, fmt.Errorf("line %d: %w", line, err)
 		}

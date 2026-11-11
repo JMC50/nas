@@ -59,6 +59,19 @@ func TestOIDCLink_DryRunThenRealRunThenRepeat(t *testing.T) {
 	require.Equal(t, []string{"sub-1", "sub-2"}, linkedSubjects(t, dbPath))
 }
 
+func TestOIDCLink_IgnoresBOMAndSpaceAroundValues(t *testing.T) {
+	for name, csvText := range map[string]string{
+		"BOM before a comment": "\xEF\xBB\xBF# old google id, new sub\r\ngoogle-1 , sub-1 \r\n\tgoogle-2\t,\tsub-2\t\r\n",
+		"BOM before a value":   "\xEF\xBB\xBFgoogle-1,sub-1\ngoogle-2,sub-2 \n",
+	} {
+		t.Run(name, func(t *testing.T) {
+			dbPath, mapPath := linkFixture(t, csvText)
+			require.Equal(t, 0, runOIDCLink([]string{"--db", dbPath, "--map", mapPath}))
+			require.Equal(t, []string{"sub-1", "sub-2"}, linkedSubjects(t, dbPath))
+		})
+	}
+}
+
 func TestOIDCLink_ConflictGivesExitCodeOne(t *testing.T) {
 	dbPath, mapPath := linkFixture(t, "google-1,sub-1\ngoogle-2,sub-1\n")
 	require.Equal(t, 1, runOIDCLink([]string{"--db", dbPath, "--map", mapPath}))
@@ -87,5 +100,7 @@ func TestOIDCLink_RefusesBadInput(t *testing.T) {
 	require.Equal(t, 1, runOIDCLink([]string{"--db", dbPath, "--map", malformed}))
 	_, blank := linkFixture(t, "google-1,\n")
 	require.Equal(t, 1, runOIDCLink([]string{"--db", dbPath, "--map", blank}))
+	_, spaces := linkFixture(t, "google-1,   \n")
+	require.Equal(t, 1, runOIDCLink([]string{"--db", dbPath, "--map", spaces}))
 	require.Empty(t, linkedSubjects(t, dbPath))
 }

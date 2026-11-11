@@ -281,6 +281,30 @@ func TestLoadFromEnv_OIDCRejectsInvalidValues(t *testing.T) {
 	}
 }
 
+func TestLoadFromEnv_OIDCIssuerNeedsHTTPSOutsideLoopback(t *testing.T) {
+	for issuer, allowed := range map[string]bool{
+		"https://login.example/auth/v1": true,
+		"http://login.example/auth/v1":  false,
+		"http://10.0.0.5:8080/auth/v1":  false,
+		"http://localhost.example/":     false,
+		"http://localhost:8080/auth/v1": true,
+		"http://LOCALHOST:8080/":        true,
+		"http://127.0.0.1:5556/dex":     true,
+		"http://[::1]:5556/dex":         true,
+	} {
+		t.Run(issuer, func(t *testing.T) {
+			setOIDCEnv(t)
+			t.Setenv("OIDC_ISSUER", issuer)
+			_, err := LoadFromEnv()
+			if allowed {
+				require.NoError(t, err)
+			} else {
+				require.ErrorContains(t, err, "OIDC_ISSUER must use https, except on a loopback host")
+			}
+		})
+	}
+}
+
 func TestLoadFromEnv_OIDCClientSecretFromFile(t *testing.T) {
 	setOIDCEnv(t)
 	t.Setenv("OIDC_CLIENT_SECRET", "")

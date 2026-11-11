@@ -15,7 +15,7 @@ The other modes (`local`, `oauth`, `both`) do not use any setting on this page. 
 | Variable | Required | Default | Description |
 |----------|----------|---------|-------------|
 | `AUTH_TYPE` | Yes | `both` | Set to `oidc` |
-| `OIDC_ISSUER` | Yes | | Issuer URL. It must be equal to the `issuer` value in the discovery document, character for character. Keep or remove the trailing `/` as the issuer does |
+| `OIDC_ISSUER` | Yes | | Issuer URL. It must be equal to the `issuer` value in the discovery document, character for character. Keep or remove the trailing `/` as the issuer does. It must use `https`. Plain `http` is accepted only for `localhost` and loopback addresses such as `127.0.0.1` |
 | `OIDC_CLIENT_ID` | Yes | | Client ID of the NAS at the issuer |
 | `OIDC_CLIENT_SECRET` | Yes | | Client secret. `OIDC_CLIENT_SECRET_FILE` can name a file that contains it |
 | `OIDC_REDIRECT_URI` | Yes | | `https://<your-nas>/auth/oidc/callback`. The NAS sends only this value as `redirect_uri` |

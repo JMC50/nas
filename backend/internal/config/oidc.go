@@ -1,6 +1,7 @@
 package config
 
 import (
+	"net"
 	"net/url"
 	"os"
 	"slices"
@@ -52,6 +53,10 @@ func (o OIDCConfig) problems() []string {
 			problems = append(problems, setting[0]+" must be an absolute http or https URL")
 		}
 	}
+	// discovery와 JWKS를 이 주소에서 받으므로 평문 http면 오가는 길에서 서명 키를 바꿔치기할 수 있음
+	if isHTTPURL(o.Issuer) && !isHTTPSOrLoopback(o.Issuer) {
+		problems = append(problems, "OIDC_ISSUER must use https, except on a loopback host")
+	}
 	if !slices.Contains(o.Scopes, "openid") {
 		problems = append(problems, "OIDC_SCOPES must include openid")
 	}
@@ -84,6 +89,19 @@ func (o OIDCConfig) missing() []string {
 func isHTTPURL(value string) bool {
 	parsed, err := url.Parse(value)
 	return err == nil && (parsed.Scheme == "http" || parsed.Scheme == "https") && parsed.Host != ""
+}
+
+func isHTTPSOrLoopback(value string) bool {
+	parsed, err := url.Parse(value)
+	if err != nil {
+		return false
+	}
+	if parsed.Scheme == "https" {
+		return true
+	}
+	host := parsed.Hostname()
+	address := net.ParseIP(host)
+	return strings.EqualFold(host, "localhost") || (address != nil && address.IsLoopback())
 }
 
 func getEnvNonEmpty(key, def string) string {
